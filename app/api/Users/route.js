@@ -1,7 +1,7 @@
 import { getAll, create, update, remove } from "@/lib/crudHelper"
 
-const table = "customers"
-const idField = "customer_id"
+const table = "users"
+const idField = "user_id"
 
 export async function GET() {
   const { data, error } = await getAll(table)
