@@ -1,18 +1,48 @@
 "use client"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import Swal from "sweetalert2"
 
 export default function ProductsCRUD() {
+  const router = useRouter()
   const [products, setProducts] = useState([])
   const [form, setForm] = useState({ product_name: "", price: "", description: "" })
   const [editId, setEditId] = useState(null)
 
+  // 🔒 Cek role admin sebelum load data
+  useEffect(() => {
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("userRole="))
+      ?.split("=")[1]
+
+    if (!roleCookie) {
+      Swal.fire({
+        icon: "warning",
+        title: "Access Denied",
+        text: "Kamu harus login dulu!",
+      }).then(() => router.push("/login?auth=required"))
+      return
+    }
+
+    if (roleCookie !== "admin") {
+      Swal.fire({
+        icon: "error",
+        title: "Akses ditolak!",
+        text: "Halaman ini hanya untuk Admin.",
+      }).then(() => router.push(`/dashboard/${roleCookie}`))
+      return
+    }
+
+    fetchProducts()
+  }, [])
+
+  // Ambil semua data produk
   const fetchProducts = async () => {
     const res = await fetch("/api/products")
     const data = await res.json()
     setProducts(data)
   }
-
-  useEffect(() => { fetchProducts() }, [])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -30,6 +60,10 @@ export default function ProductsCRUD() {
     })
 
     if (res.ok) {
+      Swal.fire({
+        icon: "success",
+        title: editId ? "Produk diperbarui!" : "Produk ditambahkan!",
+      })
       setForm({ product_name: "", price: "", description: "" })
       setEditId(null)
       fetchProducts()
@@ -46,7 +80,7 @@ export default function ProductsCRUD() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this product?")) return
+    if (!confirm("Hapus produk ini?")) return
     await fetch("/api/products", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -57,7 +91,32 @@ export default function ProductsCRUD() {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>Products CRUD</h1>
+      {/* 🔹 Header + Tombol kembali */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <h1>Products CRUD</h1>
+        <button
+          onClick={() => router.push("/dashboard/admin")}
+          style={{
+            backgroundColor: "#555",
+            color: "white",
+            border: "none",
+            padding: "8px 16px",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          ⬅ Kembali ke Dashboard
+        </button>
+      </div>
+
+      {/* 🔹 Form Tambah / Edit Produk */}
       <form onSubmit={handleSubmit} style={{ marginBottom: "1rem" }}>
         <input
           name="product_name"
@@ -83,7 +142,8 @@ export default function ProductsCRUD() {
         <button type="submit">{editId ? "Update" : "Add Product"}</button>
       </form>
 
-      <table border="1" cellPadding="8">
+      {/* 🔹 Tabel Produk */}
+      <table border="1" cellPadding="8" width="100%">
         <thead>
           <tr>
             <th>Product Name</th>
@@ -106,7 +166,9 @@ export default function ProductsCRUD() {
               </tr>
             ))
           ) : (
-            <tr><td colSpan="4">No products found</td></tr>
+            <tr>
+              <td colSpan="4">No products found</td>
+            </tr>
           )}
         </tbody>
       </table>
