@@ -12,7 +12,6 @@ export default function AdminDashboard() {
       .find(row => row.startsWith('userRole='))
       ?.split('=')[1]
 
-    // kalau belum login
     if (!roleCookie) {
       Swal.fire({
         icon: 'warning',
@@ -24,7 +23,6 @@ export default function AdminDashboard() {
       return
     }
 
-    // kalau role-nya bukan admin
     if (roleCookie !== 'admin') {
       Swal.fire({
         icon: 'error',
@@ -54,7 +52,37 @@ export default function AdminDashboard() {
     <div style={{ textAlign: 'center', marginTop: '5rem' }}>
       <h1>Admin Dashboard</h1>
       <p>Selamat datang di halaman Admin!</p>
-      <button onClick={handleLogout}>Logout</button>
+
+      <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+        <button
+          onClick={() => router.push('/dashboard/admin/products')}
+          style={{
+            backgroundColor: '#0070f3',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          🛍 Kelola Produk
+        </button>
+
+        <button
+          onClick={handleLogout}
+          style={{
+            backgroundColor: '#f31260',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          🚪 Logout
+        </button>
+      </div>
     </div>
   )
 }
