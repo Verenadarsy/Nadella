@@ -1,15 +1,16 @@
+// file: app/login/page.js (atau path login-mu saat ini)
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import bcrypt from 'bcryptjs'
 import Swal from 'sweetalert2'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
 
-  // ⛔ muncul popup kalau datang dari halaman yang butuh login
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('auth') === 'required') {
@@ -18,16 +19,14 @@ export default function LoginPage() {
         title: 'Access Denied',
         text: 'You must login first!',
         confirmButtonText: 'Okay',
-        confirmButtonColor: '#3085d6',
-        background: '#f9f9f9',
       })
     }
   }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    setError('')
 
+    // ambil user dari tabel users
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -43,6 +42,7 @@ export default function LoginPage() {
       return
     }
 
+    // cek password hash (bcrypt)
     const match = bcrypt.compareSync(password, user.password_hash)
     if (!match) {
       Swal.fire({
@@ -53,27 +53,20 @@ export default function LoginPage() {
       return
     }
 
+    // simpan cookies (encode email agar karakter aman)
     document.cookie = `userRole=${user.role}; path=/`
+    document.cookie = `userEmail=${encodeURIComponent(user.email)}; path=/`
 
     await Swal.fire({
       icon: 'success',
       title: 'Login Berhasil!',
       text: `Selamat datang, ${user.name}`,
       showConfirmButton: false,
-      timer: 1500,
+      timer: 1200,
     })
 
-    if (user.role === 'superadmin') {
-      window.location.href = '/dashboard/superadmin'
-    } else if (user.role === 'admin') {
-      window.location.href = '/dashboard/admin'
-    } else {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Role tidak dikenali',
-        text: 'Hubungi admin sistem.',
-      })
-    }
+    // redirect ke unified dashboard
+    router.push('/dashboard')
   }
 
   return (
@@ -96,7 +89,6 @@ export default function LoginPage() {
         /><br />
         <button type="submit">Login</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   )
 }
