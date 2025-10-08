@@ -1,15 +1,22 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Swal from 'sweetalert2'
 
-export default function SuperAdminDashboard() {
+export default function Dashboard() {
   const router = useRouter()
+  const [role, setRole] = useState(null)
+  const [email, setEmail] = useState('')
 
   useEffect(() => {
     const roleCookie = document.cookie
       .split('; ')
-      .find((row) => row.startsWith('userRole='))
+      .find(row => row.startsWith('userRole='))
+      ?.split('=')[1]
+
+    const emailCookie = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('userEmail='))
       ?.split('=')[1]
 
     if (!roleCookie) {
@@ -17,22 +24,12 @@ export default function SuperAdminDashboard() {
         icon: 'warning',
         title: 'Access Denied',
         text: 'Kamu harus login dulu!',
-      }).then(() => {
-        router.push('/login?auth=required')
-      })
+      }).then(() => router.push('/login'))
       return
     }
 
-    if (roleCookie !== 'superadmin') {
-      Swal.fire({
-        icon: 'error',
-        title: 'Akses Ditolak!',
-        text: 'Halaman ini hanya untuk Super Admin.',
-      }).then(() => {
-        router.push(`/dashboard/${roleCookie}`)
-      })
-      return
-    }
+    setRole(roleCookie)
+    setEmail(emailCookie)
   }, [router])
 
   const handleLogout = () => {
@@ -43,18 +40,19 @@ export default function SuperAdminDashboard() {
       icon: 'success',
       title: 'Logout berhasil!',
       text: 'Sampai jumpa lagi 👋',
-    }).then(() => {
-      router.push('/login')
-    })
+    }).then(() => router.push('/login'))
   }
+
+  const goTo = (path) => router.push(`/dashboard/${path}`)
 
   return (
     <div style={{ textAlign: 'center', marginTop: '5rem' }}>
-      <h1>Super Admin Dashboard</h1>
-      <p>Selamat datang di halaman Super Admin!</p>
+      <h1>Dashboard {role === 'superadmin' ? 'Super Admin' : 'Admin'}</h1>
+      <p>Selamat datang, {email || 'User'}!</p>
+
       <div style={{ marginTop: '2rem' }}>
         <button
-          onClick={() => router.push('/dashboard/superadmin/manage-admins')}
+          onClick={() => goTo('products')}
           style={{
             backgroundColor: '#007bff',
             color: 'white',
@@ -65,8 +63,27 @@ export default function SuperAdminDashboard() {
             marginRight: '1rem',
           }}
         >
-          Manage Admins
+          Manage Products
         </button>
+
+        {/* TOMBOL INI HANYA MUNCUL UNTUK SUPERADMIN */}
+        {role === 'superadmin' && (
+          <button
+            onClick={() => goTo('manage-admins')}
+            style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              marginRight: '1rem',
+            }}
+          >
+            Manage Admins
+          </button>
+        )}
+
         <button
           onClick={handleLogout}
           style={{
