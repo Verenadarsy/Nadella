@@ -51,53 +51,68 @@ export default function Dashboard() {
       <p>Selamat datang, {email || 'User'}!</p>
 
       <div style={{ marginTop: '2rem' }}>
+        {/* ✅ PRODUCTS */}
         <button
           onClick={() => goTo('products')}
-          style={{
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginRight: '1rem',
-          }}
+          style={buttonStyle('#007bff')}
         >
           Manage Products
         </button>
 
-        {/* TOMBOL INI HANYA MUNCUL UNTUK SUPERADMIN */}
+        {/* ✅ COMPANIES */}
+        <button
+          onClick={() => goTo('companies')}
+          style={buttonStyle('#6f42c1')}
+        >
+          Manage Companies
+        </button>
+
+        {/* ✅ CUSTOMERS */}
+        <button
+          onClick={() => goTo('customers')}
+          style={buttonStyle('#17a2b8')}
+        >
+          Manage Customers
+        </button>
+
+        {/* ✅ LEADS */}
+        <button
+          onClick={() => goTo('leads')}
+          style={buttonStyle('#ffc107')}
+        >
+          Manage Leads
+        </button>
+
+        {/* ✅ HANYA SUPERADMIN */}
         {role === 'superadmin' && (
           <button
             onClick={() => goTo('manage-admins')}
-            style={{
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              marginRight: '1rem',
-            }}
+            style={buttonStyle('#28a745')}
           >
             Manage Admins
           </button>
         )}
 
+        {/* ✅ LOGOUT */}
         <button
           onClick={handleLogout}
-          style={{
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-          }}
+          style={buttonStyle('#dc3545')}
         >
           Logout
         </button>
       </div>
     </div>
   )
+}
+
+function buttonStyle(color) {
+  return {
+    backgroundColor: color,
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    marginRight: '1rem',
+  }
 }
