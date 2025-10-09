@@ -5,13 +5,24 @@ const idField = "company_id"
 
 export async function GET() {
   const { data, error } = await getAll(table)
+  if (error) console.error("❌ GET error:", error)
   return new Response(JSON.stringify(error ?? data), { status: error ? 500 : 200 })
 }
 
 export async function POST(req) {
-  const body = await req.json()
-  const { data, error } = await create(table, body)
-  return new Response(JSON.stringify(error ?? data), { status: error ? 500 : 201 })
+  try {
+    const body = await req.json()
+    console.log("📦 POST body:", body)
+    const { data, error } = await create(table, body)
+    if (error) {
+      console.error("❌ POST error:", error)
+      return new Response(JSON.stringify(error), { status: 500 })
+    }
+    return new Response(JSON.stringify(data), { status: 201 })
+  } catch (err) {
+    console.error("💥 Unexpected error:", err)
+    return new Response(JSON.stringify({ message: "Internal Server Error", detail: err.message }), { status: 500 })
+  }
 }
 
 export async function PUT(req) {
