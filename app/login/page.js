@@ -54,7 +54,7 @@ export default function LoginPage() {
     }
 
     // simpan cookies (encode email agar karakter aman)
-    document.cookie = `userRole=${user.role}; path=/`
+    document.cookie = `userRole=${encodeURIComponent(user.role)}; path=/`
     document.cookie = `userEmail=${encodeURIComponent(user.email)}; path=/`
 
     await Swal.fire({
