@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// 🧠 Fungsi bantu buat matching intent dari tabel queries_preset
+// 🧠 Fungsi bantu: matching intent dari tabel queries_preset
 function matchIntent(message, intents) {
   const msg = message.toLowerCase();
   let bestMatch = null;
@@ -10,6 +10,7 @@ function matchIntent(message, intents) {
   for (const intent of intents) {
     const kwList = intent.keywords?.split(",").map(k => k.trim()) || [];
     let score = 0;
+
     kwList.forEach(k => {
       if (msg.includes(k)) score += 1;
     });
@@ -25,16 +26,15 @@ function matchIntent(message, intents) {
   return bestMatch;
 }
 
-// 📦 Fungsi bantu untuk trigger pembuatan PDF
-async function triggerPDF(type = "barang") {
-  const baseURL =
-    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+// 📦 Fungsi bantu: trigger endpoint PDF generator
+async function triggerPDF(type = "barang", payload = null) {
+  const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const url = `${baseURL}/api/pdf-generate`;
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type }),
+    body: JSON.stringify({ type, payload }),
   });
 
   if (!res.ok) {
@@ -61,7 +61,7 @@ export async function POST(req) {
 
     const lowerMsg = message.toLowerCase();
 
-    // 🧩 1️⃣ Ambil semua intent dari DB
+    // 1️⃣ Ambil daftar intent dari Supabase
     const { data: intents, error: intentError } = await supabase
       .from("queries_preset")
       .select("*");
@@ -69,18 +69,17 @@ export async function POST(req) {
 
     const matched = matchIntent(lowerMsg, intents);
     let replyText = "";
-
-    // 🧩 2️⃣ Deteksi kalau user minta rekap / laporan
     const isRekap =
       lowerMsg.includes("rekap") ||
       lowerMsg.includes("laporan") ||
       lowerMsg.includes("pdf");
 
-    // Jika rekap tapi tidak ada intent spesifik → buat rekap semua tabel
+    // 2️⃣ Kalau user minta rekap tapi tidak cocok ke intent apa pun
     if (isRekap && !matched) {
       replyText = "📊 Membuat laporan rekap semua tabel...";
       try {
-        const pdfUrl = await triggerPDF("semua");
+        // 💡 PERBAIKAN: Mengganti "semua" dengan "rekap_keseluruhan" agar dikenali
+        const pdfUrl = await triggerPDF("rekap_keseluruhan"); 
         replyText += `\n\n📄 Laporan rekap keseluruhan berhasil dibuat!`;
         if (pdfUrl) replyText += `\n👉 Unduh di: ${pdfUrl}`;
       } catch (err) {
@@ -90,10 +89,11 @@ export async function POST(req) {
       return NextResponse.json({ reply: replyText });
     }
 
-    // 🧩 3️⃣ Kalau ada intent → jalankan query preset
+    // 3️⃣ Kalau cocok ke intent preset
     if (matched) {
       const cleanQuery = matched.query.trim().replace(/;$/, "");
 
+      // jalankan query pakai fungsi RPC di Supabase
       const { data: result, error: queryError } = await supabase.rpc("exec_sql", {
         sql: cleanQuery,
       });
@@ -106,39 +106,55 @@ export async function POST(req) {
       }
 
       const cleanResult = Array.isArray(result) ? result : [result];
-      if (cleanResult.length > 0) {
-        const formatted = cleanResult
-          .map((row, i) => {
-            const values = Object.values(row)
-              .map(v => (v ? v.toString() : "-"))
-              .join(" — ");
-            return `${i + 1}. ${values}`;
-          })
-          .join("\n");
+      
+      // 💡 MODIFIKASI: Hanya menampilkan hasil query jika BUKAN permintaan rekap
+      if (!isRekap) { 
+        if (cleanResult.length > 0) {
+          const formatted = cleanResult
+            .map((row, i) => {
+              const values = Object.values(row)
+                .map(v => (v ? v.toString() : "-"))
+                .join(" — ");
+              return `${i + 1}. ${values}`;
+            })
+            .join("\n");
 
-        replyText = `🧾 Menampilkan ${matched.description}:\n\n${formatted}`;
+          replyText = `🧾 Menampilkan ${matched.description}:\n\n${formatted}`;
+        } else {
+          replyText = `⚠️ Tidak ada data untuk "${matched.description}".`;
+        }
       } else {
-        replyText = `⚠️ Tidak ada data untuk "${matched.description}".`;
+        // Jika ini permintaan rekap dan tidak ada data
+        if (cleanResult.length === 0) {
+            replyText = `⚠️ Tidak ada data untuk dibuatkan laporan PDF "${matched.description}".`;
+        } else {
+            // Kosongkan replyText, akan diisi pesan sukses PDF di langkah 4
+            replyText = ""; 
+        }
       }
 
-      // 🔄 4️⃣ Kalau pesan mengandung laporan/rekap/pdf → generate PDF untuk intent ini
-      if (isRekap) {
+
+      // 4️⃣ Kalau pesan mengandung laporan/rekap/pdf → buat PDF
+      if (isRekap && cleanResult.length > 0) {
         try {
           const pdfType = matched.intent || "barang";
-          const pdfUrl = await triggerPDF(pdfType);
+          const pdfUrl = await triggerPDF(pdfType, cleanResult);
 
-          replyText += `\n\n📄 Laporan PDF untuk "${matched.description}" berhasil dibuat!`;
-          if (pdfUrl) replyText += `\n👉 Unduh di: ${pdfUrl}`;
+          // 💡 MODIFIKASI: Timpa replyText hanya dengan pesan sukses PDF
+          replyText = `📄 Laporan PDF untuk "${matched.description}" berhasil dibuat!`;
+          if (pdfUrl) replyText += `\n👉 **Unduh di:** [Laporan PDF Keseluruhan](${pdfUrl})`;
+          
         } catch (err) {
           console.error("Error generate PDF:", err.message);
-          replyText += `\n\n⚠️ Gagal membuat laporan PDF.`;
+          // Pastikan pesan error PDF menimpa pesan sebelumnya
+          replyText = `⚠️ Gagal membuat laporan PDF untuk "${matched.description}".`;
         }
       }
 
       return NextResponse.json({ reply: replyText });
     }
 
-    // 🧩 5️⃣ Kalau tidak cocok ke intent apa pun → fallback ke OpenAI
+    // 5️⃣ Kalau tidak ada intent → fallback ke OpenAI
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {

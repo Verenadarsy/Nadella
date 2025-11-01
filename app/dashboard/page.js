@@ -27,6 +27,38 @@ export default function DashboardHome() {
     }
   }, [messages])
 
+  // === CEK & OTOMASI DOWNLOAD PDF ===
+  useEffect(() => {
+    if (messages.length === 0) return
+    const lastMsg = messages[messages.length - 1]
+
+    // Hanya proses jika pesan terakhir berasal dari asisten (AI)
+    if (lastMsg.role !== 'assistant') return
+
+    // Pastikan content adalah string sebelum mencari URL
+    const text = String(lastMsg.content || '')
+    // Regex untuk mencari URL yang diakhiri dengan .pdf (http atau https, case-insensitive)
+    const pdfMatch = text.match(/https?:\/\/[^\s]+\.pdf/i)
+
+    if (pdfMatch) {
+      const pdfUrl = pdfMatch[0]
+
+      try {
+        // Logika download: Buat link temporer, buka di tab baru dan klik
+        const link = document.createElement('a')
+        link.href = pdfUrl
+        link.download = 'laporan-otomatis.pdf' // Beri nama file default
+        link.target = '_blank'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        console.log('✅ Auto-download PDF dari chat:', pdfUrl)
+      } catch (err) {
+        console.error('Gagal auto-download PDF:', err)
+      }
+    }
+  }, [messages])
+
   // === FUNGSI KIRIM PESAN KE API ===
   const sendMessage = async () => {
     if (!input.trim()) return
@@ -140,21 +172,20 @@ export default function DashboardHome() {
                   Ada yang bisa aku bantu hari ini?
                 </div>
               )}
-
               {messages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`p-3 rounded-xl max-w-[80%] ${
-                    msg.role === 'user'
-                      ? 'bg-blue-600 text-white ml-auto'
+                  className={`p-3 rounded-xl max-w-[80%] break-words ${
+                    msg.role === "user"
+                      ? "bg-blue-600 text-white ml-auto"
                       : darkMode
-                      ? 'bg-slate-700 text-white'
-                      : 'bg-gray-200 text-slate-800'
+                      ? "bg-slate-700 text-white"
+                      : "bg-gray-200 text-slate-800"
                   }`}
                 >
-                  {msg.content.includes('\n') ? (
+                  {msg.content.includes("\n") ? (
                     <div className="space-y-1">
-                      {msg.content.split('\n').map((line, j) => {
+                      {msg.content.split("\n").map((line, j) => {
                         const isList = line.trim().match(/^(\d+\.|-|\•)\s+/)
                         return (
                           <p
@@ -162,7 +193,7 @@ export default function DashboardHome() {
                             className={`${
                               isList
                                 ? "pl-4 before:content-['•'] before:mr-2 before:text-blue-500"
-                                : ''
+                                : ""
                             }`}
                           >
                             {line}
@@ -171,7 +202,7 @@ export default function DashboardHome() {
                       })}
                     </div>
                   ) : (
-                    msg.content
+                    <p>{msg.content}</p>
                   )}
                 </div>
               ))}
