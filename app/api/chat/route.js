@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// 🧠 Fungsi bantu buat matching intent paling relevan
+// 🧠 Fungsi bantu buat matching intent dari tabel queries_preset
 function matchIntent(message, intents) {
   const msg = message.toLowerCase();
   let bestMatch = null;
@@ -10,13 +10,9 @@ function matchIntent(message, intents) {
   for (const intent of intents) {
     const kwList = intent.keywords?.split(",").map(k => k.trim()) || [];
     let score = 0;
-
-    // 🎯 Cek kecocokan kata kunci
     kwList.forEach(k => {
       if (msg.includes(k)) score += 1;
     });
-
-    // 🎯 Bonus poin kalau intent id atau deskripsinya juga cocok
     if (msg.includes(intent.intent)) score += 2;
     if (msg.includes(intent.description.split(" ")[1]?.toLowerCase())) score += 1;
 
@@ -29,6 +25,29 @@ function matchIntent(message, intents) {
   return bestMatch;
 }
 
+// 📦 Fungsi bantu untuk trigger pembuatan PDF
+async function triggerPDF(type = "barang") {
+  const baseURL =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const url = `${baseURL}/api/pdf-generate`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("❌ PDF generation failed:", text);
+    throw new Error("Gagal membuat PDF");
+  }
+
+  const data = await res.json();
+  return data?.url || null;
+}
+
+// 💬 Endpoint utama Chat
 export async function POST(req) {
   try {
     const { message } = await req.json();
@@ -42,47 +61,53 @@ export async function POST(req) {
 
     const lowerMsg = message.toLowerCase();
 
-    // 1️⃣ Ambil semua preset intent dari tabel
+    // 🧩 1️⃣ Ambil semua intent dari DB
     const { data: intents, error: intentError } = await supabase
       .from("queries_preset")
       .select("*");
-
     if (intentError) throw intentError;
 
-    // 2️⃣ Gunakan sistem scoring buat tentukan query paling cocok
     const matched = matchIntent(lowerMsg, intents);
+    let replyText = "";
 
-    // 3️⃣ Kalau ketemu query cocok → jalankan SQL-nya
+    // 🧩 2️⃣ Deteksi kalau user minta rekap / laporan
+    const isRekap =
+      lowerMsg.includes("rekap") ||
+      lowerMsg.includes("laporan") ||
+      lowerMsg.includes("pdf");
+
+    // Jika rekap tapi tidak ada intent spesifik → buat rekap semua tabel
+    if (isRekap && !matched) {
+      replyText = "📊 Membuat laporan rekap semua tabel...";
+      try {
+        const pdfUrl = await triggerPDF("semua");
+        replyText += `\n\n📄 Laporan rekap keseluruhan berhasil dibuat!`;
+        if (pdfUrl) replyText += `\n👉 Unduh di: ${pdfUrl}`;
+      } catch (err) {
+        console.error("Error generate PDF (rekap semua):", err.message);
+        replyText += `\n\n⚠️ Gagal membuat laporan PDF.`;
+      }
+      return NextResponse.json({ reply: replyText });
+    }
+
+    // 🧩 3️⃣ Kalau ada intent → jalankan query preset
     if (matched) {
       const cleanQuery = matched.query.trim().replace(/;$/, "");
 
-      const { data: result, error: queryError } = await supabase.rpc(
-        "exec_sql",
-        { sql: cleanQuery }
-      );
+      const { data: result, error: queryError } = await supabase.rpc("exec_sql", {
+        sql: cleanQuery,
+      });
 
       if (queryError) {
         console.error("Query error:", queryError.message);
         return NextResponse.json({
-          reply:
-            "⚠️ Ada kesalahan saat menjalankan query. Pastikan query preset benar ya.",
+          reply: "⚠️ Terjadi kesalahan saat menjalankan query preset.",
         });
       }
 
-      const cleanResult = Array.isArray(result) ? result[0] : result;
-      const total =
-        cleanResult?.total ||
-        cleanResult?.total_admin ||
-        cleanResult?.total_budget ||
-        cleanResult?.count;
-
-      // 🗣️ Format jawaban agar lebih natural
-      let replyText = "";
-
-      if (total !== undefined) {
-        replyText = `📊 ${matched.description} saat ini berjumlah **${total}**.`;
-      } else if (Array.isArray(result) && result.length > 0) {
-        const formatted = result
+      const cleanResult = Array.isArray(result) ? result : [result];
+      if (cleanResult.length > 0) {
+        const formatted = cleanResult
           .map((row, i) => {
             const values = Object.values(row)
               .map(v => (v ? v.toString() : "-"))
@@ -90,15 +115,30 @@ export async function POST(req) {
             return `${i + 1}. ${values}`;
           })
           .join("\n");
-        replyText = `📋 ${matched.description}:\n${formatted}`;
+
+        replyText = `🧾 Menampilkan ${matched.description}:\n\n${formatted}`;
       } else {
         replyText = `⚠️ Tidak ada data untuk "${matched.description}".`;
+      }
+
+      // 🔄 4️⃣ Kalau pesan mengandung laporan/rekap/pdf → generate PDF untuk intent ini
+      if (isRekap) {
+        try {
+          const pdfType = matched.intent || "barang";
+          const pdfUrl = await triggerPDF(pdfType);
+
+          replyText += `\n\n📄 Laporan PDF untuk "${matched.description}" berhasil dibuat!`;
+          if (pdfUrl) replyText += `\n👉 Unduh di: ${pdfUrl}`;
+        } catch (err) {
+          console.error("Error generate PDF:", err.message);
+          replyText += `\n\n⚠️ Gagal membuat laporan PDF.`;
+        }
       }
 
       return NextResponse.json({ reply: replyText });
     }
 
-    // 4️⃣ Fallback ke OpenAI untuk pertanyaan bebas
+    // 🧩 5️⃣ Kalau tidak cocok ke intent apa pun → fallback ke OpenAI
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -111,16 +151,16 @@ export async function POST(req) {
           {
             role: "system",
             content: `
-              You are Nadella Assistant — a friendly and smart CRM AI.
-              You help users find info about customers, products, campaigns, leads, and reports.
-              If the question is unclear, ask a polite clarification.
-              Respond naturally in Indonesian with a touch of friendliness.
+              Kamu adalah Nadella Assistant, AI yang cerdas dan natural.
+              Jawab dalam bahasa Indonesia yang sopan, tidak perlu menanyakan konfirmasi.
+              Jika user meminta laporan, rekap, atau PDF, langsung panggil endpoint PDF.
+              Hindari menyebut tabel sensitif seperti user atau admin.
             `,
           },
           { role: "user", content: message },
         ],
         temperature: 0.7,
-        max_tokens: 300,
+        max_tokens: 400,
       }),
     });
 
