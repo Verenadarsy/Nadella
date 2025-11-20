@@ -9,12 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.78.0",
     "bcryptjs": "^3.0.2",
+    "date-fns": "^4.1.0",
+    "get-stream": "^9.0.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.546.0",
     "next": "15.5.4",
+    "openai": "^6.5.0",
+    "pdfkit": "^0.17.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-markdown": "^10.1.0",
     "sweetalert2": "^11.23.0"
   },
   "devDependencies": {
