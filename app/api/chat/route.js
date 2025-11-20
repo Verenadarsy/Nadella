@@ -117,7 +117,22 @@ export async function POST(req) {
 
       if (rows.length > 0) {
         reply += rows
-          .map((row, i) => `${i + 1}. ${Object.values(row).join(" — ")}`)
+          .map((row, i) => {
+            // Buang kolom yang tidak ingin ditampilkan
+            const filtered = Object.fromEntries(
+              Object.entries(row).filter(
+                ([key]) =>
+                  !["id", "customer_id", "campaign_id", "lead_id","deal_id","service_id","activity_id","team_id","company_id","communication_id","ticket_id","product_id","created_at", "updated_at", "deleted_at"].includes(key)
+              )
+            );
+
+            // Convert ke string rapi
+            const values = Object.values(filtered)
+              .map(v => (v !== null ? v.toString() : "-"))
+              .join(" — ");
+
+            return `${i + 1}) ${values}`;
+          })
           .join("\n");
       } else {
         reply += "\n(Tidak ada data)";
