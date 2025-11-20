@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
+import FloatingChat from "../floatingchat"
 import {
   Calendar, Clock, User, Edit2, Trash2,
   X, Save, Plus, Phone, Mail, Users as UsersIcon,
@@ -444,6 +445,8 @@ export default function ActivitiesPage() {
           </div>
         )}
       </div>
+      {/* Floating Chat Imported Here */}
+      <FloatingChat />
     </div>
   )
 }

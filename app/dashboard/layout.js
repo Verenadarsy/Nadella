@@ -88,6 +88,7 @@ export default function DashboardLayout({ children }) {
   const goTo = (path) => router.push(`/dashboard/${path}`)
 
   const menuItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '' },
     { icon: Package, label: 'Products', path: 'products' },
     { icon: Building2, label: 'Companies', path: 'companies' },
     { icon: Users, label: 'Customers', path: 'customers' },
@@ -135,15 +136,19 @@ export default function DashboardLayout({ children }) {
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
           {sidebarOpen && (
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-600' : 'bg-blue-900'}`}>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center gap-2 group"
+            >
+              <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-600' : 'bg-blue-900'} group-hover:opacity-90`}>
                 <LayoutDashboard className="w-5 h-5 text-white" />
               </div>
-              <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-slate-900'} group-hover:text-blue-500`}>
                 CRM System
               </span>
-            </div>
+            </button>
           )}
+
         </div>
 
         {/* User Info */}

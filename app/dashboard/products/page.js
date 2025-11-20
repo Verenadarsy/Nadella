@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Swal from "sweetalert2"
+import FloatingChat from "../floatingchat"
 import {
   Package, Edit2, Trash2, X, Save, Plus,
-  DollarSign, FileText, ShoppingCart
+  Banknote, FileText, ShoppingCart
 } from 'lucide-react'
 
 export default function ProductsCRUD() {
@@ -181,7 +182,7 @@ export default function ProductsCRUD() {
                 Price (Rp)
               </label>
               <div className="relative">
-                <DollarSign className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input
@@ -345,7 +346,6 @@ export default function ProductsCRUD() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
                         <span className="font-semibold">
                           Rp {Number(product.price).toLocaleString('id-ID')}
                         </span>
@@ -391,6 +391,8 @@ export default function ProductsCRUD() {
           </div>
         )}
       </div>
+      {/* Floating Chat Imported Here */}
+      <FloatingChat />
     </div>
   )
 }
