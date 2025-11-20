@@ -16,9 +16,11 @@ export default function FloatingChat() {
     const updateDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains("dark"));
     };
+
     updateDarkMode();
     const observer = new MutationObserver(updateDarkMode);
     observer.observe(document.documentElement, { attributes: true });
+
     return () => observer.disconnect();
   }, []);
 
@@ -33,6 +35,7 @@ export default function FloatingChat() {
   useEffect(() => {
     if (messages.length === 0) return;
     const last = messages[messages.length - 1];
+
     if (last.role !== "assistant") return;
 
     const text = String(last.content || "");
@@ -53,8 +56,9 @@ export default function FloatingChat() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
     const userText = input;
+
+    setMessages((prev) => [...prev, { role: "user", content: userText }]);
     setInput("");
     setLoading(true);
 
@@ -70,7 +74,10 @@ export default function FloatingChat() {
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (e) {
-      setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Gagal memproses pesan." }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "⚠️ Gagal memproses pesan." }
+      ]);
     }
 
     setLoading(false);
@@ -83,18 +90,43 @@ export default function FloatingChat() {
           onClick={() => setChatOpen(true)}
           className="bg-blue-600 text-white rounded-full w-16 h-16 shadow-lg text-3xl hover:bg-blue-700 flex items-center justify-center"
         >
-            <Bot />
+          <Bot />
         </button>
       ) : (
-        <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-[420px] h-[550px] flex flex-col ${darkMode ? "border border-slate-700" : ""}`}>
-          <div className="bg-blue-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
+        <div
+          className={`rounded-2xl shadow-2xl w-[420px] h-[550px] flex flex-col 
+          ${darkMode ? "bg-slate-800 border border-slate-700" : "bg-white"}`}
+        >
+          {/* HEADER */}
+          <div
+            className={`p-4 flex justify-between items-center rounded-t-2xl 
+            ${darkMode ? "bg-blue-800 text-white" : "bg-blue-600 text-white"}`}
+          >
             <span className="font-semibold text-lg">Nadella AI Assistant</span>
             <button onClick={() => setChatOpen(false)}>✖</button>
           </div>
 
-          <div ref={chatBodyRef} className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-slate-900 space-y-3">
+          {/* CHAT BODY */}
+          <div
+            ref={chatBodyRef}
+            className={`flex-1 p-4 space-y-3 
+            ${darkMode ? "bg-slate-900" : "bg-white"}`}
+            style={{
+              overflowY: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none"
+            }}
+          >
+            {/* HIDE WEBKIT SCROLLBAR */}
+            <style>{`
+              div::-webkit-scrollbar { display: none; }
+            `}</style>
+
             {messages.length === 0 && (
-              <div className="bg-gray-200 dark:bg-slate-700 text-slate-800 dark:text-white p-3 rounded-lg max-w-[85%]">
+              <div
+                className={`p-3 rounded-lg max-w-[85%] 
+                ${darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"}`}
+              >
                 👋 Halo! Aku <b>Nadella</b>. Ada yang bisa aku bantu?
               </div>
             )}
@@ -107,7 +139,7 @@ export default function FloatingChat() {
                     ? "bg-blue-600 text-white ml-auto"
                     : darkMode
                     ? "bg-slate-700 text-white"
-                    : "bg-gray-200 text-slate-800"
+                    : "bg-gray-200 text-slate-900"
                 }`}
               >
                 {msg.content.includes("\n") ? (
@@ -129,18 +161,21 @@ export default function FloatingChat() {
             )}
           </div>
 
+          {/* INPUT */}
           <div className="p-3 flex gap-2 border-t dark:border-slate-700">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Ketik pesan..."
-              className="flex-1 border rounded-lg p-2 dark:bg-slate-800 dark:text-white"
+              className={`flex-1 border rounded-lg p-2 
+              ${darkMode ? "bg-slate-800 text-white border-slate-600" : "bg-white text-slate-800"}`}
             />
             <button
               onClick={sendMessage}
               disabled={loading}
-              className={`px-4 rounded-lg ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"} text-white`}
+              className={`px-4 rounded-lg text-white 
+                ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
             >
               Kirim
             </button>
@@ -150,5 +185,3 @@ export default function FloatingChat() {
     </div>
   );
 }
-
-
