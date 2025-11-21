@@ -5,6 +5,7 @@ import {
   UsersRound, Edit2, Trash2, X, Save, Plus,
   User, Calendar, UserCog
 } from 'lucide-react'
+import FloatingChat from "../floatingchat"
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState([])
@@ -420,6 +421,7 @@ export default function TeamsPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

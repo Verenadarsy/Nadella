@@ -1,11 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import FloatingChat from "../floatingchat"
 import {
   Calendar, Clock, User, Edit2, Trash2,
-  X, Save, Plus, Phone, Mail, Users as UsersIcon,
-  MessageSquare
+  X, Save, Plus, Phone, Mail, Users,
+  MessageSquare, FileText, ChevronDown
 } from 'lucide-react'
 
 // 🔹 Fungsi buat dapetin waktu sekarang dalam format WIB
@@ -33,9 +32,10 @@ export default function ActivitiesPage() {
     assigned_to: '',
   })
   const [editingId, setEditingId] = useState(null)
+  const [typeOpen, setTypeOpen] = useState(false)
+  const [userOpen, setUserOpen] = useState(false)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -65,7 +65,7 @@ export default function ActivitiesPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     const activityData = {
@@ -77,34 +77,34 @@ export default function ActivitiesPage() {
     const method = editingId ? 'PUT' : 'POST'
     if (editingId) activityData.activity_id = editingId
 
-    const res = await fetch(url, {
+    fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(activityData),
+    }).then(res => {
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sukses!',
+          text: editingId ? 'Activity berhasil diperbarui!' : 'Activity berhasil ditambahkan!',
+          showConfirmButton: false,
+          timer: 1500
+        })
+        setFormData({ type: '', notes: '', assigned_to: '' })
+        setEditingId(null)
+        fetchActivities()
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal!',
+          text: 'Terjadi kesalahan saat menyimpan activity.'
+        })
+      }
     })
-
-    if (res.ok) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Sukses!',
-        text: editingId ? 'Activity berhasil diperbarui!' : 'Activity berhasil ditambahkan!',
-        showConfirmButton: false,
-        timer: 1500
-      })
-      setFormData({ type: '', notes: '', assigned_to: '' })
-      setEditingId(null)
-      fetchActivities()
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: 'Terjadi kesalahan saat menyimpan activity.'
-      })
-    }
   }
 
-  const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+  const handleDelete = (id) => {
+    Swal.fire({
       title: 'Hapus activity ini?',
       text: 'Tindakan ini tidak bisa dibatalkan.',
       icon: 'warning',
@@ -113,32 +113,32 @@ export default function ActivitiesPage() {
       cancelButtonText: 'Batal',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
-
-    if (confirm.isConfirmed) {
-      const res = await fetch('/api/activities', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-
-      if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Dihapus!',
-          text: 'Activity berhasil dihapus.',
-          showConfirmButton: false,
-          timer: 1500
-        })
-        fetchActivities()
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus activity.'
+    }).then(confirm => {
+      if (confirm.isConfirmed) {
+        fetch('/api/activities', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        }).then(res => {
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Dihapus!',
+              text: 'Activity berhasil dihapus.',
+              showConfirmButton: false,
+              timer: 1500
+            })
+            fetchActivities()
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal!',
+              text: 'Tidak bisa menghapus activity.'
+            })
+          }
         })
       }
-    }
+    })
   }
 
   const handleEdit = (activity) => {
@@ -156,7 +156,7 @@ export default function ActivitiesPage() {
   const getActivityIcon = (type) => {
     switch(type) {
       case 'call': return <Phone className="w-4 h-4" />
-      case 'meeting': return <UsersIcon className="w-4 h-4" />
+      case 'meeting': return <Users className="w-4 h-4" />
       case 'email': return <Mail className="w-4 h-4" />
       case 'follow-up': return <MessageSquare className="w-4 h-4" />
       default: return <Calendar className="w-4 h-4" />
@@ -173,6 +173,13 @@ export default function ActivitiesPage() {
     }
   }
 
+  const activityTypes = [
+    { value: 'call', label: 'Call', icon: <Phone className="w-4 h-4" /> },
+    { value: 'meeting', label: 'Meeting', icon: <Users className="w-4 h-4" /> },
+    { value: 'email', label: 'Email', icon: <Mail className="w-4 h-4" /> },
+    { value: 'follow-up', label: 'Follow-Up', icon: <MessageSquare className="w-4 h-4" /> }
+  ]
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -186,59 +193,118 @@ export default function ActivitiesPage() {
           {editingId ? 'Edit Activity' : 'Add New Activity'}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Type Select */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Activity Type
               </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setTypeOpen(!typeOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Type --</option>
-                <option value="call">📞 Call</option>
-                <option value="meeting">👥 Meeting</option>
-                <option value="email">📧 Email</option>
-                <option value="follow-up">💬 Follow-Up</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.type ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.type
+                    ? activityTypes.find(t => t.value === formData.type)?.icon
+                    : <Calendar className="w-4 h-4" />
+                  }
+                  {formData.type
+                    ? activityTypes.find(t => t.value === formData.type)?.label
+                    : "Select Activity Type"
+                  }
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {typeOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {activityTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, type: type.value })
+                        setTypeOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {type.icon}
+                      <span>{type.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Assigned To */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Assign To
               </label>
-              <select
-                name="assigned_to"
-                value={formData.assigned_to}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setUserOpen(!userOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select User --</option>
-                {users.map((u) => (
-                  <option key={u.user_id} value={u.user_id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.assigned_to ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {formData.assigned_to
+                    ? users.find((u) => u.user_id === formData.assigned_to)?.name
+                    : "Select User"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {userOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {users.map((u) => (
+                    <button
+                      key={u.user_id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, assigned_to: u.user_id })
+                        setUserOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {u.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -249,24 +315,30 @@ export default function ActivitiesPage() {
             }`}>
               Notes
             </label>
-            <textarea
-              name="notes"
-              placeholder="Add activity notes or description..."
-              value={formData.notes}
-              onChange={handleChange}
-              rows="4"
-              className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors resize-none ${
-                darkMode
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                  : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-              } outline-none`}
-            />
+            <div className="relative">
+              <FileText className={`absolute left-3 top-3 w-5 h-5 ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
+              <textarea
+                name="notes"
+                placeholder="Add activity notes or description..."
+                value={formData.notes}
+                onChange={handleChange}
+                rows="4"
+                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors resize-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                } outline-none`}
+              />
+            </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 editingId
                   ? 'bg-green-600 hover:bg-green-700'
@@ -304,7 +376,7 @@ export default function ActivitiesPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* ACTIVITIES LIST */}
@@ -445,8 +517,6 @@ export default function ActivitiesPage() {
           </div>
         )}
       </div>
-      {/* Floating Chat Imported Here */}
-      <FloatingChat />
     </div>
   )
 }

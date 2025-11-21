@@ -1,9 +1,10 @@
 "use client"
 import { useEffect, useState } from "react"
 import Swal from 'sweetalert2'
+import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
-  User, TrendingUp, Calendar, Clock
+  User, TrendingUp, Calendar, Clock,  ChevronDown, Phone, CheckCircle, XCircle, Sparkles
 } from 'lucide-react'
 
 export default function LeadsPage() {
@@ -11,11 +12,13 @@ export default function LeadsPage() {
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
-    customer_id: "",
-    source: "",
-    lead_status: "new"
-  })
+  lead_status: "select",
+});
+
   const [editingId, setEditingId] = useState(null)
+  const [statusOpen, setStatusOpen] = useState(false)
+  const [customerOpen, setCustomerOpen] = useState(false)
+
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -188,29 +191,68 @@ export default function LeadsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Customer Select */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+            <div className="relative">
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Customer
               </label>
-              <select
-                value={form.customer_id}
-                onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Customer --</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name || "Unnamed Customer"}
-                  </option>
-                ))}
-              </select>
+                <span
+                  className={`flex items-center gap-2 ${
+                    form.customer_id ? "opacity-90" : "opacity-60"
+                  }`}
+                >
+                  <User size={16} className="opacity-60" />
+                  {form.customer_id
+                    ? customers.find((c) => c.customer_id === form.customer_id)?.name
+                    : "Select Customer"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {customerOpen && (
+                <div
+                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-white border-gray-200 text-slate-900"
+                  }`}
+                >
+                  {customers.length === 0 && (
+                    <div className="px-4 py-2 text-sm opacity-60">
+                      No customers found
+                    </div>
+                  )}
+
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      onClick={() => {
+                        setForm({ ...form, customer_id: c.customer_id });
+                        setCustomerOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 ${
+                        darkMode ? "hover:bg-slate-600" : ""
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name || "Unnamed Customer"}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Source Input */}
@@ -220,42 +262,99 @@ export default function LeadsPage() {
               }`}>
                 Source
               </label>
+              <div className="relative">
+              <TrendingUp className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
               <input
                 type="text"
+                name="address"
                 placeholder="e.g., Website, Referral"
                 value={form.source}
                 onChange={(e) => setForm({ ...form, source: e.target.value })}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
                 } outline-none`}
               />
+              </div>
             </div>
 
             {/* Status Select */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+            <div className="relative">
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Lead Status
               </label>
-              <select
-                value={form.lead_status}
-                onChange={(e) => setForm({ ...form, lead_status: e.target.value })}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setStatusOpen(!statusOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="new">🆕 New</option>
-                <option value="contacted">📞 Contacted</option>
-                <option value="qualified">✅ Qualified</option>
-                <option value="disqualified">❌ Disqualified</option>
-              </select>
+                <span
+                  className={`flex items-center gap-2 ${
+                    form.lead_status === "select" ? "opacity-60" : "opacity-90"
+                  }`}
+                >
+                  {/* hanya tampilkan icon jika sudah memilih */}
+                  {form.lead_status !== "select" && (
+                    <>
+                      {form.lead_status === "new" && <Sparkles size={16} />}
+                      {form.lead_status === "contacted" && <Phone size={16} />}
+                      {form.lead_status === "qualified" && <CheckCircle size={16} />}
+                      {form.lead_status === "disqualified" && <XCircle size={16} />}
+                    </>
+                  )}
+
+                  {/* label */}
+                  {form.lead_status === "select"
+                    ? "Select Lead Status"
+                    : form.lead_status.charAt(0).toUpperCase() +
+                      form.lead_status.slice(1)}
+                </span>
+
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {statusOpen && (
+                <div
+                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-white border-gray-200 text-slate-900"
+                  }`}
+                >
+                  {[
+                    { value: "new", label: "New", icon: <Sparkles size={16} /> },
+                    { value: "contacted", label: "Contacted", icon: <Phone size={16} /> },
+                    { value: "qualified", label: "Qualified", icon: <CheckCircle size={16} /> },
+                    { value: "disqualified", label: "Disqualified", icon: <XCircle size={16} /> },
+                  ].map((item) => (
+                    <button
+                      key={item.value}
+                      onClick={() => {
+                        setForm({ ...form, lead_status: item.value });
+                        setStatusOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 ${
+                        darkMode ? "hover:bg-slate-600" : ""
+                      }`}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -440,6 +539,8 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
+      {/* Floating Chat Imported Here */}
+      <FloatingChat />
     </div>
   )
 }

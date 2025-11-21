@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Swal from 'sweetalert2'
 import {
@@ -17,6 +17,7 @@ export default function DashboardLayout({ children }) {
   const [email, setEmail] = useState('')
   const [darkMode, setDarkMode] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [tooltip, setTooltip] = useState({ show: false, text: '', top: 0 })
 
   useEffect(() => {
     const savedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -47,7 +48,6 @@ export default function DashboardLayout({ children }) {
     setEmail(decodedEmail)
   }, [router])
 
-  // Update dark mode ke document element biar child pages bisa detect
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark')
@@ -87,6 +87,21 @@ export default function DashboardLayout({ children }) {
 
   const goTo = (path) => router.push(`/dashboard/${path}`)
 
+  const handleMouseEnter = (e, text) => {
+    if (!sidebarOpen) {
+      const rect = e.currentTarget.getBoundingClientRect()
+      setTooltip({
+        show: true,
+        text: text,
+        top: rect.top + rect.height / 2
+      })
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setTooltip({ show: false, text: '', top: 0 })
+  }
+
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '' },
     { icon: Package, label: 'Products', path: 'products' },
@@ -103,7 +118,6 @@ export default function DashboardLayout({ children }) {
     { icon: MessageSquare, label: 'Communications', path: 'communications' },
   ]
 
-  // Helper untuk cek active menu
   const isActive = (path) => {
     if (pathname === '/dashboard' && path === '') return true
     return pathname === `/dashboard/${path}`
@@ -126,16 +140,36 @@ export default function DashboardLayout({ children }) {
     <div className={`min-h-screen transition-colors duration-300 ${
       darkMode ? 'bg-slate-900' : 'bg-gray-50'
     }`}>
+      <style jsx global>{`
+        .custom-scrollbar {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
+      {/* Tooltip Fixed - PASTI SEJAJAR! */}
+      {tooltip.show && !sidebarOpen && (
+        <div
+          className="fixed left-24 bg-slate-800 text-white px-3 py-1.5 rounded-md text-sm font-medium shadow-lg z-50 whitespace-nowrap pointer-events-none transform -translate-y-1/2"
+          style={{ top: `${tooltip.top}px` }}
+        >
+          {tooltip.text}
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside className={`fixed top-0 left-0 h-full transition-all duration-300 z-40 ${
-        sidebarOpen ? 'w-64' : 'w-0 md:w-20'
-      } ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-r overflow-hidden`}>
+        sidebarOpen ? 'w-64' : 'w-20'
+      } ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-r`}>
 
         {/* Logo Section */}
-        <div className={`h-16 flex items-center justify-between px-4 border-b ${
+        <div className={`h-16 flex items-center justify-center px-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          {sidebarOpen && (
+          {sidebarOpen ? (
             <button
               onClick={() => router.push('/dashboard')}
               className="flex items-center gap-2 group"
@@ -147,12 +181,18 @@ export default function DashboardLayout({ children }) {
                 CRM System
               </span>
             </button>
+          ) : (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className={`p-2 rounded-lg ${darkMode ? 'bg-blue-600' : 'bg-blue-900'} hover:opacity-90`}
+            >
+              <LayoutDashboard className="w-5 h-5 text-white" />
+            </button>
           )}
-
         </div>
 
         {/* User Info */}
-        {sidebarOpen && (
+        {sidebarOpen ? (
           <div className={`p-4 border-b ${darkMode ? 'border-slate-700' : 'border-gray-200'}`}>
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -177,14 +217,26 @@ export default function DashboardLayout({ children }) {
               </div>
             </div>
           </div>
+        ) : (
+          <div className={`p-4 border-b flex justify-center ${darkMode ? 'border-slate-700' : 'border-gray-200'}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              darkMode ? 'bg-blue-600' : 'bg-blue-900'
+            }`}>
+              <span className="text-white font-semibold text-sm">
+                {email.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          </div>
         )}
 
         {/* Menu Items */}
-        <nav className="p-2 overflow-y-auto h-[calc(100vh-200px)]">
+        <nav className="p-2 overflow-y-auto h-[calc(100vh-200px)] custom-scrollbar">
           {menuItems.map((item, index) => (
             <button
               key={index}
               onClick={() => goTo(item.path)}
+              onMouseEnter={(e) => handleMouseEnter(e, item.label)}
+              onMouseLeave={handleMouseLeave}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 group ${
                 isActive(item.path)
                   ? darkMode
@@ -193,7 +245,7 @@ export default function DashboardLayout({ children }) {
                   : darkMode
                     ? 'hover:bg-slate-700 text-slate-300 hover:text-white'
                     : 'hover:bg-blue-50 text-slate-700 hover:text-blue-900'
-              }`}
+              } ${!sidebarOpen ? 'justify-center' : ''}`}
             >
               <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${
                 isActive(item.path)
@@ -215,6 +267,8 @@ export default function DashboardLayout({ children }) {
           {role === 'superadmin' && (
             <button
               onClick={() => goTo('manage-admins')}
+              onMouseEnter={(e) => handleMouseEnter(e, 'Manage Admins')}
+              onMouseLeave={handleMouseLeave}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 group ${
                 isActive('manage-admins')
                   ? darkMode
@@ -223,7 +277,7 @@ export default function DashboardLayout({ children }) {
                   : darkMode
                     ? 'bg-blue-600/50 hover:bg-blue-700 text-white'
                     : 'bg-blue-900/90 hover:bg-blue-800 text-white'
-              }`}
+              } ${!sidebarOpen ? 'justify-center' : ''}`}
             >
               <ShieldCheck className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && (
@@ -240,11 +294,13 @@ export default function DashboardLayout({ children }) {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
+            onMouseEnter={(e) => handleMouseEnter(e, 'Logout')}
+            onMouseLeave={handleMouseLeave}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mt-4 transition-all duration-200 ${
               darkMode
                 ? 'bg-red-600 hover:bg-red-700 text-white'
                 : 'bg-red-500 hover:bg-red-600 text-white'
-            }`}
+            } ${!sidebarOpen ? 'justify-center' : ''}`}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {sidebarOpen && <span className="flex-1 text-left text-sm font-medium">Logout</span>}
@@ -253,7 +309,7 @@ export default function DashboardLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0 md:ml-20'}`}>
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
         {/* Header */}
         <header className={`h-16 border-b ${
           darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
@@ -281,7 +337,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
-        {/* Page Content - children dari page.js akan masuk sini */}
+        {/* Page Content */}
         <main>
           {children}
         </main>

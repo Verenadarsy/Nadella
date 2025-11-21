@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import {
   Ticket, Edit2, Trash2, X, Save, Plus,
-  User, Clock, AlertTriangle, CheckCircle, Circle, Loader
+  User, Clock, AlertTriangle, CheckCircle, Circle, Loader, ChevronDown, FileText, Target, Activity,
+  Flag, TrendingUp, Zap, ArrowRight
 } from 'lucide-react'
 
 // Dapetin waktu real-time dalam format "YYYY-MM-DD HH:mm:ss" WIB
@@ -30,14 +31,17 @@ export default function TicketsPage() {
     ticket_id: '',
     customer_id: '',
     issue_type: '',
-    status: 'open',
-    priority: 'medium',
+    status: '',
+    priority: '',
     assigned_to: '',
   })
   const [isEditing, setIsEditing] = useState(false)
+  const [customerOpen, setCustomerOpen] = useState(false)
+  const [priorityOpen, setPriorityOpen] = useState(false)
+  const [statusOpen, setStatusOpen] = useState(false)
+  const [assignedOpen, setAssignedOpen] = useState(false)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -52,29 +56,29 @@ export default function TicketsPage() {
     return () => observer.disconnect()
   }, [])
 
-  const fetchTickets = async () => {
-    const res = await fetch('/api/tickets')
-    const data = await res.json()
-    setTickets(Array.isArray(data) ? data : [])
+  const fetchTickets = () => {
+    fetch('/api/tickets')
+      .then(res => res.json())
+      .then(data => setTickets(Array.isArray(data) ? data : []))
   }
 
-  const fetchUsers = async () => {
-    const res = await fetch('/api/users')
-    const data = await res.json()
-    setUsers(Array.isArray(data) ? data : [])
+  const fetchUsers = () => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => setUsers(Array.isArray(data) ? data : []))
   }
 
-  const fetchCustomers = async () => {
-    const res = await fetch('/api/customers')
-    const data = await res.json()
-    setCustomers(Array.isArray(data) ? data : [])
+  const fetchCustomers = () => {
+    fetch('/api/customers')
+      .then(res => res.json())
+      .then(data => setCustomers(Array.isArray(data) ? data : []))
   }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     const method = isEditing ? 'PUT' : 'POST'
@@ -83,37 +87,37 @@ export default function TicketsPage() {
       ? formData
       : { ...formData, created_at: getCurrentWIB() }
 
-    const res = await fetch(url, {
+    fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+    }).then(res => {
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sukses!',
+          text: `Ticket berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}!`,
+          showConfirmButton: false,
+          timer: 1500
+        })
+        setFormData({
+          ticket_id: '',
+          customer_id: '',
+          issue_type: '',
+          status: '',
+          priority: '',
+          assigned_to: '',
+        })
+        setIsEditing(false)
+        fetchTickets()
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal!',
+          text: 'Tidak bisa menyimpan ticket.'
+        })
+      }
     })
-
-    if (res.ok) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Sukses!',
-        text: `Ticket berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}!`,
-        showConfirmButton: false,
-        timer: 1500
-      })
-      setFormData({
-        ticket_id: '',
-        customer_id: '',
-        issue_type: '',
-        status: 'open',
-        priority: 'medium',
-        assigned_to: '',
-      })
-      setIsEditing(false)
-      fetchTickets()
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: 'Tidak bisa menyimpan ticket.'
-      })
-    }
   }
 
   const handleEdit = (ticket) => {
@@ -122,8 +126,8 @@ export default function TicketsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+  const handleDelete = (id) => {
+    Swal.fire({
       title: 'Hapus ticket ini?',
       text: 'Tindakan ini tidak bisa dibatalkan.',
       icon: 'warning',
@@ -132,32 +136,32 @@ export default function TicketsPage() {
       cancelButtonText: 'Batal',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
-
-    if (confirm.isConfirmed) {
-      const res = await fetch('/api/tickets', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-
-      if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Dihapus!',
-          text: 'Ticket berhasil dihapus.',
-          showConfirmButton: false,
-          timer: 1500
-        })
-        fetchTickets()
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus ticket.'
+    }).then(confirm => {
+      if (confirm.isConfirmed) {
+        fetch('/api/tickets', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        }).then(res => {
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Dihapus!',
+              text: 'Ticket berhasil dihapus.',
+              showConfirmButton: false,
+              timer: 1500
+            })
+            fetchTickets()
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal!',
+              text: 'Tidak bisa menghapus ticket.'
+            })
+          }
         })
       }
-    }
+    })
   }
 
   const handleCancel = () => {
@@ -165,8 +169,8 @@ export default function TicketsPage() {
       ticket_id: '',
       customer_id: '',
       issue_type: '',
-      status: 'open',
-      priority: 'medium',
+      status: '',
+      priority: '',
       assigned_to: '',
     })
     setIsEditing(false)
@@ -177,10 +181,10 @@ export default function TicketsPage() {
 
   const getPriorityIcon = (priority) => {
     switch(priority) {
-      case 'urgent': return <AlertTriangle className="w-4 h-4" />
+      case 'urgent': return <Zap className="w-4 h-4" />
       case 'high': return <AlertTriangle className="w-4 h-4" />
-      case 'medium': return <Circle className="w-4 h-4" />
-      case 'low': return <Circle className="w-4 h-4" />
+      case 'medium': return <TrendingUp className="w-4 h-4" />
+      case 'low': return <Flag className="w-4 h-4" />
       default: return <Circle className="w-4 h-4" />
     }
   }
@@ -205,7 +209,7 @@ export default function TicketsPage() {
       case 'open': return <Circle className="w-4 h-4" />
       case 'in_progress': return <Loader className="w-4 h-4" />
       case 'resolved': return <CheckCircle className="w-4 h-4" />
-      case 'closed': return <CheckCircle className="w-4 h-4" />
+      case 'closed': return <ArrowRight className="w-4 h-4" />
       default: return <Circle className="w-4 h-4" />
     }
   }
@@ -224,6 +228,20 @@ export default function TicketsPage() {
         return darkMode ? 'bg-gray-600/20 text-gray-400 border-gray-600/30' : 'bg-gray-100 text-gray-700 border-gray-200'
     }
   }
+
+  const priorityOptions = [
+    { value: 'low', label: 'Low', icon: <Flag className="w-4 h-4" /> },
+    { value: 'medium', label: 'Medium', icon: <TrendingUp className="w-4 h-4" /> },
+    { value: 'high', label: 'High', icon: <AlertTriangle className="w-4 h-4" /> },
+    { value: 'urgent', label: 'Urgent', icon: <Zap className="w-4 h-4" /> }
+  ]
+
+  const statusOptions = [
+    { value: 'open', label: 'Open', icon: <Circle className="w-4 h-4" /> },
+    { value: 'in_progress', label: 'In Progress', icon: <Loader className="w-4 h-4" /> },
+    { value: 'resolved', label: 'Resolved', icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'closed', label: 'Closed', icon: <ArrowRight className="w-4 h-4" /> }
+  ]
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -247,33 +265,60 @@ export default function TicketsPage() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Customer
               </label>
-              <select
-                name="customer_id"
-                value={formData.customer_id}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Customer --</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.customer_id ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {formData.customer_id
+                    ? customers.find((c) => c.customer_id === formData.customer_id)?.name
+                    : "Select Customer"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {customerOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, customer_id: c.customer_id })
+                        setCustomerOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Issue Type */}
@@ -283,101 +328,208 @@ export default function TicketsPage() {
               }`}>
                 Issue Type
               </label>
-              <input
-                type="text"
-                name="issue_type"
-                placeholder="e.g., Technical Support"
-                value={formData.issue_type}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+              <div className="relative">
+                <FileText className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                  darkMode ? "text-slate-500" : "text-slate-500"
+                }`} />
+                <input
+                  type="text"
+                  name="issue_type"
+                  placeholder="e.g., Technical Support"
+                  value={formData.issue_type}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Priority */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Priority
               </label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setPriorityOpen(!priorityOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.priority ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.priority ? (
+                    <>
+                      {priorityOptions.find(p => p.value === formData.priority)?.icon}
+                      {priorityOptions.find(p => p.value === formData.priority)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <Target className="w-4 h-4" />
+                      Select Priority
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {priorityOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {priorityOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, priority: option.value })
+                        setPriorityOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Status */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Status
               </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setStatusOpen(!statusOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-                <option value="closed">Closed</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.status ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.status ? (
+                    <>
+                      {statusOptions.find(s => s.value === formData.status)?.icon}
+                      {statusOptions.find(s => s.value === formData.status)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <Activity className="w-4 h-4" />
+                      Select Status
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {statusOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {statusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, status: option.value })
+                        setStatusOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Assigned To */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Assign To
               </label>
-              <select
-                name="assigned_to"
-                value={formData.assigned_to}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setAssignedOpen(!assignedOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select User --</option>
-                {users.map((u) => (
-                  <option key={u.user_id} value={u.user_id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.assigned_to ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {formData.assigned_to
+                    ? users.find((u) => u.user_id === formData.assigned_to)?.name
+                    : "Select User"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {assignedOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {users.map((u) => (
+                    <button
+                      key={u.user_id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, assigned_to: u.user_id })
+                        setAssignedOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {u.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
@@ -412,7 +564,7 @@ export default function TicketsPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* TICKETS LIST */}

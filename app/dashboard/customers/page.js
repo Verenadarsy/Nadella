@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Swal from 'sweetalert2';
+import FloatingChat from "../floatingchat"
 import {
   Users, Edit2, Trash2, X, Save, Plus,
   Mail, Phone, MapPin, Calendar, User
@@ -180,88 +181,132 @@ export default function CustomersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer Name */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Customer Name
               </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="e.g., John Doe"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+
+              <div className="relative">
+                <User
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                    darkMode ? "text-slate-500" : "text-slate-400"
+                  }`}
+                />
+
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="e.g., John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Email
               </label>
-              <input
-                type="email"
-                name="email"
-                placeholder="customer@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+
+              <div className="relative">
+                <Mail
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                    darkMode ? "text-slate-500" : "text-slate-400"
+                  }`}
+                />
+
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="customer@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Phone */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Phone
               </label>
-              <input
-                type="text"
-                name="phone"
-                placeholder="e.g., +62 812 3456 7890"
-                value={formData.phone}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+
+              <div className="relative">
+                <Phone
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                    darkMode ? "text-slate-500" : "text-slate-400"
+                  }`}
+                />
+
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="e.g., +62 812 3456 7890"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Address */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Address
               </label>
-              <input
-                type="text"
-                name="address"
-                placeholder="e.g., Jakarta, Indonesia"
-                value={formData.address}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+
+              <div className="relative">
+                <MapPin
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                    darkMode ? "text-slate-500" : "text-slate-400"
+                  }`}
+                />
+
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="e.g., Jakarta, Indonesia"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
           </div>
 
@@ -455,6 +500,8 @@ export default function CustomersPage() {
           </div>
         )}
       </div>
+        {/* Floating Chat Imported Here */}
+        <FloatingChat />
     </div>
   );
 }

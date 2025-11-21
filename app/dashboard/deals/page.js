@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import {
   Handshake, Edit2, Trash2, X, Save, Plus,
-  DollarSign, Calendar, User, Building2, TrendingUp
+  Banknote, Calendar, User, Building2, TrendingUp, ChevronDown
 } from 'lucide-react'
+import FloatingChat from "../floatingchat"
 
 export default function DealsPage() {
   const [deals, setDeals] = useState([])
@@ -21,6 +22,9 @@ export default function DealsPage() {
   })
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [customerOpen, setCustomerOpen] = useState(false)
+  const [stageOpen, setStageOpen] = useState(false)
+  const [companyOpen, setCompanyOpen] = useState(false)
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -209,12 +213,14 @@ export default function DealsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Deal Name */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                Deal Name
-              </label>
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+              Deal Name
+            </label>
+
+            <div className="relative">
+              <Handshake className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? "text-slate-500" : "text-slate-500"}`} />
+
               <input
                 type="text"
                 name="deal_name"
@@ -222,132 +228,279 @@ export default function DealsPage() {
                 value={formData.deal_name}
                 onChange={handleChange}
                 required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                }`}
               />
             </div>
+          </div>
 
             {/* Deal Stage */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+            <div className="relative">
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Deal Stage
               </label>
-              <select
-                name="deal_stage"
-                value={formData.deal_stage}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              {/* Button */}
+              <button
+                type="button"
+                onClick={() => setStageOpen(!stageOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Stage --</option>
-                <option value="prospect">Prospect</option>
-                <option value="negotiation">Negotiation</option>
-                <option value="won">Won</option>
-                <option value="lost">Lost</option>
-              </select>
+                <span
+                  className={`flex items-center gap-2 ${
+                    formData.deal_stage ? "opacity-90" : "opacity-60"
+                  }`}
+                >
+                  <TrendingUp size={16} className="opacity-60" />
+                  {formData.deal_stage ? formData.deal_stage : "Select Stage"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {/* Dropdown */}
+              {stageOpen && (
+                <div
+                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-white border-gray-200 text-slate-900"
+                  }`}
+                >
+                  {["prospect", "negotiation", "won", "lost"].map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => {
+                        setFormData({ ...formData, deal_stage: item });
+                        setStageOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <TrendingUp size={16} className="opacity-70" />
+                      <span className="capitalize">{item}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
 
             {/* Deal Value */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                 Deal Value (Rp)
               </label>
-              <input
-                type="number"
-                name="deal_value"
-                placeholder="e.g., 50000000"
-                value={formData.deal_value}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+
+              <div className="relative">
+                <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? "text-slate-500" : "text-slate-500"}`} />
+
+                <input
+                  type="number"
+                  name="deal_value"
+                  placeholder="e.g., 50000000"
+                  value={formData.deal_value}
+                  onChange={handleChange}
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Expected Close Date */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Expected Close Date
               </label>
-              <input
-                type="date"
-                name="expected_close_date"
-                value={formData.expected_close_date}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <div
+                className="relative cursor-pointer"
+                onClick={() => document.getElementById("expectedCloseDateInput").showPicker()}
+              >
+
+                {/* ICON KIRI */}
+                <Calendar
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                    darkMode ? "text-slate-500" : "text-slate-400"
+                  }`}
+                />
+
+                {/* INPUT DATE (HIDDEN) */}
+                <input
+                  id="expectedCloseDateInput"
+                  type="date"
+                  name="expected_close_date"
+                  value={formData.expected_close_date}
+                  onChange={handleChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+
+                {/* VISUAL INPUT */}
+                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
-              />
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  <span className={formData.expected_close_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
+                    {formData.expected_close_date
+                      ? new Date(formData.expected_close_date + 'T00:00:00').toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : "dd/mm/yyyy"
+                    }
+                  </span>
+                </div>
+
+              </div>
             </div>
 
-            {/* Customer */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+
+
+
+            {/* Customer Select */}
+            <div className="relative">
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Customer
               </label>
-              <select
-                name="customer_id"
-                value={formData.customer_id}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              {/* Button */}
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Customer --</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <span
+                  className={`flex items-center gap-2 ${
+                    formData.customer_id ? "opacity-90" : "opacity-60"
+                  }`}
+                >
+                  <User size={16} className="opacity-60" />
+                  {formData.customer_id
+                    ? customers.find((c) => c.customer_id === formData.customer_id)?.name
+                    : "Select Customer"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {/* Dropdown */}
+              {customerOpen && (
+                <div
+                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-white border-gray-200 text-slate-900"
+                  }`}
+                >
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      onClick={() => {
+                        setFormData({ ...formData, customer_id: c.customer_id });
+                        setCustomerOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
+
             {/* Company */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+            <div className="relative">
+              <label
+                className={`block text-sm font-medium mb-2 ${
+                  darkMode ? "text-slate-300" : "text-slate-700"
+                }`}
+              >
                 Company
               </label>
-              <select
-                name="company_id"
-                value={formData.company_id}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              {/* Button */}
+              <button
+                type="button"
+                onClick={() => setCompanyOpen(!companyOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Company --</option>
-                {companies.map((c) => (
-                  <option key={c.company_id} value={c.company_id}>
-                    {c.company_name}
-                  </option>
-                ))}
-              </select>
+                <span
+                  className={`flex items-center gap-2 ${
+                    formData.company_id ? "opacity-90" : "opacity-60"
+                  }`}
+                >
+                  <Building2 size={16} className="opacity-60" />
+                  {formData.company_id
+                    ? companies.find((c) => c.company_id === formData.company_id)
+                        ?.company_name
+                    : "Select Company"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {/* Dropdown */}
+              {companyOpen && (
+                <div
+                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-white border-gray-200 text-slate-900"
+                  }`}
+                >
+                  {companies.map((c) => (
+                    <button
+                      key={c.company_id}
+                      onClick={() => {
+                        setFormData({ ...formData, company_id: c.company_id });
+                        setCompanyOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <Building2 size={16} className="opacity-70" />
+                      {c.company_name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
           </div>
 
           {/* Buttons */}
@@ -488,7 +641,6 @@ export default function DealsPage() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
                         <span className="font-semibold">
                           {deal.deal_value ? `Rp ${Number(deal.deal_value).toLocaleString('id-ID')}` : '-'}
                         </span>
@@ -555,6 +707,7 @@ export default function DealsPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

@@ -51,10 +51,17 @@ export default function CompaniesPage() {
 
     const url = '/api/companies'
     const method = isEditing ? 'PUT' : 'POST'
+
+    // FIX UTAMA → Jangan kirim company_id saat ADD
+    const payload = { ...form }
+    if (!isEditing) {
+      delete payload.company_id
+    }
+
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: JSON.stringify(payload)
     })
 
     if (res.ok) {
@@ -77,6 +84,7 @@ export default function CompaniesPage() {
       })
     }
   }
+
 
   // Delete company
   const handleDelete = async (id) => {
@@ -155,13 +163,17 @@ export default function CompaniesPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Company Name */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                Company Name
-              </label>
+          {/* Company Name */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${
+              darkMode ? 'text-slate-300' : 'text-slate-700'
+            }`}>
+              Company Name
+            </label>
+            <div className="relative">
+              <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
               <input
                 type="text"
                 name="company_name"
@@ -169,77 +181,94 @@ export default function CompaniesPage() {
                 value={form.company_name}
                 onChange={handleChange}
                 required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
                 } outline-none`}
               />
             </div>
+          </div>
 
-            {/* Industry */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                Industry
-              </label>
+          {/* Industry */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${
+              darkMode ? 'text-slate-300' : 'text-slate-700'
+            }`}>
+              Industry
+            </label>
+            <div className="relative">
+              <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
               <input
                 type="text"
                 name="industry"
                 placeholder="e.g., Technology, Finance"
                 value={form.industry}
                 onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
                 } outline-none`}
               />
             </div>
+          </div>
 
-            {/* Website */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                Website
-              </label>
+          {/* Website */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${
+              darkMode ? 'text-slate-300' : 'text-slate-700'
+            }`}>
+              Website
+            </label>
+            <div className="relative">
+              <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
               <input
-                type="url"
+                type="text"
                 name="website"
-                placeholder="https://example.com"
+                placeholder="e.g., www.techsolutions.com"
                 value={form.website}
                 onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
                 } outline-none`}
               />
             </div>
+          </div>
 
-            {/* Address */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                Address
-              </label>
+          {/* Address */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${
+              darkMode ? 'text-slate-300' : 'text-slate-700'
+            }`}>
+              Address
+            </label>
+            <div className="relative">
+              <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`} />
               <input
                 type="text"
                 name="address"
                 placeholder="e.g., Jakarta, Indonesia"
                 value={form.address}
                 onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
                 } outline-none`}
               />
             </div>
           </div>
+        </div>
+
 
           {/* Buttons */}
           <div className="flex gap-3">

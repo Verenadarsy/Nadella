@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import {
   FileText, Edit2, Trash2, X, Save, Plus,
-  DollarSign, Calendar, User, Clock, AlertCircle, CheckCircle
+  Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown
 } from 'lucide-react'
 
 export default function InvoicesPage() {
@@ -18,9 +18,10 @@ export default function InvoicesPage() {
     due_date: '',
     status: '',
   })
+  const [customerOpen, setCustomerOpen] = useState(false)
+  const [statusOpen, setStatusOpen] = useState(false)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -34,23 +35,23 @@ export default function InvoicesPage() {
     return () => observer.disconnect()
   }, [])
 
-  const fetchInvoices = async () => {
-    const res = await fetch('/api/invoices')
-    const data = await res.json()
-    setInvoices(Array.isArray(data) ? data : [])
+  const fetchInvoices = () => {
+    fetch('/api/invoices')
+      .then(res => res.json())
+      .then(data => setInvoices(Array.isArray(data) ? data : []))
   }
 
-  const fetchCustomers = async () => {
-    const res = await fetch('/api/customers')
-    const data = await res.json()
-    setCustomers(Array.isArray(data) ? data : [])
+  const fetchCustomers = () => {
+    fetch('/api/customers')
+      .then(res => res.json())
+      .then(data => setCustomers(Array.isArray(data) ? data : []))
   }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     const method = isEditing ? 'PUT' : 'POST'
@@ -60,39 +61,39 @@ export default function InvoicesPage() {
           ...formData,
           created_at: new Date(
             new Date().getTime() + 7 * 60 * 60 * 1000
-          ).toISOString(), // WIB
+          ).toISOString(),
         }
 
-    const res = await fetch('/api/invoices', {
+    fetch('/api/invoices', {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newInvoice),
+    }).then(res => {
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sukses!',
+          text: `Invoice berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}!`,
+          showConfirmButton: false,
+          timer: 1500
+        })
+        setFormData({
+          invoice_id: '',
+          customer_id: '',
+          amount: '',
+          due_date: '',
+          status: '',
+        })
+        setIsEditing(false)
+        fetchInvoices()
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal!',
+          text: 'Tidak bisa menyimpan invoice.'
+        })
+      }
     })
-
-    if (res.ok) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Sukses!',
-        text: `Invoice berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}!`,
-        showConfirmButton: false,
-        timer: 1500
-      })
-      setFormData({
-        invoice_id: '',
-        customer_id: '',
-        amount: '',
-        due_date: '',
-        status: '',
-      })
-      setIsEditing(false)
-      fetchInvoices()
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: 'Tidak bisa menyimpan invoice.'
-      })
-    }
   }
 
   const handleEdit = (invoice) => {
@@ -101,8 +102,8 @@ export default function InvoicesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+  const handleDelete = (id) => {
+    Swal.fire({
       title: 'Hapus invoice ini?',
       text: 'Tindakan ini tidak bisa dibatalkan.',
       icon: 'warning',
@@ -111,32 +112,32 @@ export default function InvoicesPage() {
       cancelButtonText: 'Batal',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
-
-    if (confirm.isConfirmed) {
-      const res = await fetch('/api/invoices', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-
-      if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Dihapus!',
-          text: 'Invoice berhasil dihapus.',
-          showConfirmButton: false,
-          timer: 1500
-        })
-        fetchInvoices()
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus invoice.'
+    }).then(confirm => {
+      if (confirm.isConfirmed) {
+        fetch('/api/invoices', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        }).then(res => {
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Dihapus!',
+              text: 'Invoice berhasil dihapus.',
+              showConfirmButton: false,
+              timer: 1500
+            })
+            fetchInvoices()
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal!',
+              text: 'Tidak bisa menghapus invoice.'
+            })
+          }
         })
       }
-    }
+    })
   }
 
   const handleCancel = () => {
@@ -174,6 +175,12 @@ export default function InvoicesPage() {
     }
   }
 
+  const statusOptions = [
+    { value: 'pending', label: 'Pending', icon: <Clock className="w-4 h-4" /> },
+    { value: 'paid', label: 'Paid', icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'overdue', label: 'Overdue', icon: <AlertCircle className="w-4 h-4" /> }
+  ]
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -196,33 +203,60 @@ export default function InvoicesPage() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Customer
               </label>
-              <select
-                name="customer_id"
-                value={formData.customer_id}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Customer --</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.customer_id ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {formData.customer_id
+                    ? customers.find((c) => c.customer_id === formData.customer_id)?.name
+                    : "Select Customer"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {customerOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, customer_id: c.customer_id })
+                        setCustomerOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Amount */}
@@ -232,72 +266,137 @@ export default function InvoicesPage() {
               }`}>
                 Amount (Rp)
               </label>
-              <input
-                type="number"
-                name="amount"
-                placeholder="e.g., 5000000"
-                value={formData.amount}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+              <div className="relative">
+                <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                  darkMode ? "text-slate-500" : "text-slate-500"
+                }`} />
+                <input
+                  type="number"
+                  name="amount"
+                  placeholder="e.g., 5000000"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Due Date */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
+                darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
                 Due Date
               </label>
-              <input
-                type="date"
-                name="due_date"
-                value={formData.due_date}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <div
+                className="relative cursor-pointer"
+                onClick={() => document.getElementById("dueDateInput").showPicker()}
+              >
+                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                  darkMode ? "text-slate-500" : "text-slate-400"
+                }`} />
+
+                <input
+                  id="dueDateInput"
+                  type="date"
+                  name="due_date"
+                  value={formData.due_date}
+                  onChange={handleChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+
+                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
-              />
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  <span className={formData.due_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
+                    {formData.due_date
+                      ? new Date(formData.due_date + 'T00:00:00').toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : "dd/mm/yyyy"
+                    }
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Status */}
-            <div>
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Status
               </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setStatusOpen(!statusOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Status --</option>
-                <option value="pending">Pending</option>
-                <option value="paid">Paid</option>
-                <option value="overdue">Overdue</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.status ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.status ? (
+                    <>
+                      {statusOptions.find(s => s.value === formData.status)?.icon}
+                      {statusOptions.find(s => s.value === formData.status)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-4 h-4" />
+                      Select Status
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {statusOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {statusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, status: option.value })
+                        setStatusOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
@@ -332,7 +431,7 @@ export default function InvoicesPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* INVOICES LIST */}
@@ -419,7 +518,6 @@ export default function InvoicesPage() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
                         <span className="font-semibold">
                           Rp {Number(i.amount).toLocaleString('id-ID')}
                         </span>

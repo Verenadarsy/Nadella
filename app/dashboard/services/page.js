@@ -5,6 +5,7 @@ import {
   Wrench, Edit2, Trash2, X, Save, Plus,
   User, Calendar, CheckCircle, XCircle, Clock
 } from 'lucide-react'
+import FloatingChat from "../floatingchat"
 
 const getCurrentWIB = () => {
   const now = new Date()
@@ -516,6 +517,7 @@ export default function ServicesPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

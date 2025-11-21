@@ -155,7 +155,7 @@ export default function ProductsCRUD() {
                 Product Name
               </label>
               <div className="relative">
-                <ShoppingCart className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                <Package className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input

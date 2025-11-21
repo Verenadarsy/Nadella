@@ -5,6 +5,7 @@ import {
   Megaphone, Edit2, Trash2, X, Save, Plus,
   Calendar, DollarSign, TrendingUp, Mail, Smartphone, Radio
 } from 'lucide-react'
+import FloatingChat from "../floatingchat"
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState([])
@@ -495,6 +496,7 @@ export default function CampaignsPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

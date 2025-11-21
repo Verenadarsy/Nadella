@@ -5,6 +5,7 @@ import {
   MessageSquare, Edit2, Trash2, X, Save, Plus,
   Mail, Phone, MessageCircle, Send, User, Clock
 } from 'lucide-react';
+import FloatingChat from "../floatingchat"
 
 export default function CommunicationsPage() {
   const [communications, setCommunications] = useState([]);
@@ -428,6 +429,7 @@ export default function CommunicationsPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   );
 }
