@@ -67,8 +67,8 @@ export default function CompaniesPage() {
     if (res.ok) {
       Swal.fire({
         icon: 'success',
-        title: 'Sukses!',
-        text: isEditing ? 'Company berhasil diperbarui!' : 'Company berhasil ditambahkan!',
+        title: 'Success!',
+        text: isEditing ? 'Company successfully updated!' : 'Company successfully added!',
         showConfirmButton: false,
         timer: 1500
       })
@@ -79,8 +79,8 @@ export default function CompaniesPage() {
       const err = await res.json()
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: err.message || 'Tidak bisa menyimpan company.'
+        title: 'Failed!',
+        text: err.message || 'Unable to save the company.'
       })
     }
   }
@@ -89,12 +89,12 @@ export default function CompaniesPage() {
   // Delete company
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus company ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this company?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -110,8 +110,8 @@ export default function CompaniesPage() {
     if (res.ok) {
       Swal.fire({
         icon: 'success',
-        title: 'Dihapus!',
-        text: 'Company berhasil dihapus.',
+        title: 'Deleted!',
+        text: 'Company successfully deleted.',
         showConfirmButton: false,
         timer: 1500
       })
@@ -120,8 +120,8 @@ export default function CompaniesPage() {
       const err = await res.json()
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: err.message || 'Tidak bisa menghapus company.'
+        title: 'Failed',
+        text: err.message || 'Unable to delete the company.'
       })
     }
   }

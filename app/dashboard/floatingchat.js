@@ -76,7 +76,7 @@ export default function FloatingChat() {
     } catch (e) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "⚠️ Gagal memproses pesan." }
+        { role: "assistant", content: "Failed to process the message." }
       ]);
     }
 
@@ -94,12 +94,12 @@ export default function FloatingChat() {
         </button>
       ) : (
         <div
-          className={`rounded-2xl shadow-2xl w-[420px] h-[550px] flex flex-col 
+          className={`rounded-2xl shadow-2xl w-[420px] h-[550px] flex flex-col
           ${darkMode ? "bg-slate-800 border border-slate-700" : "bg-white"}`}
         >
           {/* HEADER */}
           <div
-            className={`p-4 flex justify-between items-center rounded-t-2xl 
+            className={`p-4 flex justify-between items-center rounded-t-2xl
             ${darkMode ? "bg-blue-800 text-white" : "bg-blue-600 text-white"}`}
           >
             <span className="font-semibold text-lg">Nadella AI Assistant</span>
@@ -109,7 +109,7 @@ export default function FloatingChat() {
           {/* CHAT BODY */}
           <div
             ref={chatBodyRef}
-            className={`flex-1 p-4 space-y-3 
+            className={`flex-1 p-4 space-y-3
             ${darkMode ? "bg-slate-900" : "bg-white"}`}
             style={{
               overflowY: "auto",
@@ -124,10 +124,10 @@ export default function FloatingChat() {
 
             {messages.length === 0 && (
               <div
-                className={`p-3 rounded-lg max-w-[85%] 
+                className={`p-3 rounded-lg max-w-[85%]
                 ${darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"}`}
               >
-                👋 Halo! Aku <b>Nadella</b>. Ada yang bisa aku bantu?
+                Hello! I'm <b>Nadella</b>. How can I assist you today?
               </div>
             )}
 
@@ -156,7 +156,7 @@ export default function FloatingChat() {
 
             {loading && (
               <div className="p-3 rounded-xl max-w-[80%] bg-slate-700 text-white w-fit animate-pulse">
-                Nadella sedang mengetik...
+                Nadella is typing...
               </div>
             )}
           </div>
@@ -168,16 +168,16 @@ export default function FloatingChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Ketik pesan..."
-              className={`flex-1 border rounded-lg p-2 
+              className={`flex-1 border rounded-lg p-2
               ${darkMode ? "bg-slate-800 text-white border-slate-600" : "bg-white text-slate-800"}`}
             />
             <button
               onClick={sendMessage}
               disabled={loading}
-              className={`px-4 rounded-lg text-white 
+              className={`px-4 rounded-lg text-white
                 ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
             >
-              Kirim
+              Send
             </button>
           </div>
         </div>

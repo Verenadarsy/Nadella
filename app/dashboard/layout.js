@@ -20,8 +20,14 @@ export default function DashboardLayout({ children }) {
   const [tooltip, setTooltip] = useState({ show: false, text: '', top: 0 })
 
   useEffect(() => {
-    const savedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setDarkMode(savedTheme)
+    // Baca dari localStorage dulu (yang di-set dari login page)
+    const savedTheme = localStorage.getItem('darkMode')
+    if (savedTheme !== null) {
+      setDarkMode(savedTheme === 'true')
+    } else {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      setDarkMode(systemDark)
+    }
 
     const roleCookie = document.cookie
       .split('; ')
@@ -57,27 +63,29 @@ export default function DashboardLayout({ children }) {
   }, [darkMode])
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
+    const newMode = !darkMode
+    setDarkMode(newMode)
+    localStorage.setItem('darkMode', newMode.toString()) // SAVE KE LOCALSTORAGE
   }
 
   const handleLogout = () => {
     Swal.fire({
-      title: 'Konfirmasi Logout',
-      text: 'Apakah kamu yakin ingin keluar?',
+      title: 'Confirm Logout',
+      text: 'Are you sure you want to log out?',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Ya, Logout',
-      cancelButtonText: 'Batal'
+      confirmButtonText: 'Yes, Logout',
+      cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
         document.cookie = 'userRole=; Max-Age=0; path=/;'
         document.cookie = 'userEmail=; Max-Age=0; path=/;'
         Swal.fire({
           icon: 'success',
-          title: 'Logout berhasil!',
-          text: 'Sampai jumpa lagi 👋',
+          title: 'Logout successful!',
+          text: 'See you again!',
           showConfirmButton: false,
           timer: 1500
         }).then(() => router.push('/login'))

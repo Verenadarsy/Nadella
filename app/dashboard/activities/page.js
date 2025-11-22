@@ -6,6 +6,7 @@ import {
   X, Save, Plus, Phone, Mail, Users,
   MessageSquare, FileText, ChevronDown
 } from 'lucide-react'
+import FloatingChat from "../floatingchat"
 
 // 🔹 Fungsi buat dapetin waktu sekarang dalam format WIB
 const getCurrentWIB = () => {
@@ -85,8 +86,8 @@ export default function ActivitiesPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Sukses!',
-          text: editingId ? 'Activity berhasil diperbarui!' : 'Activity berhasil ditambahkan!',
+          title: 'Success!',
+          text: editingId ? 'Activity successfully updated!' : 'Activity successfully added!',
           showConfirmButton: false,
           timer: 1500
         })
@@ -96,8 +97,8 @@ export default function ActivitiesPage() {
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Terjadi kesalahan saat menyimpan activity.'
+          title: 'Failed!',
+          text: 'An error occurred while saving the activity.'
         })
       }
     })
@@ -123,8 +124,8 @@ export default function ActivitiesPage() {
           if (res.ok) {
             Swal.fire({
               icon: 'success',
-              title: 'Dihapus!',
-              text: 'Activity berhasil dihapus.',
+              title: 'Deleted!',
+              text: 'Activity successfully deleted.',
               showConfirmButton: false,
               timer: 1500
             })
@@ -132,8 +133,8 @@ export default function ActivitiesPage() {
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'Gagal!',
-              text: 'Tidak bisa menghapus activity.'
+              title: 'Failed!',
+              text: 'Unable to delete the activity.'
             })
           }
         })
@@ -517,6 +518,7 @@ export default function ActivitiesPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

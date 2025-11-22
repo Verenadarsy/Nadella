@@ -6,6 +6,7 @@ import {
   User, Clock, AlertTriangle, CheckCircle, Circle, Loader, ChevronDown, FileText, Target, Activity,
   Flag, TrendingUp, Zap, ArrowRight
 } from 'lucide-react'
+import FloatingChat from "../floatingchat"
 
 // Dapetin waktu real-time dalam format "YYYY-MM-DD HH:mm:ss" WIB
 const getCurrentWIB = () => {
@@ -75,49 +76,125 @@ export default function TicketsPage() {
   }
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+      setFormData({ ...formData, [e.target.name]: e.target.value })
+    }
 
-  const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // VALIDASI LENGKAP
+    if (!formData.customer_id) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Customer Required!',
+        text: 'Please select a customer.'
+      })
+      return
+    }
+
+    if (!formData.issue_type || formData.issue_type.trim() === '') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Issue Type Required!',
+        text: 'Please enter issue type.'
+      })
+      return
+    }
+
+    if (!formData.priority) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Priority Required!',
+        text: 'Please select priority.'
+      })
+      return
+    }
+
+    if (!formData.status) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Status Required!',
+        text: 'Please select status.'
+      })
+      return
+    }
 
     const method = isEditing ? 'PUT' : 'POST'
     const url = '/api/tickets'
-    const payload = isEditing
-      ? formData
-      : { ...formData, created_at: getCurrentWIB() }
 
-    fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).then(res => {
-      if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Sukses!',
-          text: `Ticket berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}!`,
-          showConfirmButton: false,
-          timer: 1500
-        })
-        setFormData({
-          ticket_id: '',
-          customer_id: '',
-          issue_type: '',
-          status: '',
-          priority: '',
-          assigned_to: '',
-        })
-        setIsEditing(false)
-        fetchTickets()
-      } else {
+    // BUAT PAYLOAD YANG BERSIH - PASTIIN INTEGER!
+    const payload = isEditing
+      ? {
+          ticket_id: formData.ticket_id,
+          customer_id: formData.customer_id,
+          issue_type: formData.issue_type.trim(),
+          status: formData.status,
+          priority: formData.priority,
+          assigned_to: formData.assigned_to || null,
+        }
+      : {
+          customer_id: formData.customer_id,
+          issue_type: formData.issue_type.trim(),
+          status: formData.status,
+          priority: formData.priority,
+          assigned_to: formData.assigned_to || null,
+          created_at: getCurrentWIB()
+        }
+
+    console.log('📤 Sending payload:', payload)
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      console.log('📥 Response status:', response.status)
+
+      const data = await response.json()
+      console.log('📥 Response data:', data)
+
+      if (!response.ok) {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menyimpan ticket.'
+          title: 'Backend Error!',
+          html: `<div style="text-align: left; font-size: 13px;">
+            <strong>Status:</strong> ${response.status}<br>
+            <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
+          </div>`,
+          width: '600px'
         })
+        return
       }
-    })
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: `Ticket successfully ${isEditing ? 'updated' : 'added'}!`,
+        showConfirmButton: false,
+        timer: 1500
+      })
+
+      setFormData({
+        ticket_id: '',
+        customer_id: '',
+        issue_type: '',
+        status: '',
+        priority: '',
+        assigned_to: '',
+      })
+      setIsEditing(false)
+      fetchTickets()
+
+    } catch (error) {
+      console.error('❌ Fetch error:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Network Error!',
+        text: error.message
+      })
+    }
   }
 
   const handleEdit = (ticket) => {
@@ -128,12 +205,12 @@ export default function TicketsPage() {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: 'Hapus ticket ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this ticket?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }).then(confirm => {
@@ -146,8 +223,8 @@ export default function TicketsPage() {
           if (res.ok) {
             Swal.fire({
               icon: 'success',
-              title: 'Dihapus!',
-              text: 'Ticket berhasil dihapus.',
+              title: 'Deleted!',
+              text: 'Ticket successfully deleted.',
               showConfirmButton: false,
               timer: 1500
             })
@@ -155,8 +232,8 @@ export default function TicketsPage() {
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'Gagal!',
-              text: 'Tidak bisa menghapus ticket.'
+              title: 'Failed!',
+              text: 'Unable to delete the ticket.'
             })
           }
         })
@@ -207,7 +284,7 @@ export default function TicketsPage() {
   const getStatusIcon = (status) => {
     switch(status) {
       case 'open': return <Circle className="w-4 h-4" />
-      case 'in_progress': return <Loader className="w-4 h-4" />
+      case 'in progress': return <Loader className="w-4 h-4" />
       case 'resolved': return <CheckCircle className="w-4 h-4" />
       case 'closed': return <ArrowRight className="w-4 h-4" />
       default: return <Circle className="w-4 h-4" />
@@ -218,7 +295,7 @@ export default function TicketsPage() {
     switch(status) {
       case 'open':
         return darkMode ? 'bg-blue-600/20 text-blue-400 border-blue-600/30' : 'bg-blue-100 text-blue-700 border-blue-200'
-      case 'in_progress':
+      case 'in progress':
         return darkMode ? 'bg-purple-600/20 text-purple-400 border-purple-600/30' : 'bg-purple-100 text-purple-700 border-purple-200'
       case 'resolved':
         return darkMode ? 'bg-green-600/20 text-green-400 border-green-600/30' : 'bg-green-100 text-green-700 border-green-200'
@@ -238,7 +315,7 @@ export default function TicketsPage() {
 
   const statusOptions = [
     { value: 'open', label: 'Open', icon: <Circle className="w-4 h-4" /> },
-    { value: 'in_progress', label: 'In Progress', icon: <Loader className="w-4 h-4" /> },
+    { value: 'in progress', label: 'In Progress', icon: <Loader className="w-4 h-4" /> },
     { value: 'resolved', label: 'Resolved', icon: <CheckCircle className="w-4 h-4" /> },
     { value: 'closed', label: 'Closed', icon: <ArrowRight className="w-4 h-4" /> }
   ]
@@ -673,7 +750,7 @@ export default function TicketsPage() {
                         getStatusColor(t.status)
                       }`}>
                         {getStatusIcon(t.status)}
-                        <span className="capitalize">{t.status.replace('_', ' ')}</span>
+                        <span className="capitalize">{t.status}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -732,6 +809,7 @@ export default function TicketsPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

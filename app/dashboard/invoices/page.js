@@ -51,49 +51,94 @@ export default function InvoicesPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // Validasi
+    if (!formData.customer_id || !formData.amount || !formData.due_date || !formData.status) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Warning!',
+        text: 'Please fill in all required fields'
+      })
+      return
+    }
+
     const method = isEditing ? 'PUT' : 'POST'
-    const newInvoice = isEditing
-      ? formData
+
+    // Generate WIB timestamp for created_at (pas create baru aja)
+    const now = new Date()
+    const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+    const createdAtWIB = wib.toISOString().slice(0, 19).replace('T', ' ')
+
+    // BUAT PAYLOAD YANG PROPER
+    const payload = isEditing
+      ? {
+          invoice_id: formData.invoice_id,
+          customer_id: formData.customer_id,
+          amount: parseFloat(formData.amount),
+          due_date: formData.due_date,
+          status: formData.status,
+        }
       : {
-          ...formData,
-          created_at: new Date(
-            new Date().getTime() + 7 * 60 * 60 * 1000
-          ).toISOString(),
+          customer_id: formData.customer_id,
+          amount: parseFloat(formData.amount),
+          due_date: formData.due_date,
+          status: formData.status,
+          created_at: createdAtWIB  // ← ADD INI!
         }
 
-    fetch('/api/invoices', {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newInvoice),
-    }).then(res => {
-      if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Sukses!',
-          text: `Invoice berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}!`,
-          showConfirmButton: false,
-          timer: 1500
-        })
-        setFormData({
-          invoice_id: '',
-          customer_id: '',
-          amount: '',
-          due_date: '',
-          status: '',
-        })
-        setIsEditing(false)
-        fetchInvoices()
-      } else {
+    console.log('📤 Sending invoice data:', payload)
+
+    try {
+      const response = await fetch('/api/invoices', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+      console.log('📥 Response:', response.status, data)
+
+      if (!response.ok) {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menyimpan invoice.'
+          title: 'Error!',
+          html: `<div style="text-align: left; font-size: 13px;">
+            <strong>Status:</strong> ${response.status}<br>
+            <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
+          </div>`,
+          width: '600px'
         })
+        return
       }
-    })
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: `Invoice successfully ${isEditing ? 'updated' : 'added'}!`,
+        showConfirmButton: false,
+        timer: 1500
+      })
+
+      setFormData({
+        invoice_id: '',
+        customer_id: '',
+        amount: '',
+        due_date: '',
+        status: '',
+      })
+      setIsEditing(false)
+      fetchInvoices()
+
+    } catch (error) {
+      console.error('❌ Fetch error:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed!',
+        text: 'An error occurred while saving the invoice.'
+      })
+    }
   }
 
   const handleEdit = (invoice) => {
@@ -104,12 +149,12 @@ export default function InvoicesPage() {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: 'Hapus invoice ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this invoice?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }).then(confirm => {
@@ -122,8 +167,8 @@ export default function InvoicesPage() {
           if (res.ok) {
             Swal.fire({
               icon: 'success',
-              title: 'Dihapus!',
-              text: 'Invoice berhasil dihapus.',
+              title: 'Deleted!',
+              text: 'Invoice successfully deleted.',
               showConfirmButton: false,
               timer: 1500
             })
@@ -131,8 +176,8 @@ export default function InvoicesPage() {
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'Gagal!',
-              text: 'Tidak bisa menghapus invoice.'
+              title: 'Failed!',
+              text: 'Unable to delete the invoice.'
             })
           }
         })

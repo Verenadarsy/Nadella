@@ -41,7 +41,7 @@ export default function DashboardHome() {
             : "bg-gradient-to-r from-blue-900 to-blue-700"
         }`}
       >
-        <h1 className="text-3xl font-bold mb-2">Welcome Back! 👋</h1>
+        <h1 className="text-3xl font-bold mb-2">Welcome Back!</h1>
         <p className="text-blue-100">
           Manage your CRM system efficiently from this dashboard
         </p>
@@ -91,7 +91,7 @@ export default function DashboardHome() {
           />
         </div>
       </div>
-      
+
       {/* CHART SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 

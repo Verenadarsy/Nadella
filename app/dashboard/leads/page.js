@@ -12,7 +12,9 @@ export default function LeadsPage() {
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
-  lead_status: "select",
+    customer_id: "",
+    source: "",
+    lead_status: "select"
 });
 
   const [editingId, setEditingId] = useState(null)
@@ -60,15 +62,25 @@ export default function LeadsPage() {
     if (!form.customer_id || !form.source || !form.lead_status) {
       Swal.fire({
         icon: 'warning',
-        title: 'Peringatan!',
-        text: 'Mohon isi semua field'
+        title: 'Warning!',
+        text: 'Please fill in all required fields'
       })
       return
     }
 
     try {
       const method = editingId ? "PUT" : "POST"
-      const body = editingId ? { ...form, lead_id: editingId } : form
+
+      // Generate WIB timestamp for created_at
+      const now = new Date()
+      const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+      const createdAtWIB = wib.toISOString().slice(0, 19).replace('T', ' ')
+
+      const body = editingId
+        ? { ...form, lead_id: editingId }  // Edit: jangan tambahin created_at
+        : { ...form, created_at: createdAtWIB }  // Create: tambahin created_at WIB
+
+      console.log('📤 Sending lead data:', body)  // Debug
 
       const res = await fetch("/api/leads", {
         method,
@@ -82,33 +94,33 @@ export default function LeadsPage() {
 
       Swal.fire({
         icon: 'success',
-        title: 'Sukses!',
-        text: editingId ? 'Lead berhasil diperbarui!' : 'Lead berhasil ditambahkan!',
+        title: 'Success!',
+        text: editingId ? 'Lead successfully updated!' : 'Lead successfully added!',
         showConfirmButton: false,
         timer: 1500
       })
 
-      setForm({ customer_id: "", source: "", lead_status: "new" })
+      setForm({ customer_id: "", source: "", lead_status: "" })
       setEditingId(null)
       fetchLeads()
     } catch (err) {
       console.error(err)
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: 'Terjadi kesalahan saat menyimpan lead'
+        title: 'Failed!',
+        text: 'An error occurred while saving the lead'
       })
     }
   }
 
   async function handleDelete(id) {
     const confirm = await Swal.fire({
-      title: 'Hapus lead ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this lead?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -124,8 +136,8 @@ export default function LeadsPage() {
 
         Swal.fire({
           icon: 'success',
-          title: 'Dihapus!',
-          text: 'Lead berhasil dihapus.',
+          title: 'Deleted!',
+          text: 'Lead successfully deleted.',
           showConfirmButton: false,
           timer: 1500
         })
@@ -134,8 +146,8 @@ export default function LeadsPage() {
         console.error(err)
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus lead'
+          title: 'Failed!',
+          text: 'Unable to delete the lead.'
         })
       }
     }

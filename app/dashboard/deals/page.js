@@ -79,8 +79,8 @@ export default function DealsPage() {
     if (res.ok) {
       Swal.fire({
         icon: 'success',
-        title: 'Sukses!',
-        text: isEditing ? 'Deal berhasil diperbarui!' : 'Deal berhasil ditambahkan!',
+        title: 'Success!',
+        text: isEditing ? 'Deal successfully updated!' : 'Deal successfully added!',
         showConfirmButton: false,
         timer: 1500
       })
@@ -98,8 +98,8 @@ export default function DealsPage() {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: 'Tidak bisa menyimpan deal.'
+        title: 'Failed!',
+        text: 'Unable to save the deal.'
       })
     }
   }
@@ -120,12 +120,12 @@ export default function DealsPage() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus deal ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this deal?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -140,8 +140,8 @@ export default function DealsPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Dihapus!',
-          text: 'Deal berhasil dihapus.',
+          title: 'Deleted!',
+          text: 'Deal successfully deleted.',
           showConfirmButton: false,
           timer: 1500
         })
@@ -149,8 +149,8 @@ export default function DealsPage() {
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus deal.'
+          title: 'Failed!',
+          text: 'Unable to delete the deal.'
         })
       }
     }

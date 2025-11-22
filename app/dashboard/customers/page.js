@@ -72,8 +72,8 @@ export default function CustomersPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Sukses!',
-          text: editing ? 'Customer berhasil diperbarui!' : 'Customer berhasil ditambahkan!',
+          title: 'Success!',
+          text: editing ? 'Customer successfully updated!' : 'Customer successfully added!',
           showConfirmButton: false,
           timer: 1500
         });
@@ -83,8 +83,8 @@ export default function CustomersPage() {
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menyimpan customer.'
+          title: 'Failed!',
+          text: 'Unable to save the customer.'
         });
       }
     } catch (err) {
@@ -92,7 +92,7 @@ export default function CustomersPage() {
       Swal.fire({
         icon: 'error',
         title: 'Error!',
-        text: 'Terjadi kesalahan koneksi.'
+        text: 'A connection error occurred.'
       });
     }
   };
@@ -110,12 +110,12 @@ export default function CustomersPage() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus customer ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this customer?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     });
@@ -132,8 +132,8 @@ export default function CustomersPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Dihapus!',
-          text: 'Customer berhasil dihapus.',
+          title: 'Deleted!',
+          text: 'Customer successfully deleted.',
           showConfirmButton: false,
           timer: 1500
         });
@@ -141,8 +141,8 @@ export default function CustomersPage() {
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus customer.'
+          title: 'Failed!',
+          text: 'Unable to delete the customer.'
         });
       }
     } catch (err) {

@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import {
   Wrench, Edit2, Trash2, X, Save, Plus,
-  User, Calendar, CheckCircle, XCircle, Clock
+  User, Calendar, CheckCircle, XCircle, Clock, ChevronDown,
+  Phone, Video, Cloud, Activity
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 
-const getCurrentWIB = () => {
+const getCurrentDateWIB = () => {
   const now = new Date()
   const utcMs = now.getTime() + now.getTimezoneOffset() * 60000
   const wib = new Date(utcMs + 7 * 60 * 60 * 1000)
@@ -16,11 +17,8 @@ const getCurrentWIB = () => {
   const year = wib.getFullYear()
   const month = pad(wib.getMonth() + 1)
   const day = pad(wib.getDate())
-  const hour = pad(wib.getHours())
-  const minute = pad(wib.getMinutes())
-  const second = pad(wib.getSeconds())
 
-  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+  return `${year}-${month}-${day}`
 }
 
 export default function ServicesPage() {
@@ -34,9 +32,11 @@ export default function ServicesPage() {
     service_type: '',
     status: 'active',
   })
+  const [customerOpen, setCustomerOpen] = useState(false)
+  const [serviceTypeOpen, setServiceTypeOpen] = useState(false)
+  const [statusOpen, setStatusOpen] = useState(false)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -62,108 +62,108 @@ export default function ServicesPage() {
     setCustomers(Array.isArray(data) ? data : [])
   }
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+  const handleSubmit = async (e) => {
+  e.preventDefault()
+
+  if (!formData.customer_id || !formData.service_type || !formData.status) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Oops',
+      text: 'Complete all fields first!'
+    })
+    return
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const method = isEditing ? 'PUT' : 'POST'
+  const servicePayload = isEditing
+    ? formData
+    : {
+        customer_id: formData.customer_id,
+        service_type: formData.service_type,
+        status: formData.status,
+        start_date: getCurrentDateWIB() // ✅ Sekarang udah bener!
+      }
 
-    if (!formData.customer_id || !formData.service_type) {
+  try {
+    const res = await fetch('/api/services', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(servicePayload),
+    })
+
+    if (!res.ok) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Oops',
-        text: 'Lengkapi semua field dulu ya!'
+        icon: 'error',
+        title: 'Failed!',
+        text: 'Unable to save the service.'
       })
       return
     }
 
-    const method = isEditing ? 'PUT' : 'POST'
-    const servicePayload = isEditing
-      ? formData
-      : { ...formData, start_date: getCurrentWIB() }
+    const saved = await res.json()
 
-    try {
-      const res = await fetch('/api/services', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(servicePayload),
-      })
+    if (!isEditing) {
+      let detailEndpoint = ''
+      let detailBody = {}
 
-      if (!res.ok) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak dapat menyimpan service.'
+      if (formData.service_type === 'cctv') {
+        detailEndpoint = '/api/service_cctv'
+        detailBody = {
+          service_id: saved.service_id,
+          user_account: 'user_demo',
+          password: '123456',
+          serial_no: 'SN123',
+          encryption_code: 'ENC001',
+          user_mobile_app: 'demoapp',
+          pwd_mobile_app: 'demo123',
+        }
+      } else if (formData.service_type === 'sip_trunk') {
+        detailEndpoint = '/api/service_sip_trunk'
+        detailBody = {
+          service_id: saved.service_id,
+          user_id_phone: '1001',
+          password: 'abc123',
+          sip_server: 'sip.provider.com',
+        }
+      } else if (formData.service_type === 'gcp_aws') {
+        detailEndpoint = '/api/service_cloud'
+        detailBody = {
+          service_id: saved.service_id,
+          user_email: 'user@demo.com',
+          password: 'cloudpass',
+          provider: 'gcp',
+        }
+      }
+
+      if (detailEndpoint) {
+        await fetch(detailEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(detailBody),
         })
-        return
       }
-
-      const saved = await res.json()
-
-      // Tambahkan data detail saat tambah baru
-      if (!isEditing) {
-        let detailEndpoint = ''
-        let detailBody = {}
-
-        if (formData.service_type === 'cctv') {
-          detailEndpoint = '/api/service_cctv'
-          detailBody = {
-            service_id: saved.service_id,
-            user_account: 'user_demo',
-            password: '123456',
-            serial_no: 'SN123',
-            encryption_code: 'ENC001',
-            user_mobile_app: 'demoapp',
-            pwd_mobile_app: 'demo123',
-          }
-        } else if (formData.service_type === 'sip_trunk') {
-          detailEndpoint = '/api/service_sip_trunk'
-          detailBody = {
-            service_id: saved.service_id,
-            user_id_phone: '1001',
-            password: 'abc123',
-            sip_server: 'sip.provider.com',
-          }
-        } else if (formData.service_type === 'gcp_aws') {
-          detailEndpoint = '/api/service_cloud'
-          detailBody = {
-            service_id: saved.service_id,
-            user_email: 'user@demo.com',
-            password: 'cloudpass',
-            provider: 'gcp',
-          }
-        }
-
-        if (detailEndpoint) {
-          await fetch(detailEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(detailBody),
-          })
-        }
-      }
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Sukses!',
-        text: `Service berhasil ${isEditing ? 'diedit' : 'ditambahkan'}!`,
-        showConfirmButton: false,
-        timer: 1500
-      })
-
-      setFormData({ service_id: '', customer_id: '', service_type: '', status: 'active' })
-      setIsEditing(false)
-      fetchServices()
-    } catch (err) {
-      console.error(err)
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Terjadi kesalahan koneksi.'
-      })
     }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: `Service successfully ${isEditing ? 'edited' : 'added'}!`,
+      showConfirmButton: false,
+      timer: 1500
+    })
+
+    setFormData({ service_id: '', customer_id: '', service_type: '', status: 'active' })
+    setIsEditing(false)
+    fetchServices()
+  } catch (err) {
+    console.error(err)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'A connection error occurred.'
+    })
   }
+}
 
   const handleEdit = (service) => {
     setFormData(service)
@@ -173,12 +173,12 @@ export default function ServicesPage() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus service ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this service?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -193,8 +193,8 @@ export default function ServicesPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Dihapus!',
-          text: 'Service berhasil dihapus.',
+          title: 'Deleted!',
+          text: 'Service successfully deleted.',
           showConfirmButton: false,
           timer: 1500
         })
@@ -202,8 +202,8 @@ export default function ServicesPage() {
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus service.'
+          title: 'Failed!',
+          text: 'Unable to delete the service.'
         })
       }
     }
@@ -230,9 +230,43 @@ export default function ServicesPage() {
       case 'active': return <CheckCircle className="w-4 h-4" />
       case 'inactive': return <Clock className="w-4 h-4" />
       case 'terminated': return <XCircle className="w-4 h-4" />
-      default: return null
+      default: return <Activity className="w-4 h-4" />
     }
   }
+
+  const getServiceTypeIcon = (type) => {
+    switch(type) {
+      case 'sip_trunk': return <Phone className="w-4 h-4" />
+      case 'cctv': return <Video className="w-4 h-4" />
+      case 'gcp_aws': return <Cloud className="w-4 h-4" />
+      default: return <Wrench className="w-4 h-4" />
+    }
+  }
+
+  const getServiceTypeColor = (type) => {
+    switch(type) {
+      case 'sip_trunk':
+        return darkMode ? 'bg-blue-600/20 text-blue-400 border-blue-600/30' : 'bg-blue-100 text-blue-700 border-blue-200'
+      case 'cctv':
+        return darkMode ? 'bg-purple-600/20 text-purple-400 border-purple-600/30' : 'bg-purple-100 text-purple-700 border-purple-200'
+      case 'gcp_aws':
+        return darkMode ? 'bg-cyan-600/20 text-cyan-400 border-cyan-600/30' : 'bg-cyan-100 text-cyan-700 border-cyan-200'
+      default:
+        return darkMode ? 'bg-gray-600/20 text-gray-400 border-gray-600/30' : 'bg-gray-100 text-gray-700 border-gray-200'
+    }
+  }
+
+  const serviceTypeOptions = [
+    { value: 'sip_trunk', label: 'SIP Trunk', icon: <Phone className="w-4 h-4" /> },
+    { value: 'cctv', label: 'CCTV', icon: <Video className="w-4 h-4" /> },
+    { value: 'gcp_aws', label: 'Cloud (GCP/AWS)', icon: <Cloud className="w-4 h-4" /> }
+  ]
+
+  const statusOptions = [
+    { value: 'active', label: 'Active', icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'inactive', label: 'Inactive', icon: <Clock className="w-4 h-4" /> },
+    { value: 'terminated', label: 'Terminated', icon: <XCircle className="w-4 h-4" /> }
+  ]
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -256,88 +290,190 @@ export default function ServicesPage() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Customer Select */}
-            <div>
+            {/* Customer Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Customer
               </label>
-              <select
-                name="customer_id"
-                value={formData.customer_id}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Customer --</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.customer_id ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {formData.customer_id
+                    ? customers.find((c) => c.customer_id === formData.customer_id)?.name
+                    : "Select Customer"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {customerOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 max-h-60 overflow-y-auto ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, customer_id: c.customer_id })
+                        setCustomerOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Service Type Select */}
-            <div>
+            {/* Service Type Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Service Type
               </label>
-              <select
-                name="service_type"
-                value={formData.service_type}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setServiceTypeOpen(!serviceTypeOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Type --</option>
-                <option value="sip_trunk">📞 SIP Trunk</option>
-                <option value="cctv">📹 CCTV</option>
-                <option value="gcp_aws">☁️ Cloud (GCP / AWS)</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.service_type ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.service_type ? (
+                    <>
+                      {serviceTypeOptions.find(s => s.value === formData.service_type)?.icon}
+                      {serviceTypeOptions.find(s => s.value === formData.service_type)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <Wrench className="w-4 h-4" />
+                      Select Service Type
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {serviceTypeOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {serviceTypeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, service_type: option.value })
+                        setServiceTypeOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Status Select */}
-            <div>
+            {/* Status Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Status
               </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setStatusOpen(!statusOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="active">✅ Active</option>
-                <option value="inactive">⏸️ Inactive</option>
-                <option value="terminated">❌ Terminated</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.status ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.status ? (
+                    <>
+                      {statusOptions.find(s => s.value === formData.status)?.icon}
+                      {statusOptions.find(s => s.value === formData.status)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <Activity className="w-4 h-4" />
+                      Select Status
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {statusOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {statusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, status: option.value })
+                        setStatusOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
@@ -375,7 +511,7 @@ export default function ServicesPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* SERVICES LIST */}
@@ -453,11 +589,11 @@ export default function ServicesPage() {
                         {getCustomerName(service.customer_id)}
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      darkMode ? 'text-slate-300' : 'text-gray-700'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <Wrench className="w-4 h-4" />
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
+                        getServiceTypeColor(service.service_type)
+                      }`}>
+                        {getServiceTypeIcon(service.service_type)}
                         <span className="capitalize">{service.service_type.replace('_', ' ')}</span>
                       </div>
                     </td>
@@ -474,13 +610,10 @@ export default function ServicesPage() {
                     }`}>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        {new Date(service.start_date).toLocaleString('id-ID', {
+                        {new Date(service.start_date).toLocaleDateString('id-ID', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          timeZone: 'Asia/Jakarta',
                         })}
                       </div>
                     </td>

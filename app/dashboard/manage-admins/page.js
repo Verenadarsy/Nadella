@@ -19,7 +19,6 @@ export default function ManageAdmins() {
   const [editId, setEditId] = useState(null)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -52,7 +51,7 @@ export default function ManageAdmins() {
       Swal.fire({
         icon: 'warning',
         title: 'Oops!',
-        text: 'Nama dan email wajib diisi!'
+        text: 'Name and email are required!'
       })
       return
     }
@@ -71,7 +70,7 @@ export default function ManageAdmins() {
     if (res.ok) {
       Swal.fire({
         icon: 'success',
-        title: editId ? 'Admin diperbarui!' : 'Admin ditambahkan!',
+        title: editId ? 'Admin successfully updated!' : 'Admin successfully added!',
         timer: 1500,
         showConfirmButton: false
       })
@@ -81,8 +80,8 @@ export default function ManageAdmins() {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: 'Terjadi kesalahan saat menyimpan data.'
+        title: 'Failed!',
+        text: 'An error occurred while saving the data.'
       })
     }
   }
@@ -100,12 +99,12 @@ export default function ManageAdmins() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Yakin?',
-      text: 'Admin ini akan dihapus permanen.',
+      title: 'Are you sure?',
+      text: 'Admin deletion is permanent and cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -120,8 +119,8 @@ export default function ManageAdmins() {
     if (res.ok) {
       Swal.fire({
         icon: 'success',
-        title: 'Dihapus!',
-        text: 'Admin berhasil dihapus.',
+        title: 'Deleted!',
+        text: 'Admin successfully deleted.',
         showConfirmButton: false,
         timer: 1500
       })
@@ -129,8 +128,8 @@ export default function ManageAdmins() {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: 'Tidak dapat menghapus admin.'
+        title: 'Failed!',
+        text: 'Unable to delete the admin.'
       })
     }
   }
@@ -181,7 +180,7 @@ export default function ManageAdmins() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Name Input */}
             <div>
@@ -267,7 +266,8 @@ export default function ManageAdmins() {
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 editId
                   ? 'bg-green-600 hover:bg-green-700'
@@ -302,7 +302,7 @@ export default function ManageAdmins() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* ADMINS LIST */}
@@ -377,13 +377,11 @@ export default function ManageAdmins() {
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                           darkMode ? 'bg-blue-600' : 'bg-blue-900'
                         }`}>
-                          <span className="text-white font-semibold text-xs">
-                            {admin.name.charAt(0).toUpperCase()}
-                          </span>
+                          <User className="w-4 h-4 text-white" />
                         </div>
                         <span className="font-medium">{admin.name}</span>
                       </div>
@@ -402,11 +400,10 @@ export default function ManageAdmins() {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         {new Date(admin.created_at).toLocaleString('id-ID', {
+                          timeZone: 'Asia/Jakarta',
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
                         })}
                       </div>
                     </td>

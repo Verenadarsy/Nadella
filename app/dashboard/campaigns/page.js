@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import {
   Megaphone, Edit2, Trash2, X, Save, Plus,
-  Calendar, DollarSign, TrendingUp, Mail, Smartphone, Radio
+  Calendar, TrendingUp, Mail, Smartphone, Radio,
+  Banknote, ChevronDown, Activity
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 
@@ -14,14 +15,14 @@ export default function CampaignsPage() {
   const [formData, setFormData] = useState({
     campaign_id: '',
     campaign_name: '',
-    channel: 'email',
+    channel: '',
     start_date: '',
     end_date: '',
     budget: ''
   })
+  const [channelOpen, setChannelOpen] = useState(false)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -50,11 +51,11 @@ export default function CampaignsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!formData.campaign_name || !formData.channel) {
+    if (!formData.campaign_name || !formData.channel || !formData.start_date || !formData.end_date || !formData.budget) {
       Swal.fire({
         icon: 'warning',
         title: 'Peringatan!',
-        text: 'Nama campaign dan channel wajib diisi.'
+        text: 'Semua field wajib diisi.'
       })
       return
     }
@@ -64,7 +65,7 @@ export default function CampaignsPage() {
       channel: formData.channel,
       start_date: formData.start_date,
       end_date: formData.end_date,
-      budget: Number(formData.budget),
+      budget: parseFloat(formData.budget),
     }
 
     const method = isEditing ? 'PUT' : 'POST'
@@ -80,27 +81,27 @@ export default function CampaignsPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Sukses!',
-          text: `Campaign berhasil ${isEditing ? 'diedit' : 'ditambahkan'}!`,
+          title: 'Success!',
+          text: `Campaign successfully ${isEditing ? 'edited' : 'added'}!`,
           showConfirmButton: false,
           timer: 1500
         })
-        setFormData({ campaign_id: '', campaign_name: '', channel: 'email', start_date: '', end_date: '', budget: '' })
+        setFormData({ campaign_id: '', campaign_name: '', channel: '', start_date: '', end_date: '', budget: '' })
         setIsEditing(false)
         fetchCampaigns()
       } else {
         const err = await res.json()
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: err?.error ?? 'Tidak bisa menyimpan campaign.'
+          title: 'Failed!',
+          text: err?.error ?? 'Unable to save the campaign.'
         })
       }
     } catch (error) {
       Swal.fire({
         icon: 'error',
         title: 'Error!',
-        text: 'Terjadi kesalahan koneksi.'
+        text: 'A connection error occurred.'
       })
       console.error(error)
     }
@@ -108,12 +109,12 @@ export default function CampaignsPage() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus campaign ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this campaign?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete it',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -127,8 +128,8 @@ export default function CampaignsPage() {
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Dihapus!',
-          text: 'Campaign berhasil dihapus.',
+          title: 'Deleted!',
+          text: 'The campaign has been successfully deleted.',
           showConfirmButton: false,
           timer: 1500
         })
@@ -136,8 +137,8 @@ export default function CampaignsPage() {
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Gagal!',
-          text: 'Tidak bisa menghapus.'
+          title: 'Failed!',
+          text: 'Unable to delete the campaign.'
         })
       }
     }
@@ -154,7 +155,7 @@ export default function CampaignsPage() {
       case 'email': return <Mail className="w-4 h-4" />
       case 'ads': return <Radio className="w-4 h-4" />
       case 'sms': return <Smartphone className="w-4 h-4" />
-      default: return <Megaphone className="w-4 h-4" />
+      default: return <Activity className="w-4 h-4" />
     }
   }
 
@@ -170,6 +171,12 @@ export default function CampaignsPage() {
         return darkMode ? 'bg-gray-600/20 text-gray-400 border-gray-600/30' : 'bg-gray-100 text-gray-700 border-gray-200'
     }
   }
+
+  const channelOptions = [
+    { value: 'email', label: 'Email', icon: <Mail className="w-4 h-4" /> },
+    { value: 'ads', label: 'Ads', icon: <Radio className="w-4 h-4" /> },
+    { value: 'sms', label: 'SMS', icon: <Smartphone className="w-4 h-4" /> }
+  ]
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -193,7 +200,7 @@ export default function CampaignsPage() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Campaign Name */}
             <div>
@@ -202,85 +209,173 @@ export default function CampaignsPage() {
               }`}>
                 Campaign Name
               </label>
-              <input
-                type="text"
-                name="campaign_name"
-                placeholder="e.g., End Year Promo"
-                value={formData.campaign_name}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+              <div className="relative">
+                <Megaphone className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                  darkMode ? "text-slate-500" : "text-slate-500"
+                }`} />
+                <input
+                  type="text"
+                  name="campaign_name"
+                  placeholder="e.g., End Year Promo"
+                  value={formData.campaign_name}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
 
-            {/* Channel */}
-            <div>
+            {/* Channel Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Channel
               </label>
-              <select
-                name="channel"
-                value={formData.channel}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setChannelOpen(!channelOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="email">Email</option>
-                <option value="ads">Ads</option>
-                <option value="sms">SMS</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.channel ? "opacity-90" : "opacity-60"
+                }`}>
+                  {formData.channel ? (
+                    <>
+                      {channelOptions.find(c => c.value === formData.channel)?.icon}
+                      {channelOptions.find(c => c.value === formData.channel)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <Activity className="w-4 h-4" />
+                      Select Channel
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {channelOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {channelOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, channel: option.value })
+                        setChannelOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Start Date */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
+                darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
                 Start Date
               </label>
-              <input
-                type="date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <div
+                className="relative cursor-pointer"
+                onClick={() => document.getElementById("startDateInput").showPicker()}
+              >
+                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                  darkMode ? "text-slate-500" : "text-slate-400"
+                }`} />
+
+                <input
+                  id="startDateInput"
+                  type="date"
+                  name="start_date"
+                  value={formData.start_date}
+                  onChange={handleChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+
+                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
-              />
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  <span className={formData.start_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
+                    {formData.start_date
+                      ? new Date(formData.start_date + 'T00:00:00').toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : "dd/mm/yyyy"
+                    }
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* End Date */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
+                darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
                 End Date
               </label>
-              <input
-                type="date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <div
+                className="relative cursor-pointer"
+                onClick={() => document.getElementById("endDateInput").showPicker()}
+              >
+                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                  darkMode ? "text-slate-500" : "text-slate-400"
+                }`} />
+
+                <input
+                  id="endDateInput"
+                  type="date"
+                  name="end_date"
+                  value={formData.end_date}
+                  onChange={handleChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+
+                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
-              />
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  <span className={formData.end_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
+                    {formData.end_date
+                      ? new Date(formData.end_date + 'T00:00:00').toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : "dd/mm/yyyy"
+                    }
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Budget */}
@@ -290,26 +385,32 @@ export default function CampaignsPage() {
               }`}>
                 Budget (Rp)
               </label>
-              <input
-                type="number"
-                name="budget"
-                placeholder="e.g., 10000000"
-                value={formData.budget}
-                onChange={handleChange}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                } outline-none`}
-              />
+              <div className="relative">
+                <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                  darkMode ? "text-slate-500" : "text-slate-500"
+                }`} />
+                <input
+                  type="number"
+                  name="budget"
+                  placeholder="e.g., 10000000"
+                  value={formData.budget}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  }`}
+                />
+              </div>
             </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
@@ -319,7 +420,7 @@ export default function CampaignsPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Save Changes
+                  Update Campaign
                 </>
               ) : (
                 <>
@@ -334,7 +435,7 @@ export default function CampaignsPage() {
                 type="button"
                 onClick={() => {
                   setIsEditing(false)
-                  setFormData({ campaign_id: '', campaign_name: '', channel: 'email', start_date: '', end_date: '', budget: '' })
+                  setFormData({ campaign_id: '', campaign_name: '', channel: '', start_date: '', end_date: '', budget: '' })
                 }}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
@@ -347,7 +448,7 @@ export default function CampaignsPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* CAMPAIGNS LIST */}
@@ -417,11 +518,11 @@ export default function CampaignsPage() {
                   <tr key={campaign.campaign_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
-                    <td className={`px-6 py-4 ${
+                    <td className={`px-6 py-4 text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
+                        <Megaphone className="w-4 h-4" />
                         <span className="font-medium">{campaign.campaign_name}</span>
                       </div>
                     </td>
@@ -457,7 +558,6 @@ export default function CampaignsPage() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
                         <span className="font-semibold">
                           Rp {Number(campaign.budget).toLocaleString('id-ID')}
                         </span>

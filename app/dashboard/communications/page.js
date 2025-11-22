@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Swal from 'sweetalert2';
 import {
   MessageSquare, Edit2, Trash2, X, Save, Plus,
-  Mail, Phone, MessageCircle, Send, User, Clock
+  Mail, Phone, MessageCircle, Send, User, Clock, ChevronDown, FileText
 } from 'lucide-react';
 import FloatingChat from "../floatingchat"
 
@@ -13,13 +13,14 @@ export default function CommunicationsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [form, setForm] = useState({
     customer_id: "",
-    type: "email",
+    type: "",
     content: "",
   });
   const [editingId, setEditingId] = useState(null);
+  const [customerOpen, setCustomerOpen] = useState(false);
+  const [typeOpen, setTypeOpen] = useState(false);
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'));
     };
@@ -53,18 +54,29 @@ export default function CommunicationsPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (!form.customer_id || !form.type || !form.content) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Peringatan!',
+        text: 'Semua field wajib diisi.'
+      });
+      return;
+    }
+
     const payload = { ...form };
 
     if (!editingId) {
       payload.timestamp = getCurrentTimestamp();
       await fetch("/api/communications", {
         method: "POST",
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       Swal.fire({
         icon: 'success',
-        title: 'Sukses!',
-        text: 'Communication berhasil ditambahkan!',
+        title: 'Success!',
+        text: 'Communication successfully added!',
         showConfirmButton: false,
         timer: 1500
       });
@@ -72,26 +84,27 @@ export default function CommunicationsPage() {
       payload.communication_id = editingId;
       await fetch("/api/communications", {
         method: "PUT",
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       Swal.fire({
         icon: 'success',
-        title: 'Sukses!',
-        text: 'Communication berhasil diperbarui!',
+        title: 'Success!',
+        text: 'Communication successfully updated!',
         showConfirmButton: false,
         timer: 1500
       });
       setEditingId(null);
     }
 
-    setForm({ customer_id: "", type: "email", content: "" });
+    setForm({ customer_id: "", type: "", content: "" });
     fetchData();
   }
 
   async function handleDelete(id) {
     const confirm = await Swal.fire({
-      title: 'Hapus communication ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this communication?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Ya, hapus',
@@ -103,12 +116,13 @@ export default function CommunicationsPage() {
     if (confirm.isConfirmed) {
       await fetch("/api/communications", {
         method: "DELETE",
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
       Swal.fire({
         icon: 'success',
-        title: 'Dihapus!',
-        text: 'Communication berhasil dihapus.',
+        title: 'Deleted!',
+        text: 'Communication successfully deleted.',
         showConfirmButton: false,
         timer: 1500
       });
@@ -151,6 +165,13 @@ export default function CommunicationsPage() {
     }
   };
 
+  const typeOptions = [
+    { value: 'email', label: 'Email', icon: <Mail className="w-4 h-4" /> },
+    { value: 'phone', label: 'Phone', icon: <Phone className="w-4 h-4" /> },
+    { value: 'chat', label: 'Chat', icon: <MessageCircle className="w-4 h-4" /> },
+    { value: 'whatsapp', label: 'WhatsApp', icon: <Send className="w-4 h-4" /> }
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -173,56 +194,121 @@ export default function CommunicationsPage() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Customer Select */}
-            <div>
+            {/* Customer Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Customer
               </label>
-              <select
-                value={form.customer_id}
-                onChange={(e) => setForm({ ...form, customer_id: e.target.value })}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Customer --</option>
-                {customers.map((c) => (
-                  <option key={c.customer_id} value={c.customer_id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  form.customer_id ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {form.customer_id
+                    ? customers.find((c) => c.customer_id === form.customer_id)?.name
+                    : "Select Customer"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {customerOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 max-h-60 overflow-y-auto ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, customer_id: c.customer_id })
+                        setCustomerOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Type Select */}
-            <div>
+            {/* Type Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Communication Type
               </label>
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
-                required
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setTypeOpen(!typeOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="email">Email</option>
-                <option value="phone">Phone</option>
-                <option value="chat">Chat</option>
-                <option value="whatsapp">WhatsApp</option>
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  form.type ? "opacity-90" : "opacity-60"
+                }`}>
+                  {form.type ? (
+                    <>
+                      {typeOptions.find(t => t.value === form.type)?.icon}
+                      {typeOptions.find(t => t.value === form.type)?.label}
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4" />
+                      Select Type
+                    </>
+                  )}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {typeOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {typeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, type: option.value })
+                        setTypeOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -233,24 +319,30 @@ export default function CommunicationsPage() {
             }`}>
               Content
             </label>
-            <textarea
-              placeholder="Enter communication content..."
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              required
-              rows="4"
-              className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors resize-none ${
-                darkMode
-                  ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
-                  : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-              } outline-none`}
-            />
+            <div className="relative">
+              <FileText className={`absolute left-3 top-3 w-4 h-4 ${
+                darkMode ? "text-slate-500" : "text-slate-500"
+              }`} />
+              <textarea
+                placeholder="Enter communication content..."
+                value={form.content}
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
+                required
+                rows="4"
+                className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors resize-none outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+            </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 editingId
                   ? 'bg-green-600 hover:bg-green-700'
@@ -275,7 +367,7 @@ export default function CommunicationsPage() {
                 type="button"
                 onClick={() => {
                   setEditingId(null);
-                  setForm({ customer_id: "", type: "email", content: "" });
+                  setForm({ customer_id: "", type: "", content: "" });
                 }}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
@@ -288,7 +380,7 @@ export default function CommunicationsPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* COMMUNICATIONS LIST */}

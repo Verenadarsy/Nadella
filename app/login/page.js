@@ -16,8 +16,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Check for dark mode preference
-    const savedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setDarkMode(savedTheme)
+    const savedTheme = localStorage.getItem('darkMode')
+    if (savedTheme !== null) {
+      setDarkMode(savedTheme === 'true')
+    } else {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      setDarkMode(systemDark)
+    }
 
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('auth') === 'required') {
@@ -31,7 +36,9 @@ export default function LoginPage() {
   }, [])
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
+    const newMode = !darkMode
+    setDarkMode(newMode)
+    localStorage.setItem('darkMode', newMode.toString())
   }
 
   const handleLogin = async (e) => {
@@ -48,8 +55,8 @@ export default function LoginPage() {
       if (userError || !user) {
         Swal.fire({
           icon: 'error',
-          title: 'User tidak ditemukan',
-          text: 'Periksa kembali email kamu!',
+          title: 'User not found',
+          text: 'Please check your email again!',
         })
         setIsLoading(false)
         return
@@ -59,8 +66,8 @@ export default function LoginPage() {
       if (!match) {
         Swal.fire({
           icon: 'error',
-          title: 'Password salah',
-          text: 'Silakan coba lagi.',
+          title: 'Incorrect Password',
+          text: 'Please try again.',
         })
         setIsLoading(false)
         return
@@ -71,8 +78,8 @@ export default function LoginPage() {
 
       await Swal.fire({
         icon: 'success',
-        title: 'Login Berhasil!',
-        text: `Selamat datang, ${user.name}`,
+        title: 'Login Successful!',
+        text: `Welcome, ${user.name}`,
         showConfirmButton: false,
         timer: 1200,
       })
@@ -81,8 +88,8 @@ export default function LoginPage() {
     } catch (err) {
       Swal.fire({
         icon: 'error',
-        title: 'Terjadi kesalahan',
-        text: 'Silakan coba lagi.',
+        title: 'An error occurred',
+        text: 'Please try again.',
       })
       setIsLoading(false)
     }
@@ -125,7 +132,7 @@ export default function LoginPage() {
             Welcome Back
           </h1>
           <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Masuk untuk melanjutkan
+            Please login to continue
           </p>
         </div>
 

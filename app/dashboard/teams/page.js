@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
 import {
   UsersRound, Edit2, Trash2, X, Save, Plus,
-  User, Calendar, UserCog
+  User, Calendar, UserCog, ChevronDown, Clock
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 
@@ -17,9 +17,9 @@ export default function TeamsPage() {
     team_name: '',
     manager_id: ''
   })
+  const [managerOpen, setManagerOpen] = useState(false)
 
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -62,26 +62,47 @@ export default function TeamsPage() {
     if (!formData.team_name) {
       Swal.fire({
         icon: 'warning',
-        title: 'Peringatan',
-        text: 'Nama tim wajib diisi'
+        title: 'Warning',
+        text: 'Team name is required'
       })
       return
     }
 
     try {
       const method = isEditing ? 'PUT' : 'POST'
-      const body = JSON.stringify(formData)
+
+      // Generate WIB timestamp for created_at
+      const now = new Date()
+      const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+      const createdAtWIB = wib.toISOString().slice(0, 19).replace('T', ' ')
+
+      const payload = {
+        team_name: formData.team_name,
+        manager_id: formData.manager_id || null
+      }
+
+      if (isEditing) {
+        payload.team_id = formData.team_id
+      } else {
+        payload.created_at = createdAtWIB  // ← ADD INI PAS CREATE BARU!
+      }
+
+      console.log('📤 Sending payload:', payload)
+
       const res = await fetch('/api/teams', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body
+        body: JSON.stringify(payload)
       })
+
+      const data = await res.json()
+      console.log('📥 Response:', res.status, data)
 
       if (res.ok) {
         Swal.fire({
           icon: 'success',
-          title: 'Sukses!',
-          text: `Tim berhasil ${isEditing ? 'diedit' : 'ditambahkan'}!`,
+          title: 'Success!',
+          text: `Team successfully ${isEditing ? 'edited' : 'added'}!`,
           showConfirmButton: false,
           timer: 1500
         })
@@ -89,11 +110,13 @@ export default function TeamsPage() {
         setIsEditing(false)
         fetchTeams()
       } else {
-        const err = await res.json()
         Swal.fire({
           icon: 'error',
-          title: 'Gagal',
-          text: err?.error ?? 'Operasi gagal.'
+          title: 'Failed',
+          html: `<div style="text-align: left; font-size: 13px;">
+            <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
+          </div>`,
+          width: '600px'
         })
       }
     } catch (err) {
@@ -101,7 +124,7 @@ export default function TeamsPage() {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Terjadi kesalahan koneksi.'
+        text: 'A connection error occurred.'
       })
     }
   }
@@ -114,12 +137,12 @@ export default function TeamsPage() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus tim ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this team?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -135,8 +158,8 @@ export default function TeamsPage() {
         if (res.ok) {
           Swal.fire({
             icon: 'success',
-            title: 'Dihapus!',
-            text: 'Tim berhasil dihapus.',
+            title: 'Deleted!',
+            text: 'Team successfully deleted.',
             showConfirmButton: false,
             timer: 1500
           })
@@ -144,8 +167,8 @@ export default function TeamsPage() {
         } else {
           Swal.fire({
             icon: 'error',
-            title: 'Gagal',
-            text: 'Tidak bisa menghapus tim.'
+            title: 'Failed',
+            text: 'Unable to delete the team.'
           })
         }
       } catch (err) {
@@ -153,10 +176,15 @@ export default function TeamsPage() {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Terjadi kesalahan koneksi.'
+          text: 'A connection error occurred.'
         })
       }
     }
+  }
+
+  const getManagerName = (id) => {
+    const manager = users.find((u) => u.user_id === id)
+    return manager ? (manager.name || manager.username) : null
   }
 
   return (
@@ -181,7 +209,7 @@ export default function TeamsPage() {
           )}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Team Name */}
             <div>
@@ -191,8 +219,8 @@ export default function TeamsPage() {
                 Team Name
               </label>
               <div className="relative">
-                <UsersRound className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                <UsersRound className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-500'
                 }`} />
                 <input
                   type="text"
@@ -201,46 +229,90 @@ export default function TeamsPage() {
                   value={formData.team_name}
                   onChange={handleChange}
                   required
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
                     darkMode
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
                       : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                  } outline-none`}
+                  }`}
                 />
               </div>
             </div>
 
-            {/* Manager Select */}
-            <div>
+            {/* Manager Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Manager
               </label>
-              <select
-                name="manager_id"
-                value={formData.manager_id}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors ${
+
+              <button
+                type="button"
+                onClick={() => setManagerOpen(!managerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                    : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                } outline-none`}
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-slate-50 border-gray-200 text-slate-900"
+                }`}
               >
-                <option value="">-- Select Manager --</option>
-                {users.map((u) => (
-                  <option key={u.user_id} value={u.user_id}>
-                    {u.name || u.username}
-                  </option>
-                ))}
-              </select>
+                <span className={`flex items-center gap-2 ${
+                  formData.manager_id ? "opacity-90" : "opacity-60"
+                }`}>
+                  <UserCog size={16} className="opacity-60" />
+                  {formData.manager_id
+                    ? getManagerName(formData.manager_id)
+                    : "Select Manager"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {managerOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 max-h-60 overflow-y-auto ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  {/* Option for no manager */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, manager_id: '' })
+                      setManagerOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                      darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                    }`}
+                  >
+                    <User size={16} className="opacity-50" />
+                    <span className="opacity-60">No Manager</span>
+                  </button>
+
+                  {users.map((u) => (
+                    <button
+                      key={u.user_id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, manager_id: u.user_id })
+                        setManagerOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                      }`}
+                    >
+                      <UserCog size={16} className="opacity-70" />
+                      {u.name || u.username}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
@@ -278,7 +350,7 @@ export default function TeamsPage() {
               </button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* TEAMS LIST */}
@@ -340,13 +412,13 @@ export default function TeamsPage() {
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
                 {teams.map((team) => {
-                  const manager = users.find((u) => u.user_id === team.manager_id)
+                  const managerName = getManagerName(team.manager_id)
                   return (
                     <tr key={team.team_id} className={`transition-colors ${
                       darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                     }`}>
                       <td className={`px-6 py-4 text-sm ${
-                        darkMode ? 'text-slate-300' : 'text-gray-700'
+                        darkMode ? 'text-slate-300' : 'text-gray-900'
                       }`}>
                         <div className="flex items-center gap-2">
                           <UsersRound className="w-4 h-4" />
@@ -357,15 +429,15 @@ export default function TeamsPage() {
                         darkMode ? 'text-slate-300' : 'text-gray-700'
                       }`}>
                         <div className="flex items-center gap-2">
-                          {manager ? (
+                          {managerName ? (
                             <>
                               <UserCog className="w-4 h-4" />
-                              <span>{manager.name || manager.username}</span>
+                              <span>{managerName}</span>
                             </>
                           ) : (
                             <>
                               <User className="w-4 h-4 opacity-50" />
-                              <span className="opacity-50">-</span>
+                              <span className="opacity-50">No Manager</span>
                             </>
                           )}
                         </div>
@@ -374,14 +446,15 @@ export default function TeamsPage() {
                         darkMode ? 'text-slate-300' : 'text-gray-700'
                       }`}>
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
+                          <Clock className="w-4 h-4" />
                           {team.created_at
                             ? new Date(team.created_at).toLocaleString('id-ID', {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric',
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
+                                timeZone: 'Asia/Jakarta'
                               })
                             : '-'
                           }

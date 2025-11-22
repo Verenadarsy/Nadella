@@ -33,7 +33,7 @@ export default function ProductsCRUD() {
       Swal.fire({
         icon: "warning",
         title: "Access Denied",
-        text: "Kamu harus login dulu!"
+        text: "You must be logged in to access this page."
       }).then(() => router.push("/login?auth=required"))
       return
     }
@@ -41,8 +41,8 @@ export default function ProductsCRUD() {
     if (!(roleCookie === "admin" || roleCookie === "superadmin")) {
       Swal.fire({
         icon: "error",
-        title: "Akses ditolak",
-        text: "Halaman ini hanya untuk Admin/Superadmin."
+        title: "Access Denied",
+        text: "This page is for Admin/Superadmin only."
       }).then(() => router.push("/dashboard"))
       return
     }
@@ -72,7 +72,7 @@ export default function ProductsCRUD() {
     if (res.ok) {
       Swal.fire({
         icon: "success",
-        title: editId ? "Produk diperbarui" : "Produk ditambahkan",
+        title: editId ? "Product successfully updated!" : "Product successfully added!",
         timer: 1500,
         showConfirmButton: false
       })
@@ -82,8 +82,8 @@ export default function ProductsCRUD() {
     } else {
       Swal.fire({
         icon: 'error',
-        title: 'Gagal!',
-        text: 'Terjadi kesalahan saat menyimpan produk.'
+        title: 'Failed!',
+        text: 'An error occurred while saving the product.'
       })
     }
   }
@@ -96,12 +96,12 @@ export default function ProductsCRUD() {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Hapus produk ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+      title: 'Delete this product?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     })
@@ -114,8 +114,8 @@ export default function ProductsCRUD() {
       })
       Swal.fire({
         icon: 'success',
-        title: 'Dihapus!',
-        text: 'Produk berhasil dihapus.',
+        title: 'Deleted!',
+        text: 'Product successfully deleted.',
         showConfirmButton: false,
         timer: 1500
       })
