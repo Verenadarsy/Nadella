@@ -7,6 +7,7 @@ import {
   Flag, TrendingUp, Zap, ArrowRight
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
+import SectionLoader from '../components/sectionloader'
 
 // Dapetin waktu real-time dalam format "YYYY-MM-DD HH:mm:ss" WIB
 const getCurrentWIB = () => {
@@ -28,6 +29,7 @@ export default function TicketsPage() {
   const [users, setUsers] = useState([])
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     ticket_id: '',
     customer_id: '',
@@ -57,22 +59,38 @@ export default function TicketsPage() {
     return () => observer.disconnect()
   }, [])
 
-  const fetchTickets = () => {
-    fetch('/api/tickets')
-      .then(res => res.json())
-      .then(data => setTickets(Array.isArray(data) ? data : []))
+  const fetchTickets = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/tickets')
+      const data = await res.json()
+      setTickets(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching tickets:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const fetchUsers = () => {
-    fetch('/api/users')
-      .then(res => res.json())
-      .then(data => setUsers(Array.isArray(data) ? data : []))
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users')
+      const data = await res.json()
+      setUsers(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching users:', err)
+    }
   }
 
-  const fetchCustomers = () => {
-    fetch('/api/customers')
-      .then(res => res.json())
-      .then(data => setCustomers(Array.isArray(data) ? data : []))
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch('/api/customers')
+      const data = await res.json()
+      setCustomers(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching customers:', err)
+    }
   }
 
   const handleChange = (e) => {
@@ -658,7 +676,9 @@ export default function TicketsPage() {
           </h2>
         </div>
 
-        {tickets.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading tickets..." />
+        ) : tickets.length === 0 ? (
           <div className="p-12 text-center">
             <Ticket className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

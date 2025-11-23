@@ -6,6 +6,7 @@ import {
   Mail, Phone, MessageCircle, Send, User, Clock, ChevronDown, FileText
 } from 'lucide-react';
 import FloatingChat from "../floatingchat"
+import SectionLoader from '../components/sectionloader'
 
 export default function CommunicationsPage() {
   const [communications, setCommunications] = useState([]);
@@ -19,6 +20,7 @@ export default function CommunicationsPage() {
   const [editingId, setEditingId] = useState(null);
   const [customerOpen, setCustomerOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -35,9 +37,14 @@ export default function CommunicationsPage() {
   }, []);
 
   async function fetchData() {
-    const res = await fetch("/api/communications");
-    const data = await res.json();
-    setCommunications(data);
+    try {
+      setLoading(true);
+      const res = await fetch("/api/communications");
+      const data = await res.json();
+      setCommunications(data);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchCustomers() {
@@ -397,7 +404,9 @@ export default function CommunicationsPage() {
           </h2>
         </div>
 
-        {communications.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading communications..." />
+        ) : communications.length === 0 ? (
           <div className="p-12 text-center">
             <MessageSquare className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

@@ -6,6 +6,7 @@ import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
   User, TrendingUp, Calendar, Clock,  ChevronDown, Phone, CheckCircle, XCircle, Sparkles
 } from 'lucide-react'
+import SectionLoader from '../components/sectionloader'
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([])
@@ -20,6 +21,7 @@ export default function LeadsPage() {
   const [editingId, setEditingId] = useState(null)
   const [statusOpen, setStatusOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
 
   useEffect(() => {
@@ -39,11 +41,14 @@ export default function LeadsPage() {
 
   async function fetchLeads() {
     try {
+      setLoading(true)  // ← TAMBAH INI
       const res = await fetch("/api/leads")
       const data = await res.json()
       setLeads(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error("Failed to fetch leads:", err)
+    } finally {
+      setLoading(false)  // ← TAMBAH INI
     }
   }
 
@@ -428,7 +433,9 @@ export default function LeadsPage() {
           </h2>
         </div>
 
-        {leads.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading leads..." />
+        ) : leads.length === 0 ? (
           <div className="p-12 text-center">
             <UserPlus className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

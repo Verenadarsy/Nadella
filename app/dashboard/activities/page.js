@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert'
+import SectionLoader from '../components/sectionloader'
 import {
   Calendar, Clock, User, Edit2, Trash2,
   X, Save, Plus, Phone, Mail, Users,
@@ -34,6 +35,7 @@ export default function ActivitiesPage() {
   })
   const [editingId, setEditingId] = useState(null)
   const [typeOpen, setTypeOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [userOpen, setUserOpen] = useState(false)
 
   useEffect(() => {
@@ -51,9 +53,14 @@ export default function ActivitiesPage() {
   }, [])
 
   const fetchActivities = async () => {
-    const res = await fetch('/api/activities')
-    const data = await res.json()
-    setActivities(Array.isArray(data) ? data : [])
+    try {
+      setLoading(true)
+      const res = await fetch('/api/activities')
+      const data = await res.json()
+      setActivities(Array.isArray(data) ? data : [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchUsers = async () => {
@@ -394,7 +401,9 @@ export default function ActivitiesPage() {
           </h2>
         </div>
 
-        {activities.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading activities..." />
+        ) : activities.length === 0 ? (
           <div className="p-12 text-center">
             <Calendar className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

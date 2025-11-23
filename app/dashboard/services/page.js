@@ -7,6 +7,7 @@ import {
   Phone, Video, Cloud, Activity
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
+import SectionLoader from '../components/sectionloader'
 
 const getCurrentDateWIB = () => {
   const now = new Date()
@@ -26,6 +27,7 @@ export default function ServicesPage() {
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     service_id: '',
     customer_id: '',
@@ -51,9 +53,16 @@ export default function ServicesPage() {
   }, [])
 
   const fetchServices = async () => {
-    const res = await fetch('/api/services')
-    const data = await res.json()
-    setServices(Array.isArray(data) ? data : [])
+    try {
+      setLoading(true)
+      const res = await fetch('/api/services')
+      const data = await res.json()
+      setServices(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching services:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchCustomers = async () => {
@@ -528,7 +537,9 @@ export default function ServicesPage() {
           </h2>
         </div>
 
-        {services.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading services..." />
+        ) : services.length === 0 ? (
           <div className="p-12 text-center">
             <Wrench className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

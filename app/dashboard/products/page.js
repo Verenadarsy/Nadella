@@ -7,6 +7,7 @@ import {
   Package, Edit2, Trash2, X, Save, Plus,
   Banknote, FileText, ShoppingCart
 } from 'lucide-react'
+import SectionLoader from '../components/sectionloader'
 
 export default function ProductsCRUD() {
   const router = useRouter()
@@ -14,6 +15,7 @@ export default function ProductsCRUD() {
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({ product_name: "", price: "", description: "" })
   const [editId, setEditId] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -53,9 +55,16 @@ export default function ProductsCRUD() {
   }, [router])
 
   const fetchProducts = async () => {
-    const res = await fetch("/api/products")
-    const data = await res.json()
-    setProducts(data)
+    try {
+      setLoading(true)
+      const res = await fetch("/api/products")
+      const data = await res.json()
+      setProducts(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching products:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
@@ -286,7 +295,9 @@ export default function ProductsCRUD() {
           </h2>
         </div>
 
-        {!products?.length ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading products..." />
+        ) : products.length === 0 ? (
           <div className="p-12 text-center">
             <Package className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

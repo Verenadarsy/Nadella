@@ -6,6 +6,7 @@ import {
   Building2, Edit2, Trash2, X, Save, Plus,
   Globe, MapPin, Briefcase, Calendar
 } from 'lucide-react'
+import SectionLoader from '../components/sectionloader'
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState([])
@@ -18,6 +19,7 @@ export default function CompaniesPage() {
     address: ''
   })
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -35,9 +37,14 @@ export default function CompaniesPage() {
 
   // Fetch all companies
   const fetchCompanies = async () => {
-    const res = await fetch('/api/companies')
-    const data = await res.json()
-    setCompanies(Array.isArray(data) ? data : [])
+    try {
+      setLoading(true)
+      const res = await fetch('/api/companies')
+      const data = await res.json()
+      setCompanies(Array.isArray(data) ? data : [])
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Input handler
@@ -325,7 +332,9 @@ export default function CompaniesPage() {
           </h2>
         </div>
 
-        {companies.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading companies..." />
+        ) : companies.length === 0 ? (
           <div className="p-12 text-center">
             <Building2 className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

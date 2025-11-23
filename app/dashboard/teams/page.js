@@ -6,12 +6,14 @@ import {
   User, Calendar, UserCog, ChevronDown, Clock
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
+import SectionLoader from '../components/sectionloader'
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState([])
   const [users, setUsers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     team_id: '',
     team_name: '',
@@ -35,11 +37,14 @@ export default function TeamsPage() {
 
   const fetchTeams = async () => {
     try {
+      setLoading(true)
       const res = await fetch('/api/teams')
       const data = await res.json()
       setTeams(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error('Fetch teams error:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -367,7 +372,9 @@ export default function TeamsPage() {
           </h2>
         </div>
 
-        {teams.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading teams..." />
+        ) : teams.length === 0 ? (
           <div className="p-12 text-center">
             <UsersRound className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

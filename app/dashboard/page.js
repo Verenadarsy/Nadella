@@ -6,11 +6,12 @@ import CustomerChart from "./components/customerchart";
 import DealsStageChart from "./components/dealstagechart";
 import TicketChart from "./components/ticketchart";
 import ActivityChart from "./components/activitychart";
-
+import SectionLoader from "./components/sectionloader"; 
 
 export default function DashboardHome() {
   const [darkMode, setDarkMode] = useState(false);
   const [kpis, setKpis] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ LOADING STATE
 
   // Detect dark mode globally
   useEffect(() => {
@@ -26,14 +27,25 @@ export default function DashboardHome() {
 
   // Fetch Dashboard KPIs
   useEffect(() => {
-    fetch("/api/dashboard/kpis")
-      .then((res) => res.json())
-      .then((data) => setKpis(data));
+    const fetchData = async () => {
+      try {
+        setLoading(true); // ✅ START LOADING
+        const res = await fetch("/api/dashboard/kpis");
+        const data = await res.json();
+        setKpis(data);
+      } catch (error) {
+        console.error("Error fetching KPIs:", error);
+      } finally {
+        setLoading(false); // ✅ STOP LOADING
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
     <div className="p-6 max-w-7xl mx-auto relative space-y-6">
-      {/* Banner */}
+      {/* ✅ Banner - GA KELOAD */}
       <div
         className={`rounded-xl p-8 shadow-xl text-white ${
           darkMode
@@ -47,7 +59,7 @@ export default function DashboardHome() {
         </p>
       </div>
 
-      {/* Overview + KPI Cards */}
+      {/* ✅ Overview + KPI Cards - YANG KELOAD */}
       <div
         className={`rounded-xl p-6 shadow-lg space-y-6 ${
           darkMode ? "bg-slate-800" : "bg-white"
@@ -67,47 +79,59 @@ export default function DashboardHome() {
           </p>
         </div>
 
-        {/* KPI Cards inside Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          <KpiCard
-            title="Total Customers"
-            value={kpis?.totalCustomers || 0}
-            dark={darkMode}
-          />
-          <KpiCard
-            title="Deals Won"
-            value={kpis?.dealsWon || 0}
-            dark={darkMode}
-          />
-          <KpiCard
-            title="Open Tickets"
-            value={kpis?.openTickets || 0}
-            dark={darkMode}
-          />
-          <KpiCard
-            title="Active Services"
-            value={kpis?.activeServices || 0}
-            dark={darkMode}
-          />
+        {/* ✅ SECTION LOADER - CUMA KPI CARDS */}
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading dashboard data..." />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+            <KpiCard
+              title="Total Customers"
+              value={kpis?.totalCustomers || 0}
+              dark={darkMode}
+            />
+            <KpiCard
+              title="Deals Won"
+              value={kpis?.dealsWon || 0}
+              dark={darkMode}
+            />
+            <KpiCard
+              title="Open Tickets"
+              value={kpis?.openTickets || 0}
+              dark={darkMode}
+            />
+            <KpiCard
+              title="Active Services"
+              value={kpis?.activeServices || 0}
+              dark={darkMode}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ✅ CHART SECTION - YANG KELOAD */}
+      {loading ? (
+        <div
+          className={`rounded-xl p-6 shadow-lg ${
+            darkMode ? "bg-slate-800" : "bg-white"
+          }`}
+        >
+          <SectionLoader darkMode={darkMode} text="Loading charts..." />
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Line Chart - Customers */}
+          <CustomerChart dark={darkMode} />
 
-      {/* CHART SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pie Chart - Deals */}
+          <DealsStageChart dark={darkMode} />
 
-        {/* Line Chart - Customers */}
-        <CustomerChart dark={darkMode} />
+          {/* Bar Chart - Tickets */}
+          <TicketChart dark={darkMode} />
 
-        {/* Pie Chart - Deals */}
-        <DealsStageChart dark={darkMode} />
-
-        {/* Bar Chart - Tickets */}
-        <TicketChart dark={darkMode} />
-
-        {/* Donut Chart - Activities */}
-        <ActivityChart dark={darkMode} />
-
-      </div>
+          {/* Donut Chart - Activities */}
+          <ActivityChart dark={darkMode} />
+        </div>
+      )}
 
       {/* Floating Chat */}
       <FloatingChat />

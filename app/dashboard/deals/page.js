@@ -6,6 +6,7 @@ import {
   Banknote, Calendar, User, Building2, TrendingUp, ChevronDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
+import SectionLoader from '../components/sectionloader'
 
 export default function DealsPage() {
   const [deals, setDeals] = useState([])
@@ -25,6 +26,7 @@ export default function DealsPage() {
   const [customerOpen, setCustomerOpen] = useState(false)
   const [stageOpen, setStageOpen] = useState(false)
   const [companyOpen, setCompanyOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -43,9 +45,16 @@ export default function DealsPage() {
   }, [])
 
   const fetchDeals = async () => {
-    const res = await fetch('/api/deals')
-    const data = await res.json()
-    setDeals(Array.isArray(data) ? data : [])
+    try {
+      setLoading(true)
+      const res = await fetch('/api/deals')
+      const data = await res.json()
+      setDeals(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching deals:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchCustomers = async () => {
@@ -558,7 +567,9 @@ export default function DealsPage() {
           </h2>
         </div>
 
-        {deals.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading deals..." />
+        ) : deals.length === 0 ? (
           <div className="p-12 text-center">
             <Handshake className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

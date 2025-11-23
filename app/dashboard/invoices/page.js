@@ -5,6 +5,7 @@ import {
   FileText, Edit2, Trash2, X, Save, Plus,
   Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown
 } from 'lucide-react'
+import SectionLoader from '../components/sectionloader'
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
@@ -20,6 +21,7 @@ export default function InvoicesPage() {
   })
   const [customerOpen, setCustomerOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -35,16 +37,27 @@ export default function InvoicesPage() {
     return () => observer.disconnect()
   }, [])
 
-  const fetchInvoices = () => {
-    fetch('/api/invoices')
-      .then(res => res.json())
-      .then(data => setInvoices(Array.isArray(data) ? data : []))
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/invoices')
+      const data = await res.json()
+      setInvoices(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching invoices:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const fetchCustomers = () => {
-    fetch('/api/customers')
-      .then(res => res.json())
-      .then(data => setCustomers(Array.isArray(data) ? data : []))
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch('/api/customers')
+      const data = await res.json()
+      setCustomers(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching customers:', err)
+    }
   }
 
   const handleChange = (e) => {
@@ -493,7 +506,9 @@ export default function InvoicesPage() {
           </h2>
         </div>
 
-        {invoices.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading invoices..." />
+        ) : invoices.length === 0 ? (
           <div className="p-12 text-center">
             <FileText className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

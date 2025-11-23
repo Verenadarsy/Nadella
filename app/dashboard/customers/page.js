@@ -7,6 +7,7 @@ import {
   Users, Edit2, Trash2, X, Save, Plus,
   Mail, Phone, MapPin, Calendar, User
 } from 'lucide-react';
+import SectionLoader from '../components/sectionloader'
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
@@ -18,6 +19,7 @@ export default function CustomersPage() {
     address: "",
   });
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -33,18 +35,17 @@ export default function CustomersPage() {
     return () => observer.disconnect();
   }, []);
 
-  // Ambil semua data customer
+    // Ambil semua data customer
   const fetchData = async () => {
     try {
+      setLoading(true);
       const res = await fetch("/api/customers");
       const data = await res.json();
-      if (res.ok) {
-        setCustomers(data);
-      } else {
-        console.error("Failed to fetch customers:", data.error);
-      }
+      setCustomers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching customers:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -365,7 +366,9 @@ export default function CustomersPage() {
           </h2>
         </div>
 
-        {customers.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading customers..." />
+        ) : customers.length === 0 ? (
           <div className="p-12 text-center">
             <Users className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert'
+import SectionLoader from '../components/sectionloader'
 import {
   Megaphone, Edit2, Trash2, X, Save, Plus,
   Calendar, TrendingUp, Mail, Smartphone, Radio,
@@ -21,6 +22,7 @@ export default function CampaignsPage() {
     budget: ''
   })
   const [channelOpen, setChannelOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -37,11 +39,14 @@ export default function CampaignsPage() {
 
   const fetchCampaigns = async () => {
     try {
+      setLoading(true)
       const res = await fetch('/api/campaigns')
       const data = await res.json()
       setCampaigns(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Fetch campaigns error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -465,7 +470,9 @@ export default function CampaignsPage() {
           </h2>
         </div>
 
-        {campaigns.length === 0 ? (
+        {loading ? (
+          <SectionLoader darkMode={darkMode} text="Loading campaigns..." />
+        ) : campaigns.length === 0 ? (
           <div className="p-12 text-center">
             <Megaphone className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
