@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import {
   ShieldCheck, Edit2, Trash2, X, Save, Plus,
   User, Mail, Lock, Calendar, UserCog
@@ -48,11 +48,11 @@ export default function ManageAdmins() {
     e.preventDefault()
 
     if (!form.name || !form.email) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Oops!',
         text: 'Name and email are required!'
-      })
+      }, darkMode)
       return
     }
 
@@ -68,21 +68,21 @@ export default function ManageAdmins() {
     })
 
     if (res.ok) {
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: editId ? 'Admin successfully updated!' : 'Admin successfully added!',
         timer: 1500,
         showConfirmButton: false
-      })
+      }, darkMode)
       setForm({ name: '', email: '', password_hash: '', role: 'admin' })
       setEditId(null)
       fetchAdmins()
     } else {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'An error occurred while saving the data.'
-      })
+      }, darkMode)
     }
   }
 
@@ -98,7 +98,7 @@ export default function ManageAdmins() {
   }
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Are you sure?',
       text: 'Admin deletion is permanent and cannot be undone.',
       icon: 'warning',
@@ -107,7 +107,7 @@ export default function ManageAdmins() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
     if (!confirm.isConfirmed) return
 
     const res = await fetch('/api/users', {
@@ -117,20 +117,20 @@ export default function ManageAdmins() {
     })
 
     if (res.ok) {
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Deleted!',
         text: 'Admin successfully deleted.',
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
       fetchAdmins()
     } else {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'Unable to delete the admin.'
-      })
+      }, darkMode)
     }
   }
 

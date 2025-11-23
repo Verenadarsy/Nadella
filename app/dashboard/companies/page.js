@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Building2, Edit2, Trash2, X, Save, Plus,
@@ -65,39 +65,39 @@ export default function CompaniesPage() {
     })
 
     if (res.ok) {
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: isEditing ? 'Company successfully updated!' : 'Company successfully added!',
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
       setForm({ company_id: '', company_name: '', industry: '', website: '', address: '' })
       setIsEditing(false)
       fetchCompanies()
     } else {
       const err = await res.json()
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: err.message || 'Unable to save the company.'
-      })
+      }, darkMode)
     }
   }
 
 
   // Delete company
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this company?',
       text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
+      confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (!confirm.isConfirmed) return
 
@@ -108,21 +108,21 @@ export default function CompaniesPage() {
     })
 
     if (res.ok) {
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Deleted!',
         text: 'Company successfully deleted.',
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
       fetchCompanies()
     } else {
       const err = await res.json()
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed',
         text: err.message || 'Unable to delete the company.'
-      })
+      }, darkMode)
     }
   }
 

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert'
 import {
   Calendar, Clock, User, Edit2, Trash2,
   X, Save, Plus, Phone, Mail, Users,
@@ -84,37 +84,37 @@ export default function ActivitiesPage() {
       body: JSON.stringify(activityData),
     }).then(res => {
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Success!',
           text: editingId ? 'Activity successfully updated!' : 'Activity successfully added!',
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         setFormData({ type: '', notes: '', assigned_to: '' })
         setEditingId(null)
         fetchActivities()
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'An error occurred while saving the activity.'
-        })
+        }, darkMode)
       }
     })
   }
 
   const handleDelete = (id) => {
-    Swal.fire({
-      title: 'Hapus activity ini?',
-      text: 'Tindakan ini tidak bisa dibatalkan.',
+    showAlert({
+      title: 'Delete this activity?',
+      text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    }).then(confirm => {
+    }, darkMode).then(confirm => {
       if (confirm.isConfirmed) {
         fetch('/api/activities', {
           method: 'DELETE',
@@ -122,20 +122,20 @@ export default function ActivitiesPage() {
           body: JSON.stringify({ id }),
         }).then(res => {
           if (res.ok) {
-            Swal.fire({
+            showAlert({
               icon: 'success',
               title: 'Deleted!',
               text: 'Activity successfully deleted.',
               showConfirmButton: false,
               timer: 1500
-            })
+            }, darkMode)
             fetchActivities()
           } else {
-            Swal.fire({
+            showAlert({
               icon: 'error',
               title: 'Failed!',
               text: 'Unable to delete the activity.'
-            })
+            }, darkMode)
           }
         })
       }

@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
@@ -60,11 +60,11 @@ export default function LeadsPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!form.customer_id || !form.source || !form.lead_status) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Warning!',
         text: 'Please fill in all required fields'
-      })
+      }, darkMode)
       return
     }
 
@@ -92,29 +92,29 @@ export default function LeadsPage() {
         throw new Error("Failed to save lead")
       }
 
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: editingId ? 'Lead successfully updated!' : 'Lead successfully added!',
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
 
       setForm({ customer_id: "", source: "", lead_status: "" })
       setEditingId(null)
       fetchLeads()
     } catch (err) {
       console.error(err)
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'An error occurred while saving the lead'
-      })
+      }, darkMode)
     }
   }
 
   async function handleDelete(id) {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this lead?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -123,7 +123,7 @@ export default function LeadsPage() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (confirm.isConfirmed) {
       try {
@@ -134,21 +134,21 @@ export default function LeadsPage() {
         })
         if (!res.ok) throw new Error("Failed to delete lead")
 
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Deleted!',
           text: 'Lead successfully deleted.',
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         fetchLeads()
       } catch (err) {
         console.error(err)
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'Unable to delete the lead.'
-        })
+        }, darkMode)
       }
     }
   }

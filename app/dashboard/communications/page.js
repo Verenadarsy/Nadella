@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Swal from 'sweetalert2';
+import { showAlert } from '@/lib/sweetalert';
 import {
   MessageSquare, Edit2, Trash2, X, Save, Plus,
   Mail, Phone, MessageCircle, Send, User, Clock, ChevronDown, FileText
@@ -56,11 +56,11 @@ export default function CommunicationsPage() {
     e.preventDefault();
 
     if (!form.customer_id || !form.type || !form.content) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
-        title: 'Peringatan!',
-        text: 'Semua field wajib diisi.'
-      });
+        title: 'Warning!',
+        text: 'All fields are required.'
+      }, darkMode);
       return;
     }
 
@@ -73,13 +73,13 @@ export default function CommunicationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: 'Communication successfully added!',
         showConfirmButton: false,
         timer: 1500
-      });
+      }, darkMode);
     } else {
       payload.communication_id = editingId;
       await fetch("/api/communications", {
@@ -87,13 +87,13 @@ export default function CommunicationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: 'Communication successfully updated!',
         showConfirmButton: false,
         timer: 1500
-      });
+      }, darkMode);
       setEditingId(null);
     }
 
@@ -102,16 +102,16 @@ export default function CommunicationsPage() {
   }
 
   async function handleDelete(id) {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this communication?',
       text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Ya, hapus',
-      cancelButtonText: 'Batal',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    });
+    }, darkMode);
 
     if (confirm.isConfirmed) {
       await fetch("/api/communications", {
@@ -119,13 +119,13 @@ export default function CommunicationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Deleted!',
         text: 'Communication successfully deleted.',
         showConfirmButton: false,
         timer: 1500
-      });
+      }, darkMode);
       fetchData();
     }
   }

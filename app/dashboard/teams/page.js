@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import {
   UsersRound, Edit2, Trash2, X, Save, Plus,
   User, Calendar, UserCog, ChevronDown, Clock
@@ -60,11 +60,11 @@ export default function TeamsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.team_name) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Warning',
         text: 'Team name is required'
-      })
+      }, darkMode)
       return
     }
 
@@ -99,33 +99,33 @@ export default function TeamsPage() {
       console.log('📥 Response:', res.status, data)
 
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Success!',
           text: `Team successfully ${isEditing ? 'edited' : 'added'}!`,
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         setFormData({ team_id: '', team_name: '', manager_id: '' })
         setIsEditing(false)
         fetchTeams()
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed',
           html: `<div style="text-align: left; font-size: 13px;">
             <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
           </div>`,
           width: '600px'
-        })
+        }, darkMode)
       }
     } catch (err) {
       console.error(err)
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Error',
         text: 'A connection error occurred.'
-      })
+      }, darkMode)
     }
   }
 
@@ -136,7 +136,7 @@ export default function TeamsPage() {
   }
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this team?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -145,7 +145,7 @@ export default function TeamsPage() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (confirm.isConfirmed) {
       try {
@@ -156,28 +156,28 @@ export default function TeamsPage() {
         })
 
         if (res.ok) {
-          Swal.fire({
+          showAlert({
             icon: 'success',
             title: 'Deleted!',
             text: 'Team successfully deleted.',
             showConfirmButton: false,
             timer: 1500
-          })
+          }, darkMode)
           fetchTeams()
         } else {
-          Swal.fire({
+          showAlert({
             icon: 'error',
             title: 'Failed',
             text: 'Unable to delete the team.'
-          })
+          }, darkMode)
         }
       } catch (err) {
         console.error(err)
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Error',
           text: 'A connection error occurred.'
-        })
+        }, darkMode)
       }
     }
   }

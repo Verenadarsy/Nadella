@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert'
 import {
   Megaphone, Edit2, Trash2, X, Save, Plus,
   Calendar, TrendingUp, Mail, Smartphone, Radio,
@@ -52,11 +52,11 @@ export default function CampaignsPage() {
     e.preventDefault()
 
     if (!formData.campaign_name || !formData.channel || !formData.start_date || !formData.end_date || !formData.budget) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
-        title: 'Peringatan!',
-        text: 'Semua field wajib diisi.'
-      })
+        title: 'Warning!',
+        text: 'All fields are required.'
+      }, darkMode)
       return
     }
 
@@ -79,45 +79,45 @@ export default function CampaignsPage() {
       })
 
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Success!',
           text: `Campaign successfully ${isEditing ? 'edited' : 'added'}!`,
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         setFormData({ campaign_id: '', campaign_name: '', channel: '', start_date: '', end_date: '', budget: '' })
         setIsEditing(false)
         fetchCampaigns()
       } else {
         const err = await res.json()
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: err?.error ?? 'Unable to save the campaign.'
-        })
+        }, darkMode)
       }
     } catch (error) {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Error!',
         text: 'A connection error occurred.'
-      })
+      }, darkMode)
       console.error(error)
     }
   }
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this campaign?',
       text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it',
+      confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (confirm.isConfirmed) {
       const res = await fetch('/api/campaigns', {
@@ -126,20 +126,20 @@ export default function CampaignsPage() {
         body: JSON.stringify({ id }),
       })
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Deleted!',
           text: 'The campaign has been successfully deleted.',
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         fetchCampaigns()
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'Unable to delete the campaign.'
-        })
+        }, darkMode)
       }
     }
   }

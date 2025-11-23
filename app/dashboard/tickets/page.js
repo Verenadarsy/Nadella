@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import {
   Ticket, Edit2, Trash2, X, Save, Plus,
   User, Clock, AlertTriangle, CheckCircle, Circle, Loader, ChevronDown, FileText, Target, Activity,
@@ -84,38 +84,38 @@ export default function TicketsPage() {
 
     // VALIDASI LENGKAP
     if (!formData.customer_id) {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Customer Required!',
         text: 'Please select a customer.'
-      })
+      }, darkMode)
       return
     }
 
     if (!formData.issue_type || formData.issue_type.trim() === '') {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Issue Type Required!',
         text: 'Please enter issue type.'
-      })
+      }, darkMode)
       return
     }
 
     if (!formData.priority) {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Priority Required!',
         text: 'Please select priority.'
-      })
+      }, darkMode)
       return
     }
 
     if (!formData.status) {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Status Required!',
         text: 'Please select status.'
-      })
+      }, darkMode)
       return
     }
 
@@ -156,7 +156,7 @@ export default function TicketsPage() {
       console.log('📥 Response data:', data)
 
       if (!response.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Backend Error!',
           html: `<div style="text-align: left; font-size: 13px;">
@@ -164,17 +164,17 @@ export default function TicketsPage() {
             <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
           </div>`,
           width: '600px'
-        })
+        }, darkMode)
         return
       }
 
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: `Ticket successfully ${isEditing ? 'updated' : 'added'}!`,
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
 
       setFormData({
         ticket_id: '',
@@ -189,11 +189,11 @@ export default function TicketsPage() {
 
     } catch (error) {
       console.error('❌ Fetch error:', error)
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Network Error!',
         text: error.message
-      })
+      }, darkMode)
     }
   }
 
@@ -204,7 +204,7 @@ export default function TicketsPage() {
   }
 
   const handleDelete = (id) => {
-    Swal.fire({
+    showAlert({
       title: 'Delete this ticket?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -213,7 +213,7 @@ export default function TicketsPage() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    }).then(confirm => {
+    }, darkMode).then(confirm => {
       if (confirm.isConfirmed) {
         fetch('/api/tickets', {
           method: 'DELETE',
@@ -221,20 +221,20 @@ export default function TicketsPage() {
           body: JSON.stringify({ id }),
         }).then(res => {
           if (res.ok) {
-            Swal.fire({
+            showAlert({
               icon: 'success',
               title: 'Deleted!',
               text: 'Ticket successfully deleted.',
               showConfirmButton: false,
               timer: 1500
-            })
+            }, darkMode)
             fetchTickets()
           } else {
-            Swal.fire({
+            showAlert({
               icon: 'error',
               title: 'Failed!',
               text: 'Unable to delete the ticket.'
-            })
+            }, darkMode)
           }
         })
       }

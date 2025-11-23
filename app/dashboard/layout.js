@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert'
 import {
   Sun, Moon, Menu, X, LogOut, ShieldCheck,
   Package, Building2, Users, UserPlus, Handshake,
@@ -42,11 +42,11 @@ export default function DashboardLayout({ children }) {
     const decodedEmail = emailCookie ? decodeURIComponent(emailCookie) : ''
 
     if (!roleCookie) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Access Denied',
-        text: 'Kamu harus login dulu!',
-      }).then(() => router.push('/login'))
+        text: 'Yiou must login first!',
+      }, savedTheme === 'true').then(() => router.push('/login'))
       return
     }
 
@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }) {
   }
 
   const handleLogout = () => {
-    Swal.fire({
+    showAlert({
       title: 'Confirm Logout',
       text: 'Are you sure you want to log out?',
       icon: 'question',
@@ -78,17 +78,17 @@ export default function DashboardLayout({ children }) {
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Yes, Logout',
       cancelButtonText: 'Cancel'
-    }).then((result) => {
+    }, darkMode).then((result) => {
       if (result.isConfirmed) {
         document.cookie = 'userRole=; Max-Age=0; path=/;'
         document.cookie = 'userEmail=; Max-Age=0; path=/;'
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Logout successful!',
           text: 'See you again!',
           showConfirmButton: false,
           timer: 1500
-        }).then(() => router.push('/login'))
+        }, darkMode).then(() => router.push('/login'))
       }
     })
   }

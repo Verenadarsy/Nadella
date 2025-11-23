@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Swal from 'sweetalert2';
+import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Users, Edit2, Trash2, X, Save, Plus,
@@ -70,26 +70,26 @@ export default function CustomersPage() {
 
       const data = await res.json();
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Success!',
           text: editing ? 'Customer successfully updated!' : 'Customer successfully added!',
           showConfirmButton: false,
           timer: 1500
-        });
+        }, darkMode);
         setFormData({ name: "", email: "", phone: "", address: "" });
         setEditing(null);
         fetchData();
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'Unable to save the customer.'
-        });
+        }, darkMode);
       }
     } catch (err) {
       console.error("handleSubmit error:", err);
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Error!',
         text: 'A connection error occurred.'
@@ -109,16 +109,16 @@ export default function CustomersPage() {
   };
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this customer?',
       text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
+      confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    });
+    }, darkMode);
 
     if (!confirm.isConfirmed) return;
 
@@ -130,20 +130,20 @@ export default function CustomersPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Deleted!',
           text: 'Customer successfully deleted.',
           showConfirmButton: false,
           timer: 1500
-        });
+        }, darkMode);
         fetchData();
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'Unable to delete the customer.'
-        });
+        }, darkMode);
       }
     } catch (err) {
       console.error("handleDelete error:", err);

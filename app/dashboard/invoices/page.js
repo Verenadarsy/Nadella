@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import {
   FileText, Edit2, Trash2, X, Save, Plus,
   Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown
@@ -56,11 +56,11 @@ export default function InvoicesPage() {
 
     // Validasi
     if (!formData.customer_id || !formData.amount || !formData.due_date || !formData.status) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Warning!',
         text: 'Please fill in all required fields'
-      })
+      }, darkMode)
       return
     }
 
@@ -101,7 +101,7 @@ export default function InvoicesPage() {
       console.log('📥 Response:', response.status, data)
 
       if (!response.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Error!',
           html: `<div style="text-align: left; font-size: 13px;">
@@ -109,17 +109,17 @@ export default function InvoicesPage() {
             <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
           </div>`,
           width: '600px'
-        })
+        }, darkMode)
         return
       }
 
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: `Invoice successfully ${isEditing ? 'updated' : 'added'}!`,
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
 
       setFormData({
         invoice_id: '',
@@ -133,11 +133,11 @@ export default function InvoicesPage() {
 
     } catch (error) {
       console.error('❌ Fetch error:', error)
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'An error occurred while saving the invoice.'
-      })
+      }, darkMode)
     }
   }
 
@@ -148,7 +148,7 @@ export default function InvoicesPage() {
   }
 
   const handleDelete = (id) => {
-    Swal.fire({
+    showAlert({
       title: 'Delete this invoice?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -157,7 +157,7 @@ export default function InvoicesPage() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    }).then(confirm => {
+    }, darkMode).then(confirm => {
       if (confirm.isConfirmed) {
         fetch('/api/invoices', {
           method: 'DELETE',
@@ -165,20 +165,20 @@ export default function InvoicesPage() {
           body: JSON.stringify({ id }),
         }).then(res => {
           if (res.ok) {
-            Swal.fire({
+            showAlert({
               icon: 'success',
               title: 'Deleted!',
               text: 'Invoice successfully deleted.',
               showConfirmButton: false,
               timer: 1500
-            })
+            }, darkMode)
             fetchInvoices()
           } else {
-            Swal.fire({
+            showAlert({
               icon: 'error',
               title: 'Failed!',
               text: 'Unable to delete the invoice.'
-            })
+            }, darkMode)
           }
         })
       }

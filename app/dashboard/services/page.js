@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import {
   Wrench, Edit2, Trash2, X, Save, Plus,
   User, Calendar, CheckCircle, XCircle, Clock, ChevronDown,
@@ -66,11 +66,11 @@ export default function ServicesPage() {
   e.preventDefault()
 
   if (!formData.customer_id || !formData.service_type || !formData.status) {
-    Swal.fire({
+    showAlert({
       icon: 'warning',
       title: 'Oops',
       text: 'Complete all fields first!'
-    })
+    }, darkMode)
     return
   }
 
@@ -81,7 +81,7 @@ export default function ServicesPage() {
         customer_id: formData.customer_id,
         service_type: formData.service_type,
         status: formData.status,
-        start_date: getCurrentDateWIB() // ✅ Sekarang udah bener!
+        start_date: getCurrentDateWIB()
       }
 
   try {
@@ -92,11 +92,11 @@ export default function ServicesPage() {
     })
 
     if (!res.ok) {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'Unable to save the service.'
-      })
+      }, darkMode)
       return
     }
 
@@ -144,24 +144,24 @@ export default function ServicesPage() {
       }
     }
 
-    Swal.fire({
+    showAlert({
       icon: 'success',
       title: 'Success!',
       text: `Service successfully ${isEditing ? 'edited' : 'added'}!`,
       showConfirmButton: false,
       timer: 1500
-    })
+    }, darkMode)
 
     setFormData({ service_id: '', customer_id: '', service_type: '', status: 'active' })
     setIsEditing(false)
     fetchServices()
   } catch (err) {
     console.error(err)
-    Swal.fire({
+    showAlert({
       icon: 'error',
       title: 'Error',
       text: 'A connection error occurred.'
-    })
+    }, darkMode)
   }
 }
 
@@ -172,7 +172,7 @@ export default function ServicesPage() {
   }
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this service?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -181,7 +181,7 @@ export default function ServicesPage() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (confirm.isConfirmed) {
       const res = await fetch('/api/services', {
@@ -191,20 +191,20 @@ export default function ServicesPage() {
       })
 
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Deleted!',
           text: 'Service successfully deleted.',
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         fetchServices()
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'Unable to delete the service.'
-        })
+        }, darkMode)
       }
     }
   }

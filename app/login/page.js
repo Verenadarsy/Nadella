@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import bcrypt from 'bcryptjs'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert'
 import { Sun, Moon, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 
 export default function LoginPage() {
@@ -26,12 +26,12 @@ export default function LoginPage() {
 
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('auth') === 'required') {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Access Denied',
         text: 'You must login first!',
         confirmButtonText: 'Okay',
-      })
+      }, savedTheme === 'true')
     }
   }, [])
 
@@ -53,22 +53,22 @@ export default function LoginPage() {
         .single()
 
       if (userError || !user) {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'User not found',
           text: 'Please check your email again!',
-        })
+        }, darkMode)
         setIsLoading(false)
         return
       }
 
       const match = bcrypt.compareSync(password, user.password_hash)
       if (!match) {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Incorrect Password',
           text: 'Please try again.',
-        })
+        }, darkMode)
         setIsLoading(false)
         return
       }
@@ -76,21 +76,21 @@ export default function LoginPage() {
       document.cookie = `userRole=${encodeURIComponent(user.role)}; path=/`
       document.cookie = `userEmail=${encodeURIComponent(user.email)}; path=/`
 
-      await Swal.fire({
+      await showAlert({
         icon: 'success',
         title: 'Login Successful!',
         text: `Welcome, ${user.name}`,
         showConfirmButton: false,
         timer: 1200,
-      })
+      }, darkMode)
 
       router.push('/dashboard')
     } catch (err) {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'An error occurred',
         text: 'Please try again.',
-      })
+      }, darkMode)
       setIsLoading(false)
     }
   }

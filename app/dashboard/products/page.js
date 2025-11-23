@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import Swal from "sweetalert2"
+import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Package, Edit2, Trash2, X, Save, Plus,
@@ -30,20 +30,20 @@ export default function ProductsCRUD() {
       ?.split("=")[1]
 
     if (!roleCookie) {
-      Swal.fire({
+      showAlert({
         icon: "warning",
         title: "Access Denied",
         text: "You must be logged in to access this page."
-      }).then(() => router.push("/login?auth=required"))
+      }, darkMode).then(() => router.push("/login?auth=required"))
       return
     }
 
     if (!(roleCookie === "admin" || roleCookie === "superadmin")) {
-      Swal.fire({
+      showAlert({
         icon: "error",
         title: "Access Denied",
         text: "This page is for Admin/Superadmin only."
-      }).then(() => router.push("/dashboard"))
+      }, darkMode).then(() => router.push("/dashboard"))
       return
     }
 
@@ -70,21 +70,21 @@ export default function ProductsCRUD() {
       body: JSON.stringify(body),
     })
     if (res.ok) {
-      Swal.fire({
+      showAlert({
         icon: "success",
         title: editId ? "Product successfully updated!" : "Product successfully added!",
         timer: 1500,
         showConfirmButton: false
-      })
+      }, darkMode)
       setForm({ product_name: "", price: "", description: "" })
       setEditId(null)
       fetchProducts()
     } else {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'An error occurred while saving the product.'
-      })
+      }, darkMode)
     }
   }
 
@@ -95,7 +95,7 @@ export default function ProductsCRUD() {
   }
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this product?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -104,7 +104,7 @@ export default function ProductsCRUD() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (confirm.isConfirmed) {
       await fetch("/api/products", {
@@ -112,13 +112,13 @@ export default function ProductsCRUD() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       })
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Deleted!',
         text: 'Product successfully deleted.',
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
       fetchProducts()
     }
   }

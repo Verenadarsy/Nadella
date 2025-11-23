@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
+import { showAlert } from '@/lib/sweetalert';
 import {
   Handshake, Edit2, Trash2, X, Save, Plus,
   Banknote, Calendar, User, Building2, TrendingUp, ChevronDown
@@ -77,13 +77,13 @@ export default function DealsPage() {
     })
 
     if (res.ok) {
-      Swal.fire({
+      showAlert({
         icon: 'success',
         title: 'Success!',
         text: isEditing ? 'Deal successfully updated!' : 'Deal successfully added!',
         showConfirmButton: false,
         timer: 1500
-      })
+      }, darkMode)
       setFormData({
         deal_name: '',
         deal_stage: '',
@@ -96,11 +96,11 @@ export default function DealsPage() {
       setEditingId(null)
       fetchDeals()
     } else {
-      Swal.fire({
+      showAlert({
         icon: 'error',
         title: 'Failed!',
         text: 'Unable to save the deal.'
-      })
+      }, darkMode)
     }
   }
 
@@ -119,7 +119,7 @@ export default function DealsPage() {
   }
 
   const handleDelete = async (id) => {
-    const confirm = await Swal.fire({
+    const confirm = await showAlert({
       title: 'Delete this deal?',
       text: 'This action cannot be undone.',
       icon: 'warning',
@@ -128,7 +128,7 @@ export default function DealsPage() {
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
-    })
+    }, darkMode)
 
     if (confirm.isConfirmed) {
       const res = await fetch('/api/deals', {
@@ -138,20 +138,20 @@ export default function DealsPage() {
       })
 
       if (res.ok) {
-        Swal.fire({
+        showAlert({
           icon: 'success',
           title: 'Deleted!',
           text: 'Deal successfully deleted.',
           showConfirmButton: false,
           timer: 1500
-        })
+        }, darkMode)
         fetchDeals()
       } else {
-        Swal.fire({
+        showAlert({
           icon: 'error',
           title: 'Failed!',
           text: 'Unable to delete the deal.'
-        })
+        }, darkMode)
       }
     }
   }
