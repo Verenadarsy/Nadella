@@ -25,17 +25,3 @@ export async function DELETE(req) {
   const { error } = await remove(table, idField, id)
   return new Response(JSON.stringify(error ?? { message: "Deleted" }), { status: error ? 500 : 200 })
 }
-
-import { getAll, create } from "@/lib/crudHelper"
-
-
-export async function GET() {
-  const { data, error } = await getAll(table)
-  return new Response(JSON.stringify(error ?? data), { status: error ? 500 : 200 })
-}
-
-export async function POST(req) {
-  const body = await req.json()
-  const { data, error } = await create(table, body)
-  return new Response(JSON.stringify(error ?? data), { status: error ? 500 : 201 })
-}
