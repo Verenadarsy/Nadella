@@ -193,8 +193,8 @@ export default function DashboardLayout({ children }) {
               <div className="relative w-9 h-9 flex-shrink-0">
                 <Image
                   src="/favicon.png"
-                  width={30}
-                  height={30}
+                  width={28}
+                  height={28}
                   alt="logo"
                   className={`rounded-sm transition-all ${darkMode ? "brightness-0 invert" : ""}`}
                 />
@@ -223,8 +223,8 @@ export default function DashboardLayout({ children }) {
               <div className="relative w-9 h-9">
                 <Image
                   src="/favicon.png"
-                  width={30}
-                  height={30}
+                  width={28}
+                  height={28}
                   alt="logo"
                   className={`rounded-sm transition-all ${darkMode ? 'brightness-0 invert' : ''}`}
                 />
