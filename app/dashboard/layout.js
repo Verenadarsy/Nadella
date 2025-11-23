@@ -9,6 +9,8 @@ import {
   Megaphone, UsersRound, MessageSquare, ChevronRight,
   LayoutDashboard
 } from 'lucide-react'
+import Image from "next/image";
+
 
 export default function DashboardLayout({ children }) {
   const router = useRouter()
@@ -174,27 +176,59 @@ export default function DashboardLayout({ children }) {
       } ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-r`}>
 
         {/* Logo Section */}
-        <div className={`h-16 flex items-center justify-center px-4 border-b ${
+        <div className={`h-16 flex items-center px-2 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
           {sidebarOpen ? (
             <button
               onClick={() => router.push('/dashboard')}
-              className="flex items-center gap-2 group"
+              className={`
+                flex items-end gap-2.5 px-3 py-2.5 rounded-lg w-full group transition-colors
+                ${darkMode
+                  ? "hover:bg-slate-700/40"
+                  : "hover:bg-blue-50"
+                }
+              `}
             >
-              <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-600' : 'bg-blue-900'} group-hover:opacity-90`}>
-                <LayoutDashboard className="w-5 h-5 text-white" />
+              <div className="relative w-9 h-9 flex-shrink-0">
+                <Image
+                  src="/favicon.png"
+                  width={30}
+                  height={30}
+                  alt="logo"
+                  className={`rounded-sm transition-all ${darkMode ? "brightness-0 invert" : ""}`}
+                />
               </div>
-              <span className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-slate-900'} group-hover:text-blue-500`}>
-                CRM System
+
+              <span
+                className={`
+                  font-bold text-xl transition-colors leading-none pb-[3px]
+                  ${darkMode
+                    ? "text-blue-600 group-hover:text-blue-500"
+                    : "text-blue-900 group-hover:text-blue-700"
+                  }
+                `}
+              >
+                Nadella Tech
               </span>
             </button>
+
           ) : (
             <button
               onClick={() => router.push('/dashboard')}
-              className={`p-2 rounded-lg ${darkMode ? 'bg-blue-600' : 'bg-blue-900'} hover:opacity-90`}
+              onMouseEnter={(e) => handleMouseEnter(e, 'Nadella Tech')}
+              onMouseLeave={handleMouseLeave}
+              className="p-2 rounded-lg mx-auto hover:bg-slate-700/50 transition-colors"
             >
-              <LayoutDashboard className="w-5 h-5 text-white" />
+              <div className="relative w-9 h-9">
+                <Image
+                  src="/favicon.png"
+                  width={30}
+                  height={30}
+                  alt="logo"
+                  className={`rounded-sm transition-all ${darkMode ? 'brightness-0 invert' : ''}`}
+                />
+              </div>
             </button>
           )}
         </div>
