@@ -127,7 +127,7 @@ export default function FloatingChat() {
                 className={`p-3 rounded-lg max-w-[85%]
                 ${darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"}`}
               >
-                Hello! I&apos;m <b>Nadella</b>. How can I assist you today?
+                Halo! aku <b>Nadella</b>. Ada yang bisa aku bantu hari ini?
               </div>
             )}
 
