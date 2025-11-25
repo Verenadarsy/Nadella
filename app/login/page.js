@@ -4,10 +4,13 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import bcrypt from 'bcryptjs'
 import { showAlert } from '@/lib/sweetalert'
-import { Sun, Moon, Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import { Sun, Moon, Eye, EyeOff, Lock, Mail, Globe } from 'lucide-react'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { language, toggleLanguage, t } = useLanguage()
+  const texts = t.login[language]
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -28,9 +31,9 @@ export default function LoginPage() {
     if (urlParams.get('auth') === 'required') {
       showAlert({
         icon: 'warning',
-        title: 'Access Denied',
-        text: 'You must login first!',
-        confirmButtonText: 'Okay',
+        title: texts.accessDenied,
+        text: texts.mustLogin,
+        confirmButtonText: texts.okay,
       }, savedTheme === 'true')
     }
   }, [])
@@ -55,8 +58,8 @@ export default function LoginPage() {
       if (userError || !user) {
         showAlert({
           icon: 'error',
-          title: 'User not found',
-          text: 'Please check your email again!',
+          title: texts.userNotFound,
+          text: texts.checkEmail,
         }, darkMode)
         setIsLoading(false)
         return
@@ -66,8 +69,8 @@ export default function LoginPage() {
       if (!match) {
         showAlert({
           icon: 'error',
-          title: 'Incorrect Password',
-          text: 'Please try again.',
+          title: texts.incorrectPassword,
+          text: texts.tryAgain,
         }, darkMode)
         setIsLoading(false)
         return
@@ -78,8 +81,8 @@ export default function LoginPage() {
 
       await showAlert({
         icon: 'success',
-        title: 'Login Successful!',
-        text: `Welcome, ${user.name}`,
+        title: texts.loginSuccessful,
+        text: `${texts.welcome}, ${user.name}`,
         showConfirmButton: false,
         timer: 1200,
       }, darkMode)
@@ -88,8 +91,8 @@ export default function LoginPage() {
     } catch (err) {
       showAlert({
         icon: 'error',
-        title: 'An error occurred',
-        text: 'Please try again.',
+        title: texts.errorOccurred,
+        text: texts.tryAgain,
       }, darkMode)
       setIsLoading(false)
     }
@@ -101,18 +104,54 @@ export default function LoginPage() {
         ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
         : 'bg-gradient-to-br from-blue-50 via-white to-blue-50'
     }`}>
-      {/* Dark Mode Toggle */}
-      <button
-        onClick={toggleDarkMode}
-        className={`fixed top-6 right-6 p-3 rounded-full transition-all duration-300 ${
-          darkMode
-            ? 'bg-slate-700 text-yellow-300 hover:bg-slate-600'
-            : 'bg-white text-slate-700 hover:bg-slate-100 shadow-lg'
-        }`}
-        aria-label="Toggle dark mode"
-      >
-        {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-      </button>
+      {/* Dark Mode + Language Toggle */}
+      <div className="fixed top-6 right-6 z-50">
+        <div className={`
+          flex items-center gap-1 p-1.5 rounded-full backdrop-blur-lg
+          transition-all duration-300 shadow-lg
+          ${darkMode
+            ? 'bg-slate-800/90 border border-slate-700/50'
+            : 'bg-white/90 border border-white/20'
+          }
+        `}>
+
+          {/* Language Toggle */}
+          <button
+            onClick={toggleLanguage}
+            className={`
+              relative px-3 py-2 rounded-full font-semibold text-sm
+              transition-all duration-300 flex items-center gap-2
+              ${darkMode
+                ? 'text-white hover:bg-slate-700'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }
+            `}
+            aria-label="Toggle language"
+          >
+            <Globe className="w-4 h-4" />
+            <span>{language === 'en' ? 'ID' : 'EN'}</span>
+          </button>
+
+          {/* Separator */}
+          <div className={`w-px h-6 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'}`} />
+
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className={`
+              relative p-2.5 rounded-full
+              transition-all duration-300
+              ${darkMode
+                ? 'text-yellow-300 hover:bg-slate-700'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }
+            `}
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
 
       {/* Login Card */}
       <div className={`w-full max-w-md transition-all duration-300 ${
@@ -129,10 +168,10 @@ export default function LoginPage() {
           <h1 className={`text-3xl font-bold mb-2 ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Welcome Back
+            {texts.welcomeBack}
           </h1>
           <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Please login to continue
+            {texts.pleaseLogin}
           </p>
         </div>
 
@@ -146,7 +185,7 @@ export default function LoginPage() {
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}
             >
-              Email
+              {texts.email}
             </label>
             <div className="relative">
               <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -155,7 +194,7 @@ export default function LoginPage() {
               <input
                 id="email"
                 type="email"
-                placeholder="nama@example.com"
+                placeholder={texts.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -176,7 +215,7 @@ export default function LoginPage() {
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}
             >
-              Password
+              {texts.password}
             </label>
             <div className="relative">
               <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -185,7 +224,7 @@ export default function LoginPage() {
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder={texts.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -223,10 +262,10 @@ export default function LoginPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Loading...
+                {texts.loading}
               </span>
             ) : (
-              'Login'
+              texts.loginButton
             )}
           </button>
         </form>
