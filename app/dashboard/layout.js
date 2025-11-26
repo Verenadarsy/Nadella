@@ -7,14 +7,17 @@ import {
   Package, Building2, Users, UserPlus, Handshake,
   ClipboardList, Ticket, FileText, Wrench,
   Megaphone, UsersRound, MessageSquare, ChevronRight,
-  LayoutDashboard
+  LayoutDashboard, Globe
 } from 'lucide-react'
 import Image from "next/image";
+import { useLanguage } from '@/lib/languageContext'
 
 
 export default function DashboardLayout({ children }) {
   const router = useRouter()
   const pathname = usePathname()
+  const { language, toggleLanguage, t } = useLanguage()
+  const texts = t.layout[language]
   const [role, setRole] = useState(null)
   const [email, setEmail] = useState('')
   const [darkMode, setDarkMode] = useState(false)
@@ -46,8 +49,8 @@ export default function DashboardLayout({ children }) {
     if (!roleCookie) {
       showAlert({
         icon: 'warning',
-        title: 'Access Denied',
-        text: 'Yiou must login first!',
+        title: texts.accessDenied,
+        text: texts.mustLogin,
       }, savedTheme === 'true').then(() => router.push('/login'))
       return
     }
@@ -72,22 +75,22 @@ export default function DashboardLayout({ children }) {
 
   const handleLogout = () => {
     showAlert({
-      title: 'Confirm Logout',
-      text: 'Are you sure you want to log out?',
+      title: texts.confirmLogout,
+      text: texts.logoutConfirm,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, Logout',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: texts.yesLogout,
+      cancelButtonText: texts.cancel
     }, darkMode).then((result) => {
       if (result.isConfirmed) {
         document.cookie = 'userRole=; Max-Age=0; path=/;'
         document.cookie = 'userEmail=; Max-Age=0; path=/;'
         showAlert({
           icon: 'success',
-          title: 'Logout successful!',
-          text: 'See you again!',
+          title: texts.logoutSuccess,
+          text: texts.seeYouAgain,
           showConfirmButton: false,
           timer: 1500
         }, darkMode).then(() => router.push('/login'))
@@ -113,19 +116,19 @@ export default function DashboardLayout({ children }) {
   }
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '' },
-    { icon: Package, label: 'Products', path: 'products' },
-    { icon: Building2, label: 'Companies', path: 'companies' },
-    { icon: Users, label: 'Customers', path: 'customers' },
-    { icon: UserPlus, label: 'Leads', path: 'leads' },
-    { icon: Handshake, label: 'Deals', path: 'deals' },
-    { icon: ClipboardList, label: 'Activities', path: 'activities' },
-    { icon: Ticket, label: 'Tickets', path: 'tickets' },
-    { icon: FileText, label: 'Invoices', path: 'invoices' },
-    { icon: Wrench, label: 'Services', path: 'services' },
-    { icon: Megaphone, label: 'Campaigns', path: 'campaigns' },
-    { icon: UsersRound, label: 'Teams', path: 'teams' },
-    { icon: MessageSquare, label: 'Communications', path: 'communications' },
+    { icon: LayoutDashboard, label: texts.dashboard, path: '' },
+    { icon: Package, label: texts.products, path: 'products' },
+    { icon: Building2, label: texts.companies, path: 'companies' },
+    { icon: Users, label: texts.customers, path: 'customers' },
+    { icon: UserPlus, label: texts.leads, path: 'leads' },
+    { icon: Handshake, label: texts.deals, path: 'deals' },
+    { icon: ClipboardList, label: texts.activities, path: 'activities' },
+    { icon: Ticket, label: texts.tickets, path: 'tickets' },
+    { icon: FileText, label: texts.invoices, path: 'invoices' },
+    { icon: Wrench, label: texts.services, path: 'services' },
+    { icon: Megaphone, label: texts.campaigns, path: 'campaigns' },
+    { icon: UsersRound, label: texts.teams, path: 'teams' },
+    { icon: MessageSquare, label: texts.communications, path: 'communications' },
   ]
 
   const isActive = (path) => {
@@ -140,7 +143,7 @@ export default function DashboardLayout({ children }) {
       }`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className={`mt-4 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>Loading...</p>
+          <p className={`mt-4 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{texts.loading}</p>
         </div>
       </div>
     )
@@ -254,7 +257,7 @@ export default function DashboardLayout({ children }) {
                   darkMode ? 'text-slate-400' : 'text-slate-600'
                 }`}>
                   <ShieldCheck className="w-3 h-3" />
-                  {role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                  {role === 'superadmin' ? texts.superAdmin : texts.admin}
                 </p>
               </div>
             </div>
@@ -309,7 +312,7 @@ export default function DashboardLayout({ children }) {
           {role === 'superadmin' && (
             <button
               onClick={() => goTo('manage-admins')}
-              onMouseEnter={(e) => handleMouseEnter(e, 'Manage Admins')}
+              onMouseEnter={(e) => handleMouseEnter(e, texts.manageAdmins)}
               onMouseLeave={handleMouseLeave}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 group ${
                 isActive('manage-admins')
@@ -324,7 +327,7 @@ export default function DashboardLayout({ children }) {
               <ShieldCheck className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && (
                 <>
-                  <span className="flex-1 text-left text-sm font-medium">Manage Admins</span>
+                  <span className="flex-1 text-left text-sm font-medium">{texts.manageAdmins}</span>
                   <ChevronRight className={`w-4 h-4 ${
                     isActive('manage-admins') ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                   } transition-opacity`} />
@@ -336,7 +339,7 @@ export default function DashboardLayout({ children }) {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            onMouseEnter={(e) => handleMouseEnter(e, 'Logout')}
+            onMouseEnter={(e) => handleMouseEnter(e, texts.logout)}
             onMouseLeave={handleMouseLeave}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mt-4 transition-all duration-200 ${
               darkMode
@@ -345,7 +348,7 @@ export default function DashboardLayout({ children }) {
             } ${!sidebarOpen ? 'justify-center' : ''}`}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && <span className="flex-1 text-left text-sm font-medium">Logout</span>}
+            {sidebarOpen && <span className="flex-1 text-left text-sm font-medium">{texts.logout}</span>}
           </button>
         </nav>
       </aside>
@@ -365,17 +368,52 @@ export default function DashboardLayout({ children }) {
             {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-lg transition-colors ${
-                darkMode
-                  ? 'bg-slate-700 text-yellow-300 hover:bg-slate-600'
-                  : 'bg-gray-100 text-slate-700 hover:bg-gray-200'
-              }`}
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+          <div className="flex items-center gap-1">
+            <div className={`
+              flex items-center gap-1 p-1.5 rounded-full backdrop-blur-lg
+              transition-all duration-300 shadow-lg
+              ${darkMode
+                ? 'bg-slate-700/90 border border-slate-600/50'
+                : 'bg-white border border-gray-200'
+              }
+            `}>
+
+              {/* Language Toggle */}
+              <button
+                onClick={toggleLanguage}
+                className={`
+                  relative px-3 py-2 rounded-full font-semibold text-sm
+                  transition-all duration-300 flex items-center gap-2
+                  ${darkMode
+                    ? 'text-white hover:bg-slate-600'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-gray-100'
+                  }
+                `}
+                aria-label="Toggle language"
+              >
+                <Globe className="w-4 h-4" />
+                <span>{language === 'en' ? 'ID' : 'EN'}</span>
+              </button>
+
+              {/* Separator */}
+              <div className={`w-px h-6 ${darkMode ? 'bg-slate-600' : 'bg-gray-300'}`} />
+
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className={`
+                  relative p-2.5 rounded-full
+                  transition-all duration-300
+                  ${darkMode
+                    ? 'text-yellow-300 hover:bg-slate-600'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-gray-100'
+                  }
+                `}
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </header>
 
