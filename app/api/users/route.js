@@ -12,7 +12,6 @@ export async function GET() {
 export async function POST(req) {
   const body = await req.json()
 
-  // 🔐 Hash password kalau ada password_plain
   if (body.password_plain) {
     const hashed = await bcrypt.hash(body.password_plain, 10)
     body.password_hash = hashed
@@ -28,7 +27,6 @@ export async function POST(req) {
 export async function PUT(req) {
   const body = await req.json()
 
-  // 🔐 Kalau password di-update → hash ulang
   if (body.password_plain) {
     const hashed = await bcrypt.hash(body.password_plain, 10)
     body.password_hash = hashed

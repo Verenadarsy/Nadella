@@ -18,7 +18,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Check for dark mode preference
     const savedTheme = localStorage.getItem('darkMode')
     if (savedTheme !== null) {
       setDarkMode(savedTheme === 'true')

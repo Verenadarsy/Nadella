@@ -1,42 +1,63 @@
-import { supabase } from "@/lib/supabaseClient";
-import bcrypt from "bcryptjs";
+import { NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabaseClient'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password } = await req.json()
 
     const { data: user, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single();
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single()
 
-    console.log("=== DEBUG LOGIN ===");
-    console.log("Email input:", email);
-    console.log("User found:", user);
-    console.log("Password plaintext:", password);
-    console.log("Hash from DB:", user?.password_hash);
-    console.log("Hash length:", user?.password_hash?.length);
-
-    if (error || !user) {
-      return new Response(JSON.stringify({ error: "User not found" }), { status: 401 });
+    if (!user || error) {
+      return NextResponse.json(
+        { message: 'User not found' },
+        { status: 404 }
+      )
     }
 
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    console.log("Compare result:", isMatch);
-
-    if (!isMatch) {
-      return new Response(JSON.stringify({ error: "Invalid password" }), { status: 401 });
+    const match = bcrypt.compareSync(password, user.password_hash)
+    if (!match) {
+      return NextResponse.json(
+        { message: 'Incorrect password' },
+        { status: 401 }
+      )
     }
 
-    return new Response(JSON.stringify({ success: true, message: "Password correct!" }), {
-      status: 200
-    });
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES }
+    )
+
+    const response = NextResponse.json(
+      { message: 'Login successful' },
+      { status: 200 }
+    )
+
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: true,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+    })
+
+    return response
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: "Server error", detail: err.message }), {
-      status: 500
-    });
+    return NextResponse.json(
+      { message: 'Server error', error: err.message },
+      { status: 500 }
+    )
   }
 }
