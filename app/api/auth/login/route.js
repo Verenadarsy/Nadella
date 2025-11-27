@@ -1,34 +1,63 @@
-import { supabase } from "@/lib/supabaseClient";
+import { NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabaseClient'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 export async function POST(req) {
-  const body = await req.json();
-  const { email, password } = body;
+  try {
+    const { email, password } = await req.json()
 
-  // cek user di tabel users
-  const { data: users, error } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", email)
-    .single();
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single()
 
-  if (error || !users) {
-    return new Response(JSON.stringify({ error: "User not found" }), { status: 401 });
+    if (!user || error) {
+      return NextResponse.json(
+        { message: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    const match = bcrypt.compareSync(password, user.password_hash)
+    if (!match) {
+      return NextResponse.json(
+        { message: 'Incorrect password' },
+        { status: 401 }
+      )
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES }
+    )
+
+    const response = NextResponse.json(
+      { message: 'Login successful' },
+      { status: 200 }
+    )
+
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: true,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+    })
+
+    return response
+
+  } catch (err) {
+    return NextResponse.json(
+      { message: 'Server error', error: err.message },
+      { status: 500 }
+    )
   }
-
-  // compare password (plaintext)
-  if (users.password_hash !== password) {
-    return new Response(JSON.stringify({ error: "Invalid password" }), { status: 401 });
-  }
-
-  // generate token
-  const token = jwt.sign(
-    { user_id: users.user_id, role: users.role },
-    JWT_SECRET,
-    { expiresIn: "1h" }
-  );
-
-  return new Response(
-    JSON.stringify({ token, role: users.role }),
-    { status: 200 }
-  );
 }

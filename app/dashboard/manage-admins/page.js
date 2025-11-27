@@ -13,7 +13,7 @@ export default function ManageAdmins() {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password_hash: '',
+    password_plain: '',
     role: 'admin'
   })
   const [editId, setEditId] = useState(null)
@@ -74,7 +74,7 @@ export default function ManageAdmins() {
         timer: 1500,
         showConfirmButton: false
       }, darkMode)
-      setForm({ name: '', email: '', password_hash: '', role: 'admin' })
+      setForm({ name: '', email: '', password_plain: '', role: 'admin' })
       setEditId(null)
       fetchAdmins()
     } else {
@@ -91,7 +91,7 @@ export default function ManageAdmins() {
     setForm({
       name: admin.name,
       email: admin.email,
-      password_hash: '',
+      password_plain: '',
       role: 'admin'
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -136,7 +136,7 @@ export default function ManageAdmins() {
 
   const cancelEdit = () => {
     setEditId(null)
-    setForm({ name: '', email: '', password_hash: '', role: 'admin' })
+    setForm({ name: '', email: '', password_plain: '', role: 'admin' })
   }
 
   return (
@@ -249,9 +249,9 @@ export default function ManageAdmins() {
                 }`} />
                 <input
                   type="password"
-                  name="password_hash"
+                  name="password_plain"
                   placeholder={editId ? "Leave blank to keep current" : "Enter password"}
-                  value={form.password_hash}
+                  value={form.password_plain}
                   onChange={handleChange}
                   className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                     darkMode
