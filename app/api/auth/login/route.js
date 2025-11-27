@@ -14,18 +14,12 @@ export async function POST(req) {
       .single()
 
     if (!user || error) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'User not found' }, { status: 404 })
     }
 
     const match = bcrypt.compareSync(password, user.password_hash)
     if (!match) {
-      return NextResponse.json(
-        { message: 'Incorrect password' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: 'Incorrect password' }, { status: 401 })
     }
 
     const token = jwt.sign(
@@ -35,28 +29,31 @@ export async function POST(req) {
         role: user.role
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES }
+      { expiresIn: process.env.JWT_EXPIRES || '7d' }
     )
 
-    const response = NextResponse.json(
-      { message: 'Login successful' },
-      { status: 200 }
-    )
+    const response = NextResponse.json({ 
+      message: 'Login successful',
+      role: user.role,
+      name: user.name 
+    }, { status: 200 })
 
-    response.cookies.set({
-      name: 'token',
-      value: token,
+    response.cookies.set('token', token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 hari
+      maxAge: 60 * 60 * 24 * 7 // 7 hari
     })
+
+    response.cookies.set('userRole', user.role, { path: '/' })
+    response.cookies.set('userEmail', user.email, { path: '/' })
 
     return response
 
   } catch (err) {
+    console.error("LOGIN ERROR:", err)
     return NextResponse.json(
-      { message: 'Server error', error: err.message },
+      { message: 'Internal Server Error', error: err.message },
       { status: 500 }
     )
   }
