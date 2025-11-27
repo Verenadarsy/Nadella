@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }) {
   const [tooltip, setTooltip] = useState({ show: false, text: '', top: 0 })
 
   useEffect(() => {
-    // Baca dari localStorage dulu (yang di-set dari login page)
+    // Dark mode
     const savedTheme = localStorage.getItem('darkMode')
     if (savedTheme !== null) {
       setDarkMode(savedTheme === 'true')
@@ -51,13 +51,14 @@ export default function DashboardLayout({ children }) {
         icon: 'warning',
         title: texts.accessDenied,
         text: texts.mustLogin,
-      }, savedTheme === 'true').then(() => router.push('/login'))
+      }, darkMode).then(() => router.push('/login'))
       return
     }
 
     setRole(roleCookie)
     setEmail(decodedEmail)
   }, [router])
+
 
   useEffect(() => {
     if (darkMode) {
@@ -194,7 +195,7 @@ export default function DashboardLayout({ children }) {
               `}
             >
               <div className="relative w-9 h-9 flex-shrink-0">
-                <Image
+                <img
                   src="/favicon.png"
                   width={28}
                   height={28}

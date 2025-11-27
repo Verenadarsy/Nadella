@@ -44,56 +44,52 @@ export default function LoginPage() {
   }
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single()
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (userError || !user) {
+      const result = await res.json();
+
+      if (!res.ok) {
         showAlert({
           icon: 'error',
-          title: texts.userNotFound,
-          text: texts.checkEmail,
-        }, darkMode)
-        setIsLoading(false)
-        return
+          title: 'Login Failed',
+          text: result.message,
+        }, darkMode);
+        setIsLoading(false);
+        return;
       }
-
-      const match = bcrypt.compareSync(password, user.password_hash)
-      if (!match) {
-        showAlert({
-          icon: 'error',
-          title: texts.incorrectPassword,
-          text: texts.tryAgain,
-        }, darkMode)
-        setIsLoading(false)
-        return
-      }
-
-      document.cookie = `userRole=${encodeURIComponent(user.role)}; path=/`
-      document.cookie = `userEmail=${encodeURIComponent(user.email)}; path=/`
 
       await showAlert({
         icon: 'success',
         title: texts.loginSuccessful,
-        text: `${texts.welcome}, ${user.name}`,
+        text: `${texts.welcome}, ${result.name}`,
         showConfirmButton: false,
         timer: 1200,
-      }, darkMode)
+      }, darkMode);
 
-      router.push('/dashboard')
-    } catch (err) {
+      let targetPath = '/dashboard'; 
+            if (result.role === 'client') {
+                targetPath = '/client';
+            } 
+      window.location.href = targetPath;
+    } catch (error) {
       showAlert({
         icon: 'error',
         title: texts.errorOccurred,
         text: texts.tryAgain,
-      }, darkMode)
-      setIsLoading(false)
+      }, darkMode);
+    } finally {
+      setIsLoading(false);
     }
   }
 

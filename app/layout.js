@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { LanguageProvider } from '@/lib/languageContext'
+import { LanguageProvider } from "@/lib/languageContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,17 +16,17 @@ export const metadata = {
   title: "Nadella Tech",
   description: "Professional CRM System by Nadella",
   icons: {
-    icon: '/favicon.png',
+    icon: "/favicon.png",
   },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+    <html lang="en" className="h-full">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
+      >
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );
