@@ -4,8 +4,12 @@ import { useEffect, useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from "recharts";
+import { useLanguage } from '@/lib/languageContext';
 
 export default function TicketChart({ dark }) {
+  const { language, t } = useLanguage();
+  const texts = t.charts[language];
+
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -23,7 +27,7 @@ export default function TicketChart({ dark }) {
   return (
     <div className={`p-4 rounded-xl shadow ${dark ? "bg-slate-800" : "bg-white"}`}>
       <h3 className={`font-semibold mb-3 ${dark ? "text-white" : "text-slate-800"}`}>
-        Ticket Status Overview
+        {texts.ticketsByStatus}
       </h3>
 
       <ResponsiveContainer width="100%" height={250}>

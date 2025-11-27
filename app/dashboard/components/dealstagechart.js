@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer
 } from "recharts";
+import { useLanguage } from '@/lib/languageContext';
 
 const COLORS = ["#3b82f6", "#22c55e", "#eab308", "#ef4444"];
 
 export default function DealsStageChart({ dark }) {
+  const { language, t } = useLanguage();
+  const texts = t.charts[language];
+
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -25,7 +29,7 @@ export default function DealsStageChart({ dark }) {
   return (
     <div className={`p-4 rounded-xl shadow ${dark ? "bg-slate-800" : "bg-white"}`}>
       <h3 className={`font-semibold mb-3 ${dark ? "text-white" : "text-slate-800"}`}>
-        Deals by Stage
+        {texts.dealsByStage}
       </h3>
 
       <ResponsiveContainer width="100%" height={250}>

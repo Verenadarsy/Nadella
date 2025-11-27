@@ -117,7 +117,7 @@ export default function DashboardHome() {
                 darkMode ? "text-white" : "text-slate-900"
               }`}
             >
-              Won Deals
+              {texts.wonDeals}
             </h3>
 
             <div className={`overflow-hidden rounded-lg border ${
@@ -132,22 +132,22 @@ export default function DashboardHome() {
                       <th className={`px-4 py-3 text-left text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
-                        Deal Name
+                        {texts.dealName}
                       </th>
                       <th className={`px-4 py-3 text-left text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
-                        Customer
+                        {texts.customer}
                       </th>
                       <th className={`px-4 py-3 text-right text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
-                        Amount
+                        {texts.amount}
                       </th>
                       <th className={`px-4 py-3 text-center text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
-                        Status
+                        {texts.status}
                       </th>
                     </tr>
                   </thead>
@@ -177,7 +177,7 @@ export default function DashboardHome() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Won
+                              {texts.won}
                             </span>
                           </td>
                         </tr>
@@ -187,7 +187,7 @@ export default function DashboardHome() {
                         <td colSpan="4" className={`px-4 py-8 text-center text-sm ${
                           darkMode ? "text-slate-400" : "text-slate-500"
                         }`}>
-                          No won deals found
+                          {texts.noWonDeals}
                         </td>
                       </tr>
                     )}
