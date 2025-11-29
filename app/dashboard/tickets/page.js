@@ -107,8 +107,8 @@ export default function TicketsPage() {
     if (!formData.customer_id) {
       showAlert({
         icon: 'error',
-        title: 'Customer Required!',
-        text: 'Please select a customer.'
+        title: texts.customerRequired,
+        text: texts.pleaseSelectCustomer
       }, darkMode)
       return
     }
@@ -116,8 +116,8 @@ export default function TicketsPage() {
     if (!formData.issue_type || formData.issue_type.trim() === '') {
       showAlert({
         icon: 'error',
-        title: 'Issue Type Required!',
-        text: 'Please enter issue type.'
+        title: texts.issueTypeRequired,
+        text: texts.pleaseEnterIssueType
       }, darkMode)
       return
     }
@@ -125,8 +125,8 @@ export default function TicketsPage() {
     if (!formData.priority) {
       showAlert({
         icon: 'error',
-        title: 'Priority Required!',
-        text: 'Please select priority.'
+        title: texts.priorityRequired,
+        text: texts.pleaseSelectPriority
       }, darkMode)
       return
     }
@@ -134,8 +134,8 @@ export default function TicketsPage() {
     if (!formData.status) {
       showAlert({
         icon: 'error',
-        title: 'Status Required!',
-        text: 'Please select status.'
+        title: texts.statusRequired,
+        text: texts.pleaseSelectStatus
       }, darkMode)
       return
     }
@@ -171,15 +171,15 @@ export default function TicketsPage() {
         body: JSON.stringify(payload),
       })
 
-      console.log('📥 Response status:', response.status)
+      console.log('Response status:', response.status)
 
       const data = await response.json()
-      console.log('📥 Response data:', data)
+      console.log('Response data:', data)
 
       if (!response.ok) {
         showAlert({
           icon: 'error',
-          title: 'Backend Error!',
+          title: texts.backendError,
           html: `<div style="text-align: left; font-size: 13px;">
             <strong>Status:</strong> ${response.status}<br>
             <strong>Error:</strong> ${JSON.stringify(data, null, 2)}
@@ -191,8 +191,8 @@ export default function TicketsPage() {
 
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: `Ticket successfully ${isEditing ? 'updated' : 'added'}!`,
+        title: texts.success,
+        text: isEditing ? texts.ticketUpdated : texts.ticketAdded,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -212,7 +212,7 @@ export default function TicketsPage() {
       console.error('❌ Fetch error:', error)
       showAlert({
         icon: 'error',
-        title: 'Network Error!',
+        title: texts.networkError,
         text: error.message
       }, darkMode)
     }
@@ -226,12 +226,12 @@ export default function TicketsPage() {
 
   const handleDelete = (id) => {
     showAlert({
-      title: 'Delete this ticket?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteTicket,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode).then(confirm => {
@@ -244,8 +244,8 @@ export default function TicketsPage() {
           if (res.ok) {
             showAlert({
               icon: 'success',
-              title: 'Deleted!',
-              text: 'Ticket successfully deleted.',
+              title: texts.deleted,
+              text: texts.ticketDeleted,
               showConfirmButton: false,
               timer: 1500
             }, darkMode)
@@ -253,8 +253,8 @@ export default function TicketsPage() {
           } else {
             showAlert({
               icon: 'error',
-              title: 'Failed!',
-              text: 'Unable to delete the ticket.'
+              title: texts.failed,
+              text: texts.unableToDelete
             }, darkMode)
           }
         })
@@ -328,17 +328,17 @@ export default function TicketsPage() {
   }
 
   const priorityOptions = [
-    { value: 'low', label: 'Low', icon: <Flag className="w-4 h-4" /> },
-    { value: 'medium', label: 'Medium', icon: <TrendingUp className="w-4 h-4" /> },
-    { value: 'high', label: 'High', icon: <AlertTriangle className="w-4 h-4" /> },
-    { value: 'urgent', label: 'Urgent', icon: <Zap className="w-4 h-4" /> }
+    { value: 'low', label: texts.low, icon: <Flag className="w-4 h-4" /> },
+    { value: 'medium', label: texts.medium, icon: <TrendingUp className="w-4 h-4" /> },
+    { value: 'high', label: texts.high, icon: <AlertTriangle className="w-4 h-4" /> },
+    { value: 'urgent', label: texts.urgent, icon: <Zap className="w-4 h-4" /> }
   ]
 
   const statusOptions = [
-    { value: 'open', label: 'Open', icon: <Circle className="w-4 h-4" /> },
-    { value: 'in progress', label: 'In Progress', icon: <Loader className="w-4 h-4" /> },
-    { value: 'resolved', label: 'Resolved', icon: <CheckCircle className="w-4 h-4" /> },
-    { value: 'closed', label: 'Closed', icon: <ArrowRight className="w-4 h-4" /> }
+    { value: 'open', label: texts.open, icon: <Circle className="w-4 h-4" /> },
+    { value: 'in progress', label: texts.inProgress, icon: <Loader className="w-4 h-4" /> },
+    { value: 'resolved', label: texts.resolved, icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'closed', label: texts.closed, icon: <ArrowRight className="w-4 h-4" /> }
   ]
 
   return (
@@ -353,12 +353,12 @@ export default function TicketsPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Ticket
+              {texts.editTicket}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Ticket
+              {texts.addNewTicket}
             </>
           )}
         </h2>
@@ -370,7 +370,7 @@ export default function TicketsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Customer
+                {texts.customer}
               </label>
 
               <button
@@ -388,7 +388,7 @@ export default function TicketsPage() {
                   <User size={16} className="opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
-                    : "Select Customer"}
+                    : texts.selectCustomer}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -424,7 +424,7 @@ export default function TicketsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Issue Type
+                {texts.issueType}
               </label>
               <div className="relative">
                 <FileText className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -433,7 +433,7 @@ export default function TicketsPage() {
                 <input
                   type="text"
                   name="issue_type"
-                  placeholder="e.g., Technical Support"
+                  placeholder={texts.issueTypePlaceholder}
                   value={formData.issue_type}
                   onChange={handleChange}
                   required
@@ -451,7 +451,7 @@ export default function TicketsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Priority
+                {texts.priority}
               </label>
 
               <button
@@ -474,7 +474,7 @@ export default function TicketsPage() {
                   ) : (
                     <>
                       <Target className="w-4 h-4" />
-                      Select Priority
+                      {texts.selectPriority}
                     </>
                   )}
                 </span>
@@ -512,7 +512,7 @@ export default function TicketsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Status
+                {texts.status}
               </label>
 
               <button
@@ -535,7 +535,7 @@ export default function TicketsPage() {
                   ) : (
                     <>
                       <Activity className="w-4 h-4" />
-                      Select Status
+                      {texts.selectStatus}
                     </>
                   )}
                 </span>
@@ -573,7 +573,7 @@ export default function TicketsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Assign To
+                {texts.assignTo}
               </label>
 
               <button
@@ -591,7 +591,7 @@ export default function TicketsPage() {
                   <User size={16} className="opacity-60" />
                   {formData.assigned_to
                     ? users.find((u) => u.user_id === formData.assigned_to)?.name
-                    : "Select User"}
+                    : texts.selectUser}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -637,12 +637,12 @@ export default function TicketsPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Ticket
+                  {texts.updateTicket}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Ticket
+                  {texts.addTicket}
                 </>
               )}
             </button>
@@ -658,7 +658,7 @@ export default function TicketsPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -675,12 +675,12 @@ export default function TicketsPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Tickets List ({tickets.length})
+            {texts.ticketsList} ({tickets.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading tickets..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingTickets} />
         ) : tickets.length === 0 ? (
           <div className="p-12 text-center">
             <Ticket className={`w-16 h-16 mx-auto mb-4 ${
@@ -689,12 +689,12 @@ export default function TicketsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No tickets yet
+              {texts.noTicketsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first ticket above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -705,37 +705,37 @@ export default function TicketsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer
+                    {texts.customerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Issue
+                    {texts.issue}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Priority
+                    {texts.priorityHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Status
+                    {texts.statusHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Assigned To
+                    {texts.assignedTo}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>
