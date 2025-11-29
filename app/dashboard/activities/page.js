@@ -8,6 +8,7 @@ import {
   MessageSquare, FileText, ChevronDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
+import { useLanguage } from '@/lib/languageContext'
 
 // 🔹 Fungsi buat dapetin waktu sekarang dalam format WIB
 const getCurrentWIB = () => {
@@ -25,6 +26,8 @@ const getCurrentWIB = () => {
 }
 
 export default function ActivitiesPage() {
+  const { language, t } = useLanguage()
+  const texts = t.activities[language]
   const [activities, setActivities] = useState([])
   const [users, setUsers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
@@ -93,8 +96,8 @@ export default function ActivitiesPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Success!',
-          text: editingId ? 'Activity successfully updated!' : 'Activity successfully added!',
+          title: texts.success,
+          text: editingId ? texts.activityUpdated : texts.activityAdded,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -104,8 +107,8 @@ export default function ActivitiesPage() {
       } else {
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'An error occurred while saving the activity.'
+          title: texts.failed,
+          text: texts.errorSaving
         }, darkMode)
       }
     })
@@ -113,12 +116,12 @@ export default function ActivitiesPage() {
 
   const handleDelete = (id) => {
     showAlert({
-      title: 'Delete this activity?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteActivity,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode).then(confirm => {
@@ -131,8 +134,8 @@ export default function ActivitiesPage() {
           if (res.ok) {
             showAlert({
               icon: 'success',
-              title: 'Deleted!',
-              text: 'Activity successfully deleted.',
+              title: texts.deleted,
+              text: texts.activityDeleted,
               showConfirmButton: false,
               timer: 1500
             }, darkMode)
@@ -140,8 +143,8 @@ export default function ActivitiesPage() {
           } else {
             showAlert({
               icon: 'error',
-              title: 'Failed!',
-              text: 'Unable to delete the activity.'
+              title: texts.failed,
+              text: texts.errorDeleting,
             }, darkMode)
           }
         })
@@ -182,10 +185,10 @@ export default function ActivitiesPage() {
   }
 
   const activityTypes = [
-    { value: 'call', label: 'Call', icon: <Phone className="w-4 h-4" /> },
-    { value: 'meeting', label: 'Meeting', icon: <Users className="w-4 h-4" /> },
-    { value: 'email', label: 'Email', icon: <Mail className="w-4 h-4" /> },
-    { value: 'follow-up', label: 'Follow-Up', icon: <MessageSquare className="w-4 h-4" /> }
+    { value: 'call', label: texts.call, icon: <Phone className="w-4 h-4" /> },
+    { value: 'meeting', label: texts.meeting, icon: <Users className="w-4 h-4" /> },
+    { value: 'email', label: texts.email, icon: <Mail className="w-4 h-4" /> },
+    { value: 'follow-up', label: texts.followUp, icon: <MessageSquare className="w-4 h-4" /> }
   ]
 
   return (
@@ -198,7 +201,7 @@ export default function ActivitiesPage() {
           darkMode ? 'text-white' : 'text-slate-900'
         }`}>
           {editingId ? <Edit2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          {editingId ? 'Edit Activity' : 'Add New Activity'}
+          {editingId ? texts.editActivity : texts.addNewActivity}
         </h2>
 
         <div className="space-y-4">
@@ -208,7 +211,7 @@ export default function ActivitiesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Activity Type
+                {texts.activityType}
               </label>
 
               <button
@@ -266,7 +269,7 @@ export default function ActivitiesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Assign To
+                {texts.assignTo}
               </label>
 
               <button
@@ -284,7 +287,7 @@ export default function ActivitiesPage() {
                   <User size={16} className="opacity-60" />
                   {formData.assigned_to
                     ? users.find((u) => u.user_id === formData.assigned_to)?.name
-                    : "Select User"}
+                    : texts.selectUser}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -321,7 +324,7 @@ export default function ActivitiesPage() {
             <label className={`block text-sm font-medium mb-2 ${
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
-              Notes
+              {texts.notes}
             </label>
             <div className="relative">
               <FileText className={`absolute left-3 top-3 w-5 h-5 ${
@@ -329,7 +332,7 @@ export default function ActivitiesPage() {
               }`} />
               <textarea
                 name="notes"
-                placeholder="Add activity notes or description..."
+                placeholder={texts.notesPlaceholder}
                 value={formData.notes}
                 onChange={handleChange}
                 rows="4"
@@ -356,12 +359,12 @@ export default function ActivitiesPage() {
               {editingId ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Activity
+                  {texts.updateActivity}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Activity
+                  {texts.addActivity}
                 </>
               )}
             </button>
@@ -380,7 +383,7 @@ export default function ActivitiesPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -397,12 +400,12 @@ export default function ActivitiesPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Activities List ({activities.length})
+            {texts.activitiesList} ({activities.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading activities..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingActivities} />
         ) : activities.length === 0 ? (
           <div className="p-12 text-center">
             <Calendar className={`w-16 h-16 mx-auto mb-4 ${
@@ -411,12 +414,12 @@ export default function ActivitiesPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No activities yet
+              {texts.noActivitiesYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first activity above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -427,17 +430,17 @@ export default function ActivitiesPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Type
+                    {texts.type}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Date & Time
+                    {texts.dateTime}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Assigned To
+                    {texts.assignedTo}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
@@ -447,7 +450,7 @@ export default function ActivitiesPage() {
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

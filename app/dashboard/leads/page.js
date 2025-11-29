@@ -7,8 +7,11 @@ import {
   User, TrendingUp, Calendar, Clock,  ChevronDown, Phone, CheckCircle, XCircle, Sparkles
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function LeadsPage() {
+  const { language, t } = useLanguage()
+  const texts = t.leads[language]
   const [leads, setLeads] = useState([])
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
@@ -41,14 +44,14 @@ export default function LeadsPage() {
 
   async function fetchLeads() {
     try {
-      setLoading(true)  // ← TAMBAH INI
+      setLoading(true)
       const res = await fetch("/api/leads")
       const data = await res.json()
       setLeads(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error("Failed to fetch leads:", err)
     } finally {
-      setLoading(false)  // ← TAMBAH INI
+      setLoading(false)
     }
   }
 
@@ -67,8 +70,8 @@ export default function LeadsPage() {
     if (!form.customer_id || !form.source || !form.lead_status) {
       showAlert({
         icon: 'warning',
-        title: 'Warning!',
-        text: 'Please fill in all required fields'
+        title: texts.warning,
+        text: texts.fillAllFields
       }, darkMode)
       return
     }
@@ -82,10 +85,10 @@ export default function LeadsPage() {
       const createdAtWIB = wib.toISOString().slice(0, 19).replace('T', ' ')
 
       const body = editingId
-        ? { ...form, lead_id: editingId }  // Edit: jangan tambahin created_at
-        : { ...form, created_at: createdAtWIB }  // Create: tambahin created_at WIB
+        ? { ...form, lead_id: editingId }
+        : { ...form, created_at: createdAtWIB }
 
-      console.log('📤 Sending lead data:', body)  // Debug
+      console.log('Sending lead data:', body)  // Debug
 
       const res = await fetch("/api/leads", {
         method,
@@ -99,8 +102,8 @@ export default function LeadsPage() {
 
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: editingId ? 'Lead successfully updated!' : 'Lead successfully added!',
+        title: texts.success,
+        text: editingId ? texts.leadUpdated : texts.leadAdded,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -112,20 +115,20 @@ export default function LeadsPage() {
       console.error(err)
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'An error occurred while saving the lead'
+        title: texts.failed,
+        text: texts.errorSavingLead
       }, darkMode)
     }
   }
 
   async function handleDelete(id) {
     const confirm = await showAlert({
-      title: 'Delete this lead?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteLead,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -141,8 +144,8 @@ export default function LeadsPage() {
 
         showAlert({
           icon: 'success',
-          title: 'Deleted!',
-          text: 'Lead successfully deleted.',
+          title: texts.deleted,
+          text: texts.leadDeleted,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -151,8 +154,8 @@ export default function LeadsPage() {
         console.error(err)
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'Unable to delete the lead.'
+          title: texts.failed,
+          text: texts.errorDeletingLead
         }, darkMode)
       }
     }
@@ -195,12 +198,12 @@ export default function LeadsPage() {
           {editingId ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Lead
+              {texts.editLead}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Lead
+              {texts.addNewLead}
             </>
           )}
         </h2>
@@ -214,7 +217,7 @@ export default function LeadsPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Customer
+                {texts.customer}
               </label>
 
               <button
@@ -234,7 +237,7 @@ export default function LeadsPage() {
                   <User size={16} className="opacity-60" />
                   {form.customer_id
                     ? customers.find((c) => c.customer_id === form.customer_id)?.name
-                    : "Select Customer"}
+                    : texts.selectCustomer}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -249,7 +252,7 @@ export default function LeadsPage() {
                 >
                   {customers.length === 0 && (
                     <div className="px-4 py-2 text-sm opacity-60">
-                      No customers found
+                      {texts.noCustomersFound}
                     </div>
                   )}
 
@@ -277,7 +280,7 @@ export default function LeadsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Source
+                {texts.source}
               </label>
               <div className="relative">
               <TrendingUp className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -286,7 +289,7 @@ export default function LeadsPage() {
               <input
                 type="text"
                 name="address"
-                placeholder="e.g., Website, Referral"
+                placeholder={texts.sourcePlaceholder}
                 value={form.source}
                 onChange={(e) => setForm({ ...form, source: e.target.value })}
                 className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
@@ -305,7 +308,7 @@ export default function LeadsPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Lead Status
+                {texts.leadStatus}
               </label>
 
               <button
@@ -334,9 +337,8 @@ export default function LeadsPage() {
 
                   {/* label */}
                   {form.lead_status === "select"
-                    ? "Select Lead Status"
-                    : form.lead_status.charAt(0).toUpperCase() +
-                      form.lead_status.slice(1)}
+                    ? texts.selectLeadStatus
+                    : texts[form.lead_status]}
                 </span>
 
                 <ChevronDown size={18} className="opacity-60" />
@@ -351,10 +353,10 @@ export default function LeadsPage() {
                   }`}
                 >
                   {[
-                    { value: "new", label: "New", icon: <Sparkles size={16} /> },
-                    { value: "contacted", label: "Contacted", icon: <Phone size={16} /> },
-                    { value: "qualified", label: "Qualified", icon: <CheckCircle size={16} /> },
-                    { value: "disqualified", label: "Disqualified", icon: <XCircle size={16} /> },
+                    { value: "new", label: texts.new, icon: <Sparkles size={16} /> },
+                    { value: "contacted", label: texts.contacted, icon: <Phone size={16} /> },
+                    { value: "qualified", label: texts.qualified, icon: <CheckCircle size={16} /> },
+                    { value: "disqualified", label: texts.disqualified, icon: <XCircle size={16} /> },
                   ].map((item) => (
                     <button
                       key={item.value}
@@ -388,12 +390,12 @@ export default function LeadsPage() {
               {editingId ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Lead
+                  {texts.updateLead}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Lead
+                  {texts.addLead}
                 </>
               )}
             </button>
@@ -412,7 +414,7 @@ export default function LeadsPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -429,12 +431,12 @@ export default function LeadsPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Leads List ({leads.length})
+            {texts.leadsList} ({leads.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading leads..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingLeads} />
         ) : leads.length === 0 ? (
           <div className="p-12 text-center">
             <UserPlus className={`w-16 h-16 mx-auto mb-4 ${
@@ -443,12 +445,12 @@ export default function LeadsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No leads yet
+              {texts.noLeadsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first lead above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -459,27 +461,27 @@ export default function LeadsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer
+                    {texts.customerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Source
+                    {texts.sourceHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Status
+                    {texts.statusHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>
@@ -493,7 +495,7 @@ export default function LeadsPage() {
                     }`}>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        {customers.find((c) => c.customer_id === lead.customer_id)?.name || "Unknown"}
+                        {customers.find((c) => c.customer_id === lead.customer_id)?.name || texts.unknown}
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -508,7 +510,7 @@ export default function LeadsPage() {
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
                         getStatusColor(lead.lead_status)
                       }`}>
-                        <span className="capitalize">{lead.lead_status}</span>
+                        <span className="capitalize">{texts[lead.lead_status]}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${

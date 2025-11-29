@@ -8,9 +8,12 @@ import {
   Banknote, FileText, ShoppingCart
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function ProductsCRUD() {
   const router = useRouter()
+  const { language, t } = useLanguage()
+  const texts = t.products[language]
   const [products, setProducts] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({ product_name: "", price: "", description: "" })
@@ -34,8 +37,8 @@ export default function ProductsCRUD() {
     if (!roleCookie) {
       showAlert({
         icon: "warning",
-        title: "Access Denied",
-        text: "You must be logged in to access this page."
+        title: texts.accessDenied,
+        text: texts.mustBeLoggedIn
       }, darkMode).then(() => router.push("/login?auth=required"))
       return
     }
@@ -43,8 +46,8 @@ export default function ProductsCRUD() {
     if (!(roleCookie === "admin" || roleCookie === "superadmin")) {
       showAlert({
         icon: "error",
-        title: "Access Denied",
-        text: "This page is for Admin/Superadmin only."
+        title: texts.accessDenied,
+        text: texts.adminOnly
       }, darkMode).then(() => router.push("/dashboard"))
       return
     }
@@ -81,7 +84,7 @@ export default function ProductsCRUD() {
     if (res.ok) {
       showAlert({
         icon: "success",
-        title: editId ? "Product successfully updated!" : "Product successfully added!",
+        title: editId ? texts.productUpdated : texts.productAdded,
         timer: 1500,
         showConfirmButton: false
       }, darkMode)
@@ -91,8 +94,8 @@ export default function ProductsCRUD() {
     } else {
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'An error occurred while saving the product.'
+        title: texts.failed,
+        text: texts.errorSaving
       }, darkMode)
     }
   }
@@ -105,12 +108,12 @@ export default function ProductsCRUD() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this product?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteProduct,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -123,8 +126,8 @@ export default function ProductsCRUD() {
       })
       showAlert({
         icon: 'success',
-        title: 'Deleted!',
-        text: 'Product successfully deleted.',
+        title: texts.deleted,
+        text: texts.productDeleted,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -144,12 +147,12 @@ export default function ProductsCRUD() {
           {editId ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Product
+              {texts.editProduct}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Product
+              {texts.addNewProduct}
             </>
           )}
         </h2>
@@ -161,7 +164,7 @@ export default function ProductsCRUD() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Product Name
+                {texts.productName}
               </label>
               <div className="relative">
                 <Package className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -170,7 +173,7 @@ export default function ProductsCRUD() {
                 <input
                   type="text"
                   name="product_name"
-                  placeholder="e.g., Premium Widget"
+                  placeholder={texts.productNamePlaceholder}
                   value={form.product_name}
                   onChange={handleChange}
                   required
@@ -188,7 +191,7 @@ export default function ProductsCRUD() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Price (Rp)
+                {texts.price} (Rp)
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -197,7 +200,7 @@ export default function ProductsCRUD() {
                 <input
                   type="number"
                   name="price"
-                  placeholder="e.g., 100000"
+                  placeholder={texts.pricePlaceholder}
                   value={form.price}
                   onChange={handleChange}
                   required
@@ -215,7 +218,7 @@ export default function ProductsCRUD() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Description
+                {texts.description}
               </label>
               <div className="relative">
                 <FileText className={`absolute left-3 top-3 w-5 h-5 ${
@@ -223,7 +226,7 @@ export default function ProductsCRUD() {
                 }`} />
                 <textarea
                   name="description"
-                  placeholder="Product description..."
+                  placeholder={texts.descriptionPlaceholder}
                   value={form.description}
                   onChange={handleChange}
                   rows="3"
@@ -250,12 +253,12 @@ export default function ProductsCRUD() {
               {editId ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Product
+                  {texts.updateProduct}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Product
+                  {texts.addProduct}
                 </>
               )}
             </button>
@@ -274,7 +277,7 @@ export default function ProductsCRUD() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -291,12 +294,12 @@ export default function ProductsCRUD() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Products List ({products?.length || 0})
+            {texts.productsList} ({products?.length || 0})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading products..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingProducts} />
         ) : products.length === 0 ? (
           <div className="p-12 text-center">
             <Package className={`w-16 h-16 mx-auto mb-4 ${
@@ -305,12 +308,12 @@ export default function ProductsCRUD() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No products yet
+              {texts.noProductsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first product above
+              {texts.createFirstProduct}
             </p>
           </div>
         ) : (
@@ -321,22 +324,22 @@ export default function ProductsCRUD() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Product Name
+                    {texts.productNameHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Price
+                    {texts.priceHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Description
+                    {texts.descriptionHeader}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

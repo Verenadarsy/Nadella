@@ -6,8 +6,11 @@ import {
   Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function InvoicesPage() {
+  const { language, t } = useLanguage()
+  const texts = t.invoices[language]
   const [invoices, setInvoices] = useState([])
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
@@ -71,8 +74,8 @@ export default function InvoicesPage() {
     if (!formData.customer_id || !formData.amount || !formData.due_date || !formData.status) {
       showAlert({
         icon: 'warning',
-        title: 'Warning!',
-        text: 'Please fill in all required fields'
+        title: texts.warning,
+        text: texts.fillAllFields
       }, darkMode)
       return
     }
@@ -101,7 +104,7 @@ export default function InvoicesPage() {
           created_at: createdAtWIB  // ← ADD INI!
         }
 
-    console.log('📤 Sending invoice data:', payload)
+    console.log('Sending invoice data:', payload)
 
     try {
       const response = await fetch('/api/invoices', {
@@ -111,7 +114,7 @@ export default function InvoicesPage() {
       })
 
       const data = await response.json()
-      console.log('📥 Response:', response.status, data)
+      console.log('Response:', response.status, data)
 
       if (!response.ok) {
         showAlert({
@@ -128,8 +131,8 @@ export default function InvoicesPage() {
 
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: `Invoice successfully ${isEditing ? 'updated' : 'added'}!`,
+        title: texts.success,
+        text: `Invoice successfully ${isEditing ? texts.invoiceUpdated : texts.invoiceAdded}!`,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -145,11 +148,11 @@ export default function InvoicesPage() {
       fetchInvoices()
 
     } catch (error) {
-      console.error('❌ Fetch error:', error)
+      console.error('Fetch error:', error)
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'An error occurred while saving the invoice.'
+        title: texts.error,
+        text: texts.errorSaving
       }, darkMode)
     }
   }
@@ -162,12 +165,12 @@ export default function InvoicesPage() {
 
   const handleDelete = (id) => {
     showAlert({
-      title: 'Delete this invoice?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteInvoice,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode).then(confirm => {
@@ -180,8 +183,8 @@ export default function InvoicesPage() {
           if (res.ok) {
             showAlert({
               icon: 'success',
-              title: 'Deleted!',
-              text: 'Invoice successfully deleted.',
+              title: texts.deleted,
+              text: texts.invoiceDeleted,
               showConfirmButton: false,
               timer: 1500
             }, darkMode)
@@ -189,8 +192,8 @@ export default function InvoicesPage() {
           } else {
             showAlert({
               icon: 'error',
-              title: 'Failed!',
-              text: 'Unable to delete the invoice.'
+              title: texts.error,
+              text: texts.errorToDelete
             }, darkMode)
           }
         })
@@ -234,9 +237,9 @@ export default function InvoicesPage() {
   }
 
   const statusOptions = [
-    { value: 'pending', label: 'Pending', icon: <Clock className="w-4 h-4" /> },
-    { value: 'paid', label: 'Paid', icon: <CheckCircle className="w-4 h-4" /> },
-    { value: 'overdue', label: 'Overdue', icon: <AlertCircle className="w-4 h-4" /> }
+    { value: 'pending', label: texts.pending, icon: <Clock className="w-4 h-4" /> },
+    { value: 'paid', label: texts.paid, icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'overdue', label: texts.overdue, icon: <AlertCircle className="w-4 h-4" /> }
   ]
 
   return (
@@ -251,12 +254,12 @@ export default function InvoicesPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Invoice
+              {texts.editInvoice}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Invoice
+              {texts.addNewInvoice}
             </>
           )}
         </h2>
@@ -268,7 +271,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Customer
+                {texts.customer}
               </label>
 
               <button
@@ -286,7 +289,7 @@ export default function InvoicesPage() {
                   <User size={16} className="opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
-                    : "Select Customer"}
+                    : texts.selectCustomer}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -322,7 +325,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Amount (Rp)
+                {texts.amount} (Rp)
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -331,7 +334,7 @@ export default function InvoicesPage() {
                 <input
                   type="number"
                   name="amount"
-                  placeholder="e.g., 5000000"
+                  placeholder={texts.enterAmount}
                   value={formData.amount}
                   onChange={handleChange}
                   required
@@ -349,7 +352,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
-                Due Date
+                {texts.dueDate}
               </label>
 
               <div
@@ -393,7 +396,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Status
+                {texts.status}
               </label>
 
               <button
@@ -416,7 +419,7 @@ export default function InvoicesPage() {
                   ) : (
                     <>
                       <Clock className="w-4 h-4" />
-                      Select Status
+                      {texts.selectStatus}
                     </>
                   )}
                 </span>
@@ -464,12 +467,12 @@ export default function InvoicesPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Invoice
+                  {texts.updateInvoice}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Invoice
+                  {texts.addInvoice}
                 </>
               )}
             </button>
@@ -485,7 +488,7 @@ export default function InvoicesPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -502,12 +505,12 @@ export default function InvoicesPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Invoices List ({invoices.length})
+            {texts.invoicesList} ({invoices.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading invoices..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingInvoices} />
         ) : invoices.length === 0 ? (
           <div className="p-12 text-center">
             <FileText className={`w-16 h-16 mx-auto mb-4 ${
@@ -516,12 +519,12 @@ export default function InvoicesPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No invoices yet
+              {texts.noInvoicesYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first invoice above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -532,32 +535,32 @@ export default function InvoicesPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer
+                    {texts.customerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Amount
+                    {texts.amountHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Due Date
+                    {texts.dueDateHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Status
+                    {texts.statusHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>
@@ -602,7 +605,7 @@ export default function InvoicesPage() {
                         getStatusColor(i.status)
                       }`}>
                         {getStatusIcon(i.status)}
-                        <span className="capitalize">{i.status}</span>
+                          <span className="capitalize">{texts[i.status]}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${

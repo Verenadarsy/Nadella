@@ -7,8 +7,11 @@ import {
 } from 'lucide-react';
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function CommunicationsPage() {
+  const { language, t } = useLanguage()
+  const texts = t.communications[language]
   const [communications, setCommunications] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
@@ -65,8 +68,8 @@ export default function CommunicationsPage() {
     if (!form.customer_id || !form.type || !form.content) {
       showAlert({
         icon: 'warning',
-        title: 'Warning!',
-        text: 'All fields are required.'
+        title: texts.warning,
+        text: texts.allFieldsRequired
       }, darkMode);
       return;
     }
@@ -82,8 +85,8 @@ export default function CommunicationsPage() {
       });
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: 'Communication successfully added!',
+        title: texts.success,
+        text: texts.communicationAdded,
         showConfirmButton: false,
         timer: 1500
       }, darkMode);
@@ -96,8 +99,8 @@ export default function CommunicationsPage() {
       });
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: 'Communication successfully updated!',
+        title: texts.success,
+        text: texts.communicationUpdated,
         showConfirmButton: false,
         timer: 1500
       }, darkMode);
@@ -110,12 +113,12 @@ export default function CommunicationsPage() {
 
   async function handleDelete(id) {
     const confirm = await showAlert({
-      title: 'Delete this communication?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteCommunication,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode);
@@ -128,8 +131,8 @@ export default function CommunicationsPage() {
       });
       showAlert({
         icon: 'success',
-        title: 'Deleted!',
-        text: 'Communication successfully deleted.',
+        title: texts.deleted,
+        text: texts.communicationDeleted,
         showConfirmButton: false,
         timer: 1500
       }, darkMode);
@@ -173,10 +176,10 @@ export default function CommunicationsPage() {
   };
 
   const typeOptions = [
-    { value: 'email', label: 'Email', icon: <Mail className="w-4 h-4" /> },
-    { value: 'phone', label: 'Phone', icon: <Phone className="w-4 h-4" /> },
-    { value: 'chat', label: 'Chat', icon: <MessageCircle className="w-4 h-4" /> },
-    { value: 'whatsapp', label: 'WhatsApp', icon: <Send className="w-4 h-4" /> }
+    { value: 'email', label: texts.email, icon: <Mail className="w-4 h-4" /> },
+    { value: 'phone', label: texts.phone, icon: <Phone className="w-4 h-4" /> },
+    { value: 'chat', label: texts.chat, icon: <MessageCircle className="w-4 h-4" /> },
+    { value: 'whatsapp', label: texts.whatsapp, icon: <Send className="w-4 h-4" /> }
   ];
 
   return (
@@ -191,12 +194,12 @@ export default function CommunicationsPage() {
           {editingId ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Communication
+              {texts.editCommunication}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Communication
+              {texts.addNewCommunication}
             </>
           )}
         </h2>
@@ -208,7 +211,7 @@ export default function CommunicationsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Customer
+                {texts.customer}
               </label>
 
               <button
@@ -226,7 +229,7 @@ export default function CommunicationsPage() {
                   <User size={16} className="opacity-60" />
                   {form.customer_id
                     ? customers.find((c) => c.customer_id === form.customer_id)?.name
-                    : "Select Customer"}
+                    : texts.selectCustomer}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -262,7 +265,7 @@ export default function CommunicationsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Communication Type
+                {texts.communicationType}
               </label>
 
               <button
@@ -285,7 +288,7 @@ export default function CommunicationsPage() {
                   ) : (
                     <>
                       <MessageSquare className="w-4 h-4" />
-                      Select Type
+                      {texts.selectType}
                     </>
                   )}
                 </span>
@@ -324,14 +327,14 @@ export default function CommunicationsPage() {
             <label className={`block text-sm font-medium mb-2 ${
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
-              Content
+              {texts.content}
             </label>
             <div className="relative">
               <FileText className={`absolute left-3 top-3 w-4 h-4 ${
                 darkMode ? "text-slate-500" : "text-slate-500"
               }`} />
               <textarea
-                placeholder="Enter communication content..."
+                placeholder={texts.enterCommunicationContent}
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
                 required
@@ -359,12 +362,12 @@ export default function CommunicationsPage() {
               {editingId ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Communication
+                  {texts.updateCommunication}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Communication
+                  {texts.addCommunication}
                 </>
               )}
             </button>
@@ -383,7 +386,7 @@ export default function CommunicationsPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -400,12 +403,12 @@ export default function CommunicationsPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Communications List ({communications.length})
+            {texts.communicationsList} ({communications.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading communications..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingCommunications} />
         ) : communications.length === 0 ? (
           <div className="p-12 text-center">
             <MessageSquare className={`w-16 h-16 mx-auto mb-4 ${
@@ -414,12 +417,12 @@ export default function CommunicationsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No communications yet
+              {texts.noCommunicationsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first communication above
+              {texts.createFirstCommunicationAbove}
             </p>
           </div>
         ) : (
@@ -430,27 +433,27 @@ export default function CommunicationsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer
+                    {texts.customerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Type
+                    {texts.type}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Content
+                    {texts.contentHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Timestamp
+                    {texts.timestamp}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

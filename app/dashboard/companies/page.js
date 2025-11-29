@@ -7,8 +7,11 @@ import {
   Globe, MapPin, Briefcase, Calendar
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function CompaniesPage() {
+  const { language, t } = useLanguage()
+  const texts = t.companies[language]
   const [companies, setCompanies] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
@@ -74,8 +77,8 @@ export default function CompaniesPage() {
     if (res.ok) {
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: isEditing ? 'Company successfully updated!' : 'Company successfully added!',
+        title: texts.success,
+        text: isEditing ? texts.companyUpdated : texts.companyAdded,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -86,8 +89,8 @@ export default function CompaniesPage() {
       const err = await res.json()
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: err.message || 'Unable to save the company.'
+        title: texts.failed,
+        text: err.message || texts.unableToSaveCompany
       }, darkMode)
     }
   }
@@ -96,12 +99,12 @@ export default function CompaniesPage() {
   // Delete company
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this company?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteCompany,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -117,8 +120,8 @@ export default function CompaniesPage() {
     if (res.ok) {
       showAlert({
         icon: 'success',
-        title: 'Deleted!',
-        text: 'Company successfully deleted.',
+        title: texts.deleted,
+        text: texts.companyDeleted,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -127,8 +130,8 @@ export default function CompaniesPage() {
       const err = await res.json()
       showAlert({
         icon: 'error',
-        title: 'Failed',
-        text: err.message || 'Unable to delete the company.'
+        title: texts.failed,
+        text: err.message || texts.unableToDelete
       }, darkMode)
     }
   }
@@ -158,12 +161,12 @@ export default function CompaniesPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Company
+              {texts.editCompany}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Company
+              {texts.addNewCompany}
             </>
           )}
         </h2>
@@ -175,7 +178,7 @@ export default function CompaniesPage() {
             <label className={`block text-sm font-medium mb-2 ${
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
-              Company Name
+              {texts.companyName}
             </label>
             <div className="relative">
               <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -184,7 +187,7 @@ export default function CompaniesPage() {
               <input
                 type="text"
                 name="company_name"
-                placeholder="e.g., Tech Solutions Inc."
+                placeholder={texts.companyNamePlaceholder}
                 value={form.company_name}
                 onChange={handleChange}
                 required
@@ -202,7 +205,7 @@ export default function CompaniesPage() {
             <label className={`block text-sm font-medium mb-2 ${
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
-              Industry
+              {texts.industry}
             </label>
             <div className="relative">
               <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -211,7 +214,7 @@ export default function CompaniesPage() {
               <input
                 type="text"
                 name="industry"
-                placeholder="e.g., Technology, Finance"
+                placeholder={texts.industryPlaceholder}
                 value={form.industry}
                 onChange={handleChange}
                 className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
@@ -228,7 +231,7 @@ export default function CompaniesPage() {
             <label className={`block text-sm font-medium mb-2 ${
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
-              Website
+              {texts.website}
             </label>
             <div className="relative">
               <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -237,7 +240,7 @@ export default function CompaniesPage() {
               <input
                 type="text"
                 name="website"
-                placeholder="e.g., www.techsolutions.com"
+                placeholder={texts.websitePlaceholder}
                 value={form.website}
                 onChange={handleChange}
                 className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
@@ -254,7 +257,7 @@ export default function CompaniesPage() {
             <label className={`block text-sm font-medium mb-2 ${
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
-              Address
+              {texts.address}
             </label>
             <div className="relative">
               <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -263,7 +266,7 @@ export default function CompaniesPage() {
               <input
                 type="text"
                 name="address"
-                placeholder="e.g., Jakarta, Indonesia"
+                placeholder={texts.addressPlaceholder}
                 value={form.address}
                 onChange={handleChange}
                 className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
@@ -290,12 +293,12 @@ export default function CompaniesPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Company
+                  {texts.updateCompany}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Company
+                  {texts.addCompany}
                 </>
               )}
             </button>
@@ -311,7 +314,7 @@ export default function CompaniesPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -328,12 +331,12 @@ export default function CompaniesPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Companies List ({companies.length})
+            {texts.companiesList} ({companies.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading companies..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingCompanies} />
         ) : companies.length === 0 ? (
           <div className="p-12 text-center">
             <Building2 className={`w-16 h-16 mx-auto mb-4 ${
@@ -342,12 +345,12 @@ export default function CompaniesPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No companies yet
+              {texts.noCompaniesYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first company above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -358,32 +361,32 @@ export default function CompaniesPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Company Name
+                    {texts.companyNameHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Industry
+                    {texts.industryHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Website
+                    {texts.websiteHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Address
+                    {texts.addressHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

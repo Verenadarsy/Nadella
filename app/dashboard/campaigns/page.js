@@ -8,8 +8,11 @@ import {
   Banknote, ChevronDown, Activity
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
+import { useLanguage } from '@/lib/languageContext'
 
 export default function CampaignsPage() {
+  const { language, t } = useLanguage()
+  const texts = t.campaigns[language]
   const [campaigns, setCampaigns] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -59,8 +62,8 @@ export default function CampaignsPage() {
     if (!formData.campaign_name || !formData.channel || !formData.start_date || !formData.end_date || !formData.budget) {
       showAlert({
         icon: 'warning',
-        title: 'Warning!',
-        text: 'All fields are required.'
+        title: texts.warning,
+        text: texts.allFieldsRequired
       }, darkMode)
       return
     }
@@ -86,8 +89,8 @@ export default function CampaignsPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Success!',
-          text: `Campaign successfully ${isEditing ? 'edited' : 'added'}!`,
+          title: texts.success,
+          text: `Campaign successfully ${isEditing ? texts.campaignEdited : texts.campaignAdded}!`,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -98,15 +101,15 @@ export default function CampaignsPage() {
         const err = await res.json()
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: err?.error ?? 'Unable to save the campaign.'
+          title: texts.failed,
+          text: err?.error ?? texts.unableToSave
         }, darkMode)
       }
     } catch (error) {
       showAlert({
         icon: 'error',
-        title: 'Error!',
-        text: 'A connection error occurred.'
+        title: texts.error,
+        text: texts.connectionError
       }, darkMode)
       console.error(error)
     }
@@ -114,12 +117,12 @@ export default function CampaignsPage() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this campaign?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteCampaign,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -133,8 +136,8 @@ export default function CampaignsPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Deleted!',
-          text: 'The campaign has been successfully deleted.',
+          title: texts.deleted,
+          text: texts.campaignDeleted,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -142,8 +145,8 @@ export default function CampaignsPage() {
       } else {
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'Unable to delete the campaign.'
+          title: texts.failed,
+          text: texts.unableToDelete
         }, darkMode)
       }
     }
@@ -178,9 +181,9 @@ export default function CampaignsPage() {
   }
 
   const channelOptions = [
-    { value: 'email', label: 'Email', icon: <Mail className="w-4 h-4" /> },
-    { value: 'ads', label: 'Ads', icon: <Radio className="w-4 h-4" /> },
-    { value: 'sms', label: 'SMS', icon: <Smartphone className="w-4 h-4" /> }
+    { value: 'email', label: texts.email, icon: <Mail className="w-4 h-4" /> },
+    { value: 'ads', label: texts.ads, icon: <Radio className="w-4 h-4" /> },
+    { value: 'sms', label: texts.sms, icon: <Smartphone className="w-4 h-4" /> }
   ]
 
   return (
@@ -195,12 +198,12 @@ export default function CampaignsPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Campaign
+              {texts.editCampaign}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Campaign
+              {texts.addNewCampaign}
             </>
           )}
         </h2>
@@ -212,7 +215,7 @@ export default function CampaignsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Campaign Name
+                {texts.campaignName}
               </label>
               <div className="relative">
                 <Megaphone className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -221,7 +224,7 @@ export default function CampaignsPage() {
                 <input
                   type="text"
                   name="campaign_name"
-                  placeholder="e.g., End Year Promo"
+                  placeholder={texts.campaignNamePlaceholder}
                   value={formData.campaign_name}
                   onChange={handleChange}
                   required
@@ -239,7 +242,7 @@ export default function CampaignsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Channel
+                {texts.channel}
               </label>
 
               <button
@@ -262,7 +265,7 @@ export default function CampaignsPage() {
                   ) : (
                     <>
                       <Activity className="w-4 h-4" />
-                      Select Channel
+                      {texts.selectChannel}
                     </>
                   )}
                 </span>
@@ -300,7 +303,7 @@ export default function CampaignsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
-                Start Date
+                {texts.startDate}
               </label>
 
               <div
@@ -344,7 +347,7 @@ export default function CampaignsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
-                End Date
+                {texts.endDate}
               </label>
 
               <div
@@ -388,7 +391,7 @@ export default function CampaignsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Budget (Rp)
+                {texts.budget} (Rp)
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -397,7 +400,7 @@ export default function CampaignsPage() {
                 <input
                   type="number"
                   name="budget"
-                  placeholder="e.g., 10000000"
+                  placeholder={texts.budgetPlaceholder}
                   value={formData.budget}
                   onChange={handleChange}
                   required
@@ -425,12 +428,12 @@ export default function CampaignsPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Campaign
+                  {texts.updateCampaign}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Campaign
+                  {texts.addCampaign}
                 </>
               )}
             </button>
@@ -449,7 +452,7 @@ export default function CampaignsPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -466,12 +469,12 @@ export default function CampaignsPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Campaigns List ({campaigns.length})
+            {texts.campaignsList} ({campaigns.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading campaigns..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingCampaigns} />
         ) : campaigns.length === 0 ? (
           <div className="p-12 text-center">
             <Megaphone className={`w-16 h-16 mx-auto mb-4 ${
@@ -480,12 +483,12 @@ export default function CampaignsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No campaigns yet
+              {texts.noCampaignsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first campaign above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -496,27 +499,27 @@ export default function CampaignsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Campaign Name
+                    {texts.campaignNameHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Channel
+                    {texts.channelHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Period
+                    {texts.period}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Budget
+                    {texts.budgetHeader}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

@@ -7,8 +7,11 @@ import {
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function DealsPage() {
+  const { language, t } = useLanguage()
+  const texts = t.deals[language]
   const [deals, setDeals] = useState([])
   const [customers, setCustomers] = useState([])
   const [companies, setCompanies] = useState([])
@@ -88,8 +91,8 @@ export default function DealsPage() {
     if (res.ok) {
       showAlert({
         icon: 'success',
-        title: 'Success!',
-        text: isEditing ? 'Deal successfully updated!' : 'Deal successfully added!',
+        title: texts.success,
+        text: isEditing ? texts.dealUpdated : texts.dealAdded,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -107,8 +110,8 @@ export default function DealsPage() {
     } else {
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'Unable to save the deal.'
+        title: texts.failed,
+        text: texts.unableToSaveDeal
       }, darkMode)
     }
   }
@@ -129,12 +132,12 @@ export default function DealsPage() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this deal?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteDeal,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -149,8 +152,8 @@ export default function DealsPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Deleted!',
-          text: 'Deal successfully deleted.',
+          title: texts.deleted,
+          text: texts.dealDeleted,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -158,8 +161,8 @@ export default function DealsPage() {
       } else {
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'Unable to delete the deal.'
+          title: texts.failed,
+          text: texts.unableToDelete
         }, darkMode)
       }
     }
@@ -209,12 +212,12 @@ export default function DealsPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Deal
+              {texts.editDeal}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Deal
+              {texts.addNewDeal}
             </>
           )}
         </h2>
@@ -224,7 +227,7 @@ export default function DealsPage() {
             {/* Deal Name */}
           <div>
             <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-              Deal Name
+              {texts.dealName}
             </label>
 
             <div className="relative">
@@ -233,7 +236,7 @@ export default function DealsPage() {
               <input
                 type="text"
                 name="deal_name"
-                placeholder="e.g., Enterprise Software License"
+                placeholder={texts.dealNamePlaceholder}
                 value={formData.deal_name}
                 onChange={handleChange}
                 required
@@ -253,7 +256,7 @@ export default function DealsPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Deal Stage
+                {texts.dealStage}
               </label>
 
               {/* Button */}
@@ -272,7 +275,9 @@ export default function DealsPage() {
                   }`}
                 >
                   <TrendingUp size={16} className="opacity-60" />
-                  {formData.deal_stage ? formData.deal_stage : "Select Stage"}
+                  {formData.deal_stage ? (
+                    <span className="capitalize">{texts[formData.deal_stage]}</span>
+                  ) : texts.selectStage}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -298,7 +303,7 @@ export default function DealsPage() {
                       }`}
                     >
                       <TrendingUp size={16} className="opacity-70" />
-                      <span className="capitalize">{item}</span>
+                      <span className="capitalize">{texts[item]}</span>
                     </button>
                   ))}
                 </div>
@@ -309,7 +314,7 @@ export default function DealsPage() {
             {/* Deal Value */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                Deal Value (Rp)
+                {texts.dealValue} (Rp)
               </label>
 
               <div className="relative">
@@ -318,7 +323,7 @@ export default function DealsPage() {
                 <input
                   type="number"
                   name="deal_value"
-                  placeholder="e.g., 50000000"
+                  placeholder={texts.dealValuePlaceholder}
                   value={formData.deal_value}
                   onChange={handleChange}
                   className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
@@ -337,7 +342,7 @@ export default function DealsPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Expected Close Date
+                {texts.expectedCloseDate}
               </label>
 
               <div
@@ -393,7 +398,7 @@ export default function DealsPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Customer
+                {texts.customer}
               </label>
 
               {/* Button */}
@@ -414,7 +419,7 @@ export default function DealsPage() {
                   <User size={16} className="opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
-                    : "Select Customer"}
+                    : texts.selectCustomer}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -455,7 +460,7 @@ export default function DealsPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Company
+                {texts.company}
               </label>
 
               {/* Button */}
@@ -477,7 +482,7 @@ export default function DealsPage() {
                   {formData.company_id
                     ? companies.find((c) => c.company_id === formData.company_id)
                         ?.company_name
-                    : "Select Company"}
+                    : texts.selectCompany}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -525,12 +530,12 @@ export default function DealsPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Deal
+                  {texts.updateDeal}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Deal
+                  {texts.addDeal}
                 </>
               )}
             </button>
@@ -546,7 +551,7 @@ export default function DealsPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -563,12 +568,12 @@ export default function DealsPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Deals List ({deals.length})
+            {texts.dealsList} ({deals.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading deals..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingDeals} />
         ) : deals.length === 0 ? (
           <div className="p-12 text-center">
             <Handshake className={`w-16 h-16 mx-auto mb-4 ${
@@ -577,12 +582,12 @@ export default function DealsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No deals yet
+              {texts.noDealsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first deal above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -593,37 +598,37 @@ export default function DealsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Deal Name
+                    {texts.dealNameHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Stage
+                    {texts.stage}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Value
+                    {texts.value}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer
+                    {texts.customerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Company
+                    {texts.companyHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Close Date
+                    {texts.closeDate}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>
@@ -645,7 +650,7 @@ export default function DealsPage() {
                         getStageColor(deal.deal_stage)
                       }`}>
                         <TrendingUp className="w-4 h-4" />
-                        <span className="capitalize">{deal.deal_stage}</span>
+                        <span className="capitalize">{texts[deal.deal_stage]}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${

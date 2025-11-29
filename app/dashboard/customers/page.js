@@ -8,8 +8,11 @@ import {
   Mail, Phone, MapPin, Calendar, User
 } from 'lucide-react';
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function CustomersPage() {
+  const { language, t } = useLanguage()
+  const texts = t.customers[language]
   const [customers, setCustomers] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,8 +76,8 @@ export default function CustomersPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Success!',
-          text: editing ? 'Customer successfully updated!' : 'Customer successfully added!',
+          title: texts.success,
+          text: editing ? texts.customerUpdated : texts.customerAdded,
           showConfirmButton: false,
           timer: 1500
         }, darkMode);
@@ -84,17 +87,17 @@ export default function CustomersPage() {
       } else {
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'Unable to save the customer.'
+          title: texts.failed,
+          text: texts.unableToSave
         }, darkMode);
       }
     } catch (err) {
       console.error("handleSubmit error:", err);
       showAlert({
         icon: 'error',
-        title: 'Error!',
-        text: 'A connection error occurred.'
-      });
+        title: texts.error,
+        text: texts.connectionError
+      }, darkMode);
     }
   };
 
@@ -111,12 +114,12 @@ export default function CustomersPage() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this customer?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteCustomer,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode);
@@ -133,8 +136,8 @@ export default function CustomersPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Deleted!',
-          text: 'Customer successfully deleted.',
+          title: texts.deleted,
+          text: texts.customerDeleted,
           showConfirmButton: false,
           timer: 1500
         }, darkMode);
@@ -142,8 +145,8 @@ export default function CustomersPage() {
       } else {
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'Unable to delete the customer.'
+          title: texts.failed,
+          text: texts.unableToDelete
         }, darkMode);
       }
     } catch (err) {
@@ -168,12 +171,12 @@ export default function CustomersPage() {
           {editing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Customer
+              {texts.editCustomer}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Customer
+              {texts.addNewCustomer}
             </>
           )}
         </h2>
@@ -187,7 +190,7 @@ export default function CustomersPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Customer Name
+                {texts.customerName}
               </label>
 
               <div className="relative">
@@ -200,7 +203,7 @@ export default function CustomersPage() {
                 <input
                   type="text"
                   name="name"
-                  placeholder="e.g., John Doe"
+                  placeholder={texts.customerNamePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
                   required
@@ -220,7 +223,7 @@ export default function CustomersPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Email
+                {texts.email}
               </label>
 
               <div className="relative">
@@ -233,7 +236,7 @@ export default function CustomersPage() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="customer@example.com"
+                  placeholder={texts.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -253,7 +256,7 @@ export default function CustomersPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Phone
+                {texts.phone}
               </label>
 
               <div className="relative">
@@ -266,7 +269,7 @@ export default function CustomersPage() {
                 <input
                   type="text"
                   name="phone"
-                  placeholder="e.g., +62 812 3456 7890"
+                  placeholder={texts.phonePlaceholder}
                   value={formData.phone}
                   onChange={handleChange}
                   className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
@@ -285,7 +288,7 @@ export default function CustomersPage() {
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
-                Address
+                {texts.address}
               </label>
 
               <div className="relative">
@@ -298,7 +301,7 @@ export default function CustomersPage() {
                 <input
                   type="text"
                   name="address"
-                  placeholder="e.g., Jakarta, Indonesia"
+                  placeholder={texts.addressPlaceholder}
                   value={formData.address}
                   onChange={handleChange}
                   className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
@@ -324,12 +327,12 @@ export default function CustomersPage() {
               {editing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Customer
+                  {texts.updateCustomer}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Customer
+                  {texts.addCustomer}
                 </>
               )}
             </button>
@@ -345,7 +348,7 @@ export default function CustomersPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -362,12 +365,12 @@ export default function CustomersPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Customers List ({customers.length})
+            {texts.customersList} ({customers.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading customers..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingCustomers} />
         ) : customers.length === 0 ? (
           <div className="p-12 text-center">
             <Users className={`w-16 h-16 mx-auto mb-4 ${
@@ -376,12 +379,12 @@ export default function CustomersPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No customers yet
+              {texts.noCustomersYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first customer above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -392,32 +395,32 @@ export default function CustomersPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer Name
+                    {texts.customerNameHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Email
+                    {texts.emailHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Phone
+                    {texts.phoneHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Address
+                    {texts.addressHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

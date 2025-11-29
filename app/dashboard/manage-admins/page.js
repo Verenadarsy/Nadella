@@ -5,8 +5,11 @@ import {
   ShieldCheck, Edit2, Trash2, X, Save, Plus,
   User, Mail, Lock, Calendar, UserCog
 } from 'lucide-react'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function ManageAdmins() {
+  const { language, t } = useLanguage()
+  const texts = t.manageAdmins[language]
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
@@ -50,8 +53,8 @@ export default function ManageAdmins() {
     if (!form.name || !form.email) {
       showAlert({
         icon: 'warning',
-        title: 'Oops!',
-        text: 'Name and email are required!'
+        title: texts.oops,
+        text: texts.nameEmailRequired
       }, darkMode)
       return
     }
@@ -70,7 +73,7 @@ export default function ManageAdmins() {
     if (res.ok) {
       showAlert({
         icon: 'success',
-        title: editId ? 'Admin successfully updated!' : 'Admin successfully added!',
+        title: editId ? texts.adminUpdated : texts.adminAdded,
         timer: 1500,
         showConfirmButton: false
       }, darkMode)
@@ -80,8 +83,8 @@ export default function ManageAdmins() {
     } else {
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'An error occurred while saving the data.'
+        title: texts.failed,
+        text: texts.errorSaving
       }, darkMode)
     }
   }
@@ -99,12 +102,12 @@ export default function ManageAdmins() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Are you sure?',
-      text: 'Admin deletion is permanent and cannot be undone.',
+      title: texts.areYouSure,
+      text: texts.deleteWarning,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -119,8 +122,8 @@ export default function ManageAdmins() {
     if (res.ok) {
       showAlert({
         icon: 'success',
-        title: 'Deleted!',
-        text: 'Admin successfully deleted.',
+        title: texts.deleted,
+        text: texts.adminDeleted,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -128,8 +131,8 @@ export default function ManageAdmins() {
     } else {
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'Unable to delete the admin.'
+        title: texts.failed,
+        text: texts.unableToDelete
       }, darkMode)
     }
   }
@@ -151,10 +154,10 @@ export default function ManageAdmins() {
           <ShieldCheck className={`w-6 h-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
           <div>
             <h3 className={`font-semibold ${darkMode ? 'text-blue-300' : 'text-blue-900'}`}>
-              Super Admin Area
+              {texts.superAdminArea}
             </h3>
             <p className={`text-sm ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>
-              Manage admin users with caution. Only Super Admins can access this page.
+              {texts.superAdminWarning}
             </p>
           </div>
         </div>
@@ -170,12 +173,12 @@ export default function ManageAdmins() {
           {editId ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Admin
+              {texts.editAdmin}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Admin
+              {texts.addNewAdmin}
             </>
           )}
         </h2>
@@ -187,7 +190,7 @@ export default function ManageAdmins() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Full Name
+                {texts.fullName}
               </label>
               <div className="relative">
                 <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -196,7 +199,7 @@ export default function ManageAdmins() {
                 <input
                   type="text"
                   name="name"
-                  placeholder="e.g., John Doe"
+                  placeholder={texts.fullNamePlaceholder}
                   value={form.name}
                   onChange={handleChange}
                   required
@@ -214,7 +217,7 @@ export default function ManageAdmins() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Email Address
+                {texts.emailAddress}
               </label>
               <div className="relative">
                 <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -223,7 +226,7 @@ export default function ManageAdmins() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="admin@example.com"
+                  placeholder={texts.emailAddressPlaceholder}
                   value={form.email}
                   onChange={handleChange}
                   required
@@ -241,7 +244,7 @@ export default function ManageAdmins() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Password {editId && <span className="text-xs opacity-70">(Leave empty to keep current password)</span>}
+                {texts.password} {editId && <span className="text-xs opacity-70">{texts.passwordHint}</span>}
               </label>
               <div className="relative">
                 <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -250,7 +253,7 @@ export default function ManageAdmins() {
                 <input
                   type="password"
                   name="password_plain"
-                  placeholder={editId ? "Leave blank to keep current" : "Enter password"}
+                  placeholder={editId ? texts.passwordPlaceholderEdit : texts.passwordPlaceholder}
                   value={form.password_plain}
                   onChange={handleChange}
                   className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
@@ -277,12 +280,12 @@ export default function ManageAdmins() {
               {editId ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Admin
+                  {texts.updateAdmin}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Admin
+                  {texts.addAdmin}
                 </>
               )}
             </button>
@@ -298,7 +301,7 @@ export default function ManageAdmins() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -315,7 +318,7 @@ export default function ManageAdmins() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Admin Users ({admins.length})
+            {texts.adminUsers} ({admins.length})
           </h2>
         </div>
 
@@ -323,7 +326,7 @@ export default function ManageAdmins() {
           <div className="p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className={`${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-              Loading admins...
+              {texts.loadingAdmins}
             </p>
           </div>
         ) : admins.length === 0 ? (
@@ -334,12 +337,12 @@ export default function ManageAdmins() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No admins yet
+              {texts.noAdminsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Add your first admin user above
+              {texts.addFirstAdmin}
             </p>
           </div>
         ) : (
@@ -350,22 +353,22 @@ export default function ManageAdmins() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Name
+                    {texts.name}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Email
+                    {texts.email}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>

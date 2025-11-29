@@ -83,28 +83,28 @@ export default function DashboardHome() {
 
       {/* SECTION LOADER */}
       {loading ? (
-        <SectionLoader darkMode={darkMode} text="Loading dashboard data..." />
+        <SectionLoader darkMode={darkMode} text={texts.loadingDashboard} />
       ) : (
         <>
           {/* KPI CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
-              title="Total Customers"
+              title={texts.totalCustomers}
               value={kpis?.totalCustomers || 0}
               dark={darkMode}
             />
             <KpiCard
-              title="Deals Won"
+              title={texts.dealsWon}
               value={`Rp ${(kpis?.dealsWon || 0).toLocaleString('id-ID')}`}
               dark={darkMode}
             />
             <KpiCard
-              title="Open Tickets"
+              title={texts.openTickets}
               value={kpis?.openTickets || 0}
               dark={darkMode}
             />
             <KpiCard
-              title="Active Services"
+              title={texts.activeServices}
               value={kpis?.activeServices || 0}
               dark={darkMode}
             />
@@ -207,7 +207,7 @@ export default function DashboardHome() {
           darkMode ? "bg-slate-800" : "bg-white"
         }`}
       >
-        <SectionLoader darkMode={darkMode} text="Loading charts..." />
+        <SectionLoader darkMode={darkMode} text={texts.loadingCharts} />
       </div>
     ) : (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
