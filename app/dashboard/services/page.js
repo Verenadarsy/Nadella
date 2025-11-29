@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 const getCurrentDateWIB = () => {
   const now = new Date()
@@ -23,6 +24,8 @@ const getCurrentDateWIB = () => {
 }
 
 export default function ServicesPage() {
+  const { language, t } = useLanguage()
+  const texts = t.services[language]
   const [services, setServices] = useState([])
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
@@ -77,8 +80,8 @@ export default function ServicesPage() {
   if (!formData.customer_id || !formData.service_type || !formData.status) {
     showAlert({
       icon: 'warning',
-      title: 'Oops',
-      text: 'Complete all fields first!'
+      title: texts.oops,
+      text: texts.completeAllFields
     }, darkMode)
     return
   }
@@ -103,8 +106,8 @@ export default function ServicesPage() {
     if (!res.ok) {
       showAlert({
         icon: 'error',
-        title: 'Failed!',
-        text: 'Unable to save the service.'
+        title: texts.failed,
+        text: texts.unableToSave
       }, darkMode)
       return
     }
@@ -155,8 +158,8 @@ export default function ServicesPage() {
 
     showAlert({
       icon: 'success',
-      title: 'Success!',
-      text: `Service successfully ${isEditing ? 'edited' : 'added'}!`,
+      title: texts.success,
+      text: isEditing ? texts.serviceEdited : texts.serviceAdded,
       showConfirmButton: false,
       timer: 1500
     }, darkMode)
@@ -168,8 +171,8 @@ export default function ServicesPage() {
     console.error(err)
     showAlert({
       icon: 'error',
-      title: 'Error',
-      text: 'A connection error occurred.'
+      title: texts.error,
+      text: texts.connectionError
     }, darkMode)
   }
 }
@@ -182,12 +185,12 @@ export default function ServicesPage() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this service?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteService,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -202,8 +205,8 @@ export default function ServicesPage() {
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Deleted!',
-          text: 'Service successfully deleted.',
+          title: texts.deleted,
+          text: texts.serviceDeleted,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -211,8 +214,8 @@ export default function ServicesPage() {
       } else {
         showAlert({
           icon: 'error',
-          title: 'Failed!',
-          text: 'Unable to delete the service.'
+          title: texts.failed,
+          text: texts.unableToDelete
         }, darkMode)
       }
     }
@@ -266,15 +269,15 @@ export default function ServicesPage() {
   }
 
   const serviceTypeOptions = [
-    { value: 'sip_trunk', label: 'SIP Trunk', icon: <Phone className="w-4 h-4" /> },
-    { value: 'cctv', label: 'CCTV', icon: <Video className="w-4 h-4" /> },
-    { value: 'gcp_aws', label: 'Cloud (GCP/AWS)', icon: <Cloud className="w-4 h-4" /> }
+    { value: 'sip_trunk', label: texts.sipTrunk, icon: <Phone className="w-4 h-4" /> },
+    { value: 'cctv', label: texts.cctv, icon: <Video className="w-4 h-4" /> },
+    { value: 'gcp_aws', label: texts.cloudGcpAws, icon: <Cloud className="w-4 h-4" /> }
   ]
 
   const statusOptions = [
-    { value: 'active', label: 'Active', icon: <CheckCircle className="w-4 h-4" /> },
-    { value: 'inactive', label: 'Inactive', icon: <Clock className="w-4 h-4" /> },
-    { value: 'terminated', label: 'Terminated', icon: <XCircle className="w-4 h-4" /> }
+    { value: 'active', label: texts.active, icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'inactive', label: texts.inactive, icon: <Clock className="w-4 h-4" /> },
+    { value: 'terminated', label: texts.terminated, icon: <XCircle className="w-4 h-4" /> }
   ]
 
   return (
@@ -289,12 +292,12 @@ export default function ServicesPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Service
+              {texts.editService}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Service
+              {texts.addNewService}
             </>
           )}
         </h2>
@@ -306,7 +309,7 @@ export default function ServicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Customer
+                {texts.customer}
               </label>
 
               <button
@@ -324,7 +327,7 @@ export default function ServicesPage() {
                   <User size={16} className="opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
-                    : "Select Customer"}
+                    : texts.selectCustomer}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -360,7 +363,7 @@ export default function ServicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Service Type
+                {texts.serviceType}
               </label>
 
               <button
@@ -383,7 +386,7 @@ export default function ServicesPage() {
                   ) : (
                     <>
                       <Wrench className="w-4 h-4" />
-                      Select Service Type
+                      {texts.selectServiceType}
                     </>
                   )}
                 </span>
@@ -421,7 +424,7 @@ export default function ServicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Status
+                {texts.status}
               </label>
 
               <button
@@ -444,7 +447,7 @@ export default function ServicesPage() {
                   ) : (
                     <>
                       <Activity className="w-4 h-4" />
-                      Select Status
+                      {texts.selectStatus}
                     </>
                   )}
                 </span>
@@ -492,12 +495,12 @@ export default function ServicesPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Service
+                  {texts.updateService}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Service
+                  {texts.addService}
                 </>
               )}
             </button>
@@ -516,7 +519,7 @@ export default function ServicesPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -533,12 +536,12 @@ export default function ServicesPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Services List ({services.length})
+            {texts.servicesList} ({services.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading services..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingServices} />
         ) : services.length === 0 ? (
           <div className="p-12 text-center">
             <Wrench className={`w-16 h-16 mx-auto mb-4 ${
@@ -547,12 +550,12 @@ export default function ServicesPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No services yet
+              {texts.noServicesYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first service above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -563,27 +566,27 @@ export default function ServicesPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Customer
+                    {texts.customerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Service Type
+                    {texts.serviceTypeHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Status
+                    {texts.statusHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Start Date
+                    {texts.startDate}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>
@@ -605,7 +608,11 @@ export default function ServicesPage() {
                         getServiceTypeColor(service.service_type)
                       }`}>
                         {getServiceTypeIcon(service.service_type)}
-                        <span className="capitalize">{service.service_type.replace('_', ' ')}</span>
+                        <span className="capitalize">
+                          {service.service_type === 'sip_trunk' ? texts.sipTrunk :
+                          service.service_type === 'cctv' ? texts.cctv :
+                          service.service_type === 'gcp_aws' ? texts.cloudGcpAws : service.service_type}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -613,7 +620,7 @@ export default function ServicesPage() {
                         getStatusColor(service.status)
                       }`}>
                         {getStatusIcon(service.status)}
-                        <span className="capitalize">{service.status}</span>
+                        <span className="capitalize">{texts[service.status]}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${

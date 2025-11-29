@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 // Dapetin waktu real-time dalam format "YYYY-MM-DD HH:mm:ss" WIB
 const getCurrentWIB = () => {
@@ -25,6 +26,8 @@ const getCurrentWIB = () => {
 }
 
 export default function TicketsPage() {
+  const { language, t } = useLanguage()
+  const texts = t.tickets[language]
   const [tickets, setTickets] = useState([])
   const [users, setUsers] = useState([])
   const [customers, setCustomers] = useState([])

@@ -6,9 +6,11 @@ import {
   User, Calendar, UserCog, ChevronDown, Clock
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
-import SectionLoader from '../components/sectionloader'
+import { useLanguage } from '@/lib/languageContext'
 
 export default function TeamsPage() {
+  const { language, t } = useLanguage()
+  const texts = t.teams[language]
   const [teams, setTeams] = useState([])
   const [users, setUsers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
@@ -67,8 +69,8 @@ export default function TeamsPage() {
     if (!formData.team_name) {
       showAlert({
         icon: 'warning',
-        title: 'Warning',
-        text: 'Team name is required'
+        title: texts.warning,
+        text: texts.teamNameRequired
       }, darkMode)
       return
     }
@@ -92,7 +94,7 @@ export default function TeamsPage() {
         payload.created_at = createdAtWIB  // ← ADD INI PAS CREATE BARU!
       }
 
-      console.log('📤 Sending payload:', payload)
+      console.log('Sending payload:', payload)
 
       const res = await fetch('/api/teams', {
         method,
@@ -101,13 +103,13 @@ export default function TeamsPage() {
       })
 
       const data = await res.json()
-      console.log('📥 Response:', res.status, data)
+      console.log('Response:', res.status, data)
 
       if (res.ok) {
         showAlert({
           icon: 'success',
-          title: 'Success!',
-          text: `Team successfully ${isEditing ? 'edited' : 'added'}!`,
+          title: texts.success,
+          text: isEditing ? texts.edited : texts.added,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
@@ -128,8 +130,8 @@ export default function TeamsPage() {
       console.error(err)
       showAlert({
         icon: 'error',
-        title: 'Error',
-        text: 'A connection error occurred.'
+        title: texts.error,
+        text: texts.connectionError
       }, darkMode)
     }
   }
@@ -142,12 +144,12 @@ export default function TeamsPage() {
 
   const handleDelete = async (id) => {
     const confirm = await showAlert({
-      title: 'Delete this team?',
-      text: 'This action cannot be undone.',
+      title: texts.deleteTeam,
+      text: texts.cannotUndo,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: texts.yesDelete,
+      cancelButtonText: texts.cancel,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d'
     }, darkMode)
@@ -163,8 +165,8 @@ export default function TeamsPage() {
         if (res.ok) {
           showAlert({
             icon: 'success',
-            title: 'Deleted!',
-            text: 'Team successfully deleted.',
+            title: texts.deleted,
+            text: texts.teamDeleted,
             showConfirmButton: false,
             timer: 1500
           }, darkMode)
@@ -172,8 +174,8 @@ export default function TeamsPage() {
         } else {
           showAlert({
             icon: 'error',
-            title: 'Failed',
-            text: 'Unable to delete the team.'
+            title: texts.failed,
+            text: texts.unableToDelete
           }, darkMode)
         }
       } catch (err) {
@@ -204,12 +206,12 @@ export default function TeamsPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              Edit Team
+              {texts.editTeam}
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              Add New Team
+              {texts.addNewTeam}
             </>
           )}
         </h2>
@@ -221,7 +223,7 @@ export default function TeamsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Team Name
+                {texts.teamName}
               </label>
               <div className="relative">
                 <UsersRound className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -230,7 +232,7 @@ export default function TeamsPage() {
                 <input
                   type="text"
                   name="team_name"
-                  placeholder="e.g., Marketing Team"
+                  placeholder={texts.teamNamePlaceholder}
                   value={formData.team_name}
                   onChange={handleChange}
                   required
@@ -248,7 +250,7 @@ export default function TeamsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Manager
+                {texts.manager}
               </label>
 
               <button
@@ -266,7 +268,7 @@ export default function TeamsPage() {
                   <UserCog size={16} className="opacity-60" />
                   {formData.manager_id
                     ? getManagerName(formData.manager_id)
-                    : "Select Manager"}
+                    : texts.selectManager}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -289,7 +291,7 @@ export default function TeamsPage() {
                     }`}
                   >
                     <User size={16} className="opacity-50" />
-                    <span className="opacity-60">No Manager</span>
+                    <span className="opacity-60">{texts.noManager}</span>
                   </button>
 
                   {users.map((u) => (
@@ -327,12 +329,12 @@ export default function TeamsPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  Update Team
+                  {texts.updateTeam}
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  Add Team
+                  {texts.addTeam}
                 </>
               )}
             </button>
@@ -351,7 +353,7 @@ export default function TeamsPage() {
                 }`}
               >
                 <X className="w-5 h-5" />
-                Cancel
+                {texts.cancel}
               </button>
             )}
           </div>
@@ -368,12 +370,12 @@ export default function TeamsPage() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            Teams List ({teams.length})
+            {texts.teamsList} ({teams.length})
           </h2>
         </div>
 
         {loading ? (
-          <SectionLoader darkMode={darkMode} text="Loading teams..." />
+          <SectionLoader darkMode={darkMode} text={texts.loadingTeams} />
         ) : teams.length === 0 ? (
           <div className="p-12 text-center">
             <UsersRound className={`w-16 h-16 mx-auto mb-4 ${
@@ -382,12 +384,12 @@ export default function TeamsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              No teams yet
+              {texts.noTeamsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              Create your first team above
+              {texts.createFirst}
             </p>
           </div>
         ) : (
@@ -398,22 +400,22 @@ export default function TeamsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Team Name
+                    {texts.teamNameHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Manager
+                    {texts.managerHeader}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Created At
+                    {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Actions
+                    {texts.actions}
                   </th>
                 </tr>
               </thead>
@@ -444,7 +446,7 @@ export default function TeamsPage() {
                           ) : (
                             <>
                               <User className="w-4 h-4 opacity-50" />
-                              <span className="opacity-50">No Manager</span>
+                              <span className="opacity-50">{texts.noManager}</span>
                             </>
                           )}
                         </div>
