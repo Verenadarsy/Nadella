@@ -2,23 +2,27 @@ import { supabase } from "@/lib/supabaseClient";
 
 export async function GET() {
   const { data, error } = await supabase
-    .from("customers")
-    .select("created_at");
+    .from("deals")
+    .select("deal_stage");
 
   if (error) return Response.json({ error }, { status: 500 });
 
-  // grouping manual (karena supabase-js no raw SQL)
+  // Grouping manual by deal_stage
   const groups = {};
 
   data.forEach((row) => {
-    const month = row.created_at.slice(0, 7); // "YYYY-MM"
-    groups[month] = (groups[month] || 0) + 1;
+    const stage = row.deal_stage;
+    if (stage) {
+      groups[stage] = (groups[stage] || 0) + 1;
+    }
   });
 
-  const results = Object.entries(groups).map(([month, count]) => ({
-    month,
+  const results = Object.entries(groups).map(([deal_stage, count]) => ({
+    deal_stage,
     count,
   }));
+
+  console.log('Deal Stage Results:', results);
 
   return Response.json(results);
 }
