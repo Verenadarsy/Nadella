@@ -1,46 +1,54 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
-function getRedirectPathByRole(role) {
-  if (role === 'client') return '/client';
-  if (['admin', 'superadmin'].includes(role)) return '/dashboard';
-  return '/login?error=unknown_role';
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+
+async function verifyToken(token) {
+  try {
+    const { payload } = await jwtVerify(token, SECRET);
+    return payload;
+  } catch (error) {
+    console.error("MIDDLEWARE: Invalid token", error);
+    return null;
+  }
 }
 
-export function middleware(req) {
+export async function middleware(req) {
   const token = req.cookies.get('token')?.value;
   const pathname = req.nextUrl.pathname;
 
+  // Allow public routes
   if (pathname.startsWith('/api/auth') || pathname === '/login') {
     return NextResponse.next();
   }
 
   if (!token) {
-    console.log('MIDDLEWARE: No token found, redirect to login');
+    console.log('MIDDLEWARE: No token found');
     return NextResponse.redirect(new URL('/login?auth=required', req.url));
   }
 
-  let decoded;
-  try {
-    decoded = jwt.decode(token);
-  } catch (error) {
-    console.error('MIDDLEWARE: Failed to decode token', error.message);
+  const decoded = await verifyToken(token);
+
+  if (!decoded) {
+    console.log('MIDDLEWARE: Token failed verification');
     return NextResponse.redirect(new URL('/login?auth=invalid_token', req.url));
   }
 
-  const userRole = decoded?.role;
+  const userRole = decoded.role;
+
   if (!userRole) {
-    console.error('MIDDLEWARE: No role found in token');
+    console.log('MIDDLEWARE: No role inside token');
     return NextResponse.redirect(new URL('/login?auth=invalid_token', req.url));
   }
 
+  // ROLE-BASED REDIRECTION
   if (userRole === 'client' && pathname.startsWith('/dashboard')) {
-    console.log(`MIDDLEWARE: Access denied for client -> ${pathname}`);
+    console.log(`CLIENT not allowed → ${pathname}`);
     return NextResponse.redirect(new URL('/client', req.url));
   }
 
   if (['admin', 'superadmin'].includes(userRole) && pathname.startsWith('/client')) {
-    console.log(`MIDDLEWARE: Access denied for ${userRole} -> ${pathname}`);
+    console.log(`ADMIN/SUPERADMIN not allowed → ${pathname}`);
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
