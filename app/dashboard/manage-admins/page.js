@@ -3,23 +3,25 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   ShieldCheck, Edit2, Trash2, X, Save, Plus,
-  User, Mail, Lock, Calendar, UserCog
+  User, Mail, Lock, Calendar, UserCog, Key, Users, ChevronDown, Shield
 } from 'lucide-react'
 import { useLanguage } from '@/lib/languageContext'
 
-export default function ManageAdmins() {
+export default function ManageUsers() {
   const { language, t } = useLanguage()
   const texts = t.manageAdmins[language]
-  const [admins, setAdmins] = useState([])
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
     name: '',
     email: '',
     password_plain: '',
-    role: 'admin'
+    role: ''
   })
   const [editId, setEditId] = useState(null)
+  const [generatePassword, setGeneratePassword] = useState(false)
+  const [roleOpen, setRoleOpen] = useState(false)
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -29,17 +31,28 @@ export default function ManageAdmins() {
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
 
-    fetchAdmins()
+    fetchUsers()
 
-    return () => observer.disconnect()
-  }, [])
+    // Close dropdown when clicking outside
+    const handleClickOutside = (e) => {
+      if (roleOpen && !e.target.closest('.relative')) {
+        setRoleOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
 
-  const fetchAdmins = async () => {
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [roleOpen])
+
+  const fetchUsers = async () => {
     setLoading(true)
     const res = await fetch('/api/users')
     const data = await res.json()
-    const adminList = data.filter((user) => user.role === 'admin')
-    setAdmins(adminList)
+    const userList = data.filter((user) => user.role === 'admin' || user.role === 'client')
+    setUsers(userList)
     setLoading(false)
   }
 
@@ -50,19 +63,29 @@ export default function ManageAdmins() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!form.name || !form.email) {
+    if (!form.name || !form.email || !form.role) {
       showAlert({
         icon: 'warning',
         title: texts.oops,
-        text: texts.nameEmailRequired
+        text: 'Name, Email, and Role are required!'
+      }, darkMode)
+      return
+    }
+
+    // Validation: password required if not editing and not generating
+    if (!editId && !generatePassword && !form.password_plain) {
+      showAlert({
+        icon: 'warning',
+        title: texts.oops,
+        text: 'Password is required or enable generate password'
       }, darkMode)
       return
     }
 
     const method = editId ? 'PUT' : 'POST'
     const body = editId
-      ? { ...form, user_id: editId }
-      : form
+      ? { ...form, user_id: editId, generate_password: generatePassword }
+      : { ...form, generate_password: generatePassword }
 
     const res = await fetch('/api/users', {
       method,
@@ -70,33 +93,54 @@ export default function ManageAdmins() {
       body: JSON.stringify(body)
     })
 
+    const result = await res.json()
+
     if (res.ok) {
-      showAlert({
-        icon: 'success',
-        title: editId ? texts.adminUpdated : texts.adminAdded,
-        timer: 1500,
-        showConfirmButton: false
-      }, darkMode)
-      setForm({ name: '', email: '', password_plain: '', role: 'admin' })
+      // Show different message based on generated password
+      if (result.generated_password) {
+        showAlert({
+          icon: 'success',
+          title: editId ? 'User Updated!' : 'User Created!',
+          html: `<div class="text-center">
+            <p class="mb-2">Password has been generated and sent to</p>
+            <p class="font-semibold text-blue-600 dark:text-blue-400">${form.email}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Please check the email inbox for login credentials.</p>
+          </div>`,
+          timer: 3000,
+          showConfirmButton: false
+        }, darkMode)
+      } else {
+        showAlert({
+          icon: 'success',
+          title: editId ? texts.adminUpdated : texts.adminAdded,
+          timer: 1500,
+          showConfirmButton: false
+        }, darkMode)
+      }
+      
+      setForm({ name: '', email: '', password_plain: '', role: '' })
       setEditId(null)
-      fetchAdmins()
+      setGeneratePassword(false)
+      setRoleOpen(false)
+      fetchUsers()
     } else {
       showAlert({
         icon: 'error',
         title: texts.failed,
-        text: texts.errorSaving
+        text: result.error || texts.errorSaving
       }, darkMode)
     }
   }
 
-  const handleEdit = (admin) => {
-    setEditId(admin.user_id)
+  const handleEdit = (user) => {
+    setEditId(user.user_id)
     setForm({
-      name: admin.name,
-      email: admin.email,
+      name: user.name,
+      email: user.email,
       password_plain: '',
-      role: 'admin'
+      role: user.role
     })
+    setGeneratePassword(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -127,7 +171,7 @@ export default function ManageAdmins() {
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
-      fetchAdmins()
+      fetchUsers()
     } else {
       showAlert({
         icon: 'error',
@@ -139,7 +183,24 @@ export default function ManageAdmins() {
 
   const cancelEdit = () => {
     setEditId(null)
-    setForm({ name: '', email: '', password_plain: '', role: 'admin' })
+    setForm({ name: '', email: '', password_plain: '', role: '' })
+    setGeneratePassword(false)
+    setRoleOpen(false)
+  }
+
+  const getRoleBadge = (role) => {
+    if (role === 'admin') {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+          Admin
+        </span>
+      )
+    }
+    return (
+      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+        Client
+      </span>
+    )
   }
 
   return (
@@ -173,12 +234,12 @@ export default function ManageAdmins() {
           {editId ? (
             <>
               <Edit2 className="w-5 h-5" />
-              {texts.editAdmin}
+              Edit User
             </>
           ) : (
             <>
               <Plus className="w-5 h-5" />
-              {texts.addNewAdmin}
+              Add New User
             </>
           )}
         </h2>
@@ -190,7 +251,7 @@ export default function ManageAdmins() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.fullName}
+                Full Name
               </label>
               <div className="relative">
                 <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -199,9 +260,10 @@ export default function ManageAdmins() {
                 <input
                   type="text"
                   name="name"
-                  placeholder={texts.fullNamePlaceholder}
+                  placeholder="Enter full name"
                   value={form.name}
                   onChange={handleChange}
+                  autoComplete="name"
                   required
                   className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                     darkMode
@@ -217,7 +279,7 @@ export default function ManageAdmins() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.emailAddress}
+                Email Address
               </label>
               <div className="relative">
                 <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -226,9 +288,10 @@ export default function ManageAdmins() {
                 <input
                   type="email"
                   name="email"
-                  placeholder={texts.emailAddressPlaceholder}
+                  placeholder="Enter email address"
                   value={form.email}
                   onChange={handleChange}
+                  autoComplete="email"
                   required
                   className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                     darkMode
@@ -239,12 +302,77 @@ export default function ManageAdmins() {
               </div>
             </div>
 
-            {/* Password Input */}
-            <div className="md:col-span-2">
+            {/* Role Dropdown */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.password} {editId && <span className="text-xs opacity-70">{texts.passwordHint}</span>}
+                User Role
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setRoleOpen(!roleOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-gray-200 text-slate-900'
+                }`}
+              >
+                <span className={`flex items-center gap-2 ${
+                  !form.role ? 'opacity-50' : 'opacity-100'
+                }`}>
+                  {/* Icon based on role */}
+                  {form.role === 'client' && <User size={16} />}
+                  {form.role === 'admin' && <Shield size={16} />}
+                  {!form.role && <Users size={16} />}
+
+                  {/* Label */}
+                  {!form.role ? 'Select User Role' : form.role === 'client' ? 'Client' : 'Admin'}
+                </span>
+
+                <ChevronDown size={18} className={`transition-transform ${roleOpen ? 'rotate-180' : ''} ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                }`} />
+              </button>
+
+              {roleOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600'
+                    : 'bg-white border-gray-200'
+                }`}>
+                  {[
+                    { value: 'client', label: 'Client', icon: <User size={16} /> },
+                    { value: 'admin', label: 'Admin', icon: <Shield size={16} /> }
+                  ].map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, role: item.value })
+                        setRoleOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2.5 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                        darkMode 
+                          ? 'text-slate-200 hover:bg-slate-600' 
+                          : 'text-slate-800 hover:bg-slate-100'
+                      } ${form.role === item.value ? (darkMode ? 'bg-slate-600' : 'bg-slate-100') : ''}`}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Password Input */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                Password {editId && <span className="text-xs opacity-70">(leave blank to keep current)</span>}
               </label>
               <div className="relative">
                 <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -253,10 +381,14 @@ export default function ManageAdmins() {
                 <input
                   type="password"
                   name="password_plain"
-                  placeholder={editId ? texts.passwordPlaceholderEdit : texts.passwordPlaceholder}
+                  placeholder={editId ? "Leave blank to keep current" : "Enter password"}
                   value={form.password_plain}
                   onChange={handleChange}
+                  autoComplete="new-password"
+                  disabled={generatePassword}
                   className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    generatePassword ? 'opacity-50 cursor-not-allowed' : ''
+                  } ${
                     darkMode
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
                       : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
@@ -264,6 +396,30 @@ export default function ManageAdmins() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Generate Password Checkbox */}
+          <div className={`flex items-center gap-3 p-3 rounded-lg ${
+            darkMode ? 'bg-slate-700/50' : 'bg-gray-50'
+          }`}>
+            <input
+              type="checkbox"
+              id="generatePassword"
+              checked={generatePassword}
+              onChange={(e) => {
+                setGeneratePassword(e.target.checked)
+                if (e.target.checked) {
+                  setForm({ ...form, password_plain: '' })
+                }
+              }}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <label htmlFor="generatePassword" className={`flex items-center gap-2 text-sm font-medium cursor-pointer ${
+              darkMode ? 'text-slate-300' : 'text-slate-700'
+            }`}>
+              <Key className="w-4 h-4" />
+              Generate secure password automatically
+            </label>
           </div>
 
           {/* Buttons */}
@@ -280,12 +436,12 @@ export default function ManageAdmins() {
               {editId ? (
                 <>
                   <Save className="w-5 h-5" />
-                  {texts.updateAdmin}
+                  Update User
                 </>
               ) : (
                 <>
                   <Plus className="w-5 h-5" />
-                  {texts.addAdmin}
+                  Add User
                 </>
               )}
             </button>
@@ -308,7 +464,7 @@ export default function ManageAdmins() {
         </div>
       </div>
 
-      {/* ADMINS LIST */}
+      {/* USERS LIST */}
       <div className={`rounded-xl overflow-hidden shadow-lg ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
@@ -318,7 +474,7 @@ export default function ManageAdmins() {
           <h2 className={`text-lg font-semibold ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
-            {texts.adminUsers} ({admins.length})
+            All Users ({users.length})
           </h2>
         </div>
 
@@ -329,7 +485,7 @@ export default function ManageAdmins() {
               {texts.loadingAdmins}
             </p>
           </div>
-        ) : admins.length === 0 ? (
+        ) : users.length === 0 ? (
           <div className="p-12 text-center">
             <UserCog className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -337,12 +493,12 @@ export default function ManageAdmins() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noAdminsYet}
+              No users yet
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.addFirstAdmin}
+              Add your first user to get started
             </p>
           </div>
         ) : (
@@ -363,6 +519,11 @@ export default function ManageAdmins() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
+                    Role
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    darkMode ? 'text-slate-300' : 'text-gray-600'
+                  }`}>
                     {texts.createdAt}
                   </th>
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
@@ -373,8 +534,8 @@ export default function ManageAdmins() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {admins.map((admin) => (
-                  <tr key={admin.user_id} className={`transition-colors ${
+                {users.map((user) => (
+                  <tr key={user.user_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -382,11 +543,13 @@ export default function ManageAdmins() {
                     }`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          darkMode ? 'bg-blue-600' : 'bg-blue-900'
+                          user.role === 'admin' 
+                            ? (darkMode ? 'bg-purple-600' : 'bg-purple-500')
+                            : (darkMode ? 'bg-blue-600' : 'bg-blue-500')
                         }`}>
                           <User className="w-4 h-4 text-white" />
                         </div>
-                        <span className="font-medium">{admin.name}</span>
+                        <span className="font-medium">{user.name}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -394,15 +557,18 @@ export default function ManageAdmins() {
                     }`}>
                       <div className="flex items-center gap-2">
                         <Mail className="w-4 h-4" />
-                        {admin.email}
+                        {user.email}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {getRoleBadge(user.role)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        {new Date(admin.created_at).toLocaleString('id-ID', {
+                        {new Date(user.created_at).toLocaleString('id-ID', {
                           timeZone: 'Asia/Jakarta',
                           year: 'numeric',
                           month: 'short',
@@ -413,7 +579,7 @@ export default function ManageAdmins() {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => handleEdit(admin)}
+                          onClick={() => handleEdit(user)}
                           className={`p-2 rounded-lg transition-colors ${
                             darkMode
                               ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
@@ -424,7 +590,7 @@ export default function ManageAdmins() {
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(admin.user_id)}
+                          onClick={() => handleDelete(user.user_id)}
                           className={`p-2 rounded-lg transition-colors ${
                             darkMode
                               ? 'bg-red-600 hover:bg-red-700 text-white'

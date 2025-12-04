@@ -194,7 +194,7 @@ export default function DashboardLayout({ children }) {
                 }
               `}
             >
-              <div className="relative w-9 h-9 flex-shrink-0">
+              <div className="relative w-9 h-9 shrink-0">
                 <img
                   src="/favicon.png"
                   width={28}
@@ -293,7 +293,7 @@ export default function DashboardLayout({ children }) {
                     : 'hover:bg-blue-50 text-slate-700 hover:text-blue-900'
               } ${!sidebarOpen ? 'justify-center' : ''}`}
             >
-              <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${
+              <item.icon className={`w-5 h-5 shrink-0 transition-colors ${
                 isActive(item.path)
                   ? 'text-white'
                   : darkMode ? 'group-hover:text-blue-400' : 'group-hover:text-blue-600'
@@ -325,7 +325,7 @@ export default function DashboardLayout({ children }) {
                     : 'bg-blue-900/90 hover:bg-blue-800 text-white'
               } ${!sidebarOpen ? 'justify-center' : ''}`}
             >
-              <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+              <ShieldCheck className="w-5 h-5 shrink-0" />
               {sidebarOpen && (
                 <>
                   <span className="flex-1 text-left text-sm font-medium">{texts.manageAdmins}</span>
@@ -348,7 +348,7 @@ export default function DashboardLayout({ children }) {
                 : 'bg-red-500 hover:bg-red-600 text-white'
             } ${!sidebarOpen ? 'justify-center' : ''}`}
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <LogOut className="w-5 h-5 shrink-0" />
             {sidebarOpen && <span className="flex-1 text-left text-sm font-medium">{texts.logout}</span>}
           </button>
         </nav>
