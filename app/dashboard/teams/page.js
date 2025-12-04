@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
+import SectionLoader from '../components/sectionloader'
 
 export default function TeamsPage() {
   const { language, t } = useLanguage()
