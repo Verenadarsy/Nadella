@@ -35,7 +35,7 @@ export default function LoginPage() {
         confirmButtonText: texts.okay,
       }, savedTheme === 'true')
     }
-  }, [])
+  }, [texts, showAlert])
 
   const toggleDarkMode = () => {
     const newMode = !darkMode
