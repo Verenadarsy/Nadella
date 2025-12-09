@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
-  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle, XCircle, Sparkles, FileText
+  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle, XCircle, Sparkles, FileText, Mail, Key
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -16,16 +16,22 @@ export default function LeadsPage() {
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
-    lead_name: "",      // ← TAMBAH: Nama prospek
-    customer_id: null,  // ← UBAH: Optional (NULL untuk lead baru)
+    lead_name: "",
+    customer_id: null,
     source: "",
-    lead_status: "new"  // ← FIX: Default "new"
+    lead_status: "new"
   });
 
   const [editingId, setEditingId] = useState(null)
   const [statusOpen, setStatusOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  // ============================================
+  // TAMBAHAN: State untuk pop-up email
+  // ============================================
+  const [showEmailPopup, setShowEmailPopup] = useState(false)
+  const [emailForm, setEmailForm] = useState({ customer_id: '', email: '' })
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -64,6 +70,9 @@ export default function LeadsPage() {
     }
   }
 
+  // ============================================
+  // UPDATE: handleSubmit dengan email logic
+  // ============================================
   async function handleSubmit(e) {
     e.preventDefault()
 
@@ -101,23 +110,101 @@ export default function LeadsPage() {
         throw new Error("Failed to save lead")
       }
 
-      showAlert({
-        icon: 'success',
-        title: texts.success,
-        text: editingId ? texts.leadUpdated : texts.leadAdded,
-        showConfirmButton: false,
-        timer: 1500
-      }, darkMode)
+      const result = await res.json()
+      console.log('🔍 Backend response:', result)
+
+      // ========================================
+      // CHECK IF EMAIL INPUT IS NEEDED
+      // ========================================
+      if (result.needEmailInput && result.customer_id) {
+        console.log('⏳ Email input needed for customer:', result.customer_id)
+
+        // Show pop-up untuk input email
+        setEmailForm({
+          customer_id: result.customer_id,  // ← customer_id dari backend
+          email: ''
+        })
+        setShowEmailPopup(true)
+
+      } else {
+        // Normal success (no email needed)
+        showAlert({
+          icon: 'success',
+          title: texts.success,
+          text: editingId ? texts.leadUpdated : texts.leadAdded,
+          showConfirmButton: false,
+          timer: 1500
+        }, darkMode)
+      }
 
       setForm({ lead_name: "", customer_id: null, source: "", lead_status: "new" })
       setEditingId(null)
       fetchLeads()
+
     } catch (err) {
       console.error(err)
       showAlert({
         icon: 'error',
         title: texts.failed,
         text: texts.errorSavingLead
+      }, darkMode)
+    }
+  }
+
+  // ============================================
+  // TAMBAHAN: Handle email submit
+  // ============================================
+  async function handleEmailSubmit(e) {
+    e.preventDefault()
+
+    if (!emailForm.email) {
+      showAlert({
+        icon: 'warning',
+        title: 'Email Required',
+        text: 'Please enter customer email address'
+      }, darkMode)
+      return
+    }
+
+    // Debug: cek data yang dikirim
+    console.log('📧 Sending email data:', emailForm)
+
+    try {
+      const res = await fetch('/api/customers/generate-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailForm)
+      })
+
+      const result = await res.json()
+      console.log('📬 Server response:', result)
+
+      if (!res.ok) {
+        throw new Error(result.error || 'Failed to generate user')
+      }
+
+      showAlert({
+        icon: 'success',
+        title: 'User Generated!',
+        html: `<div class="text-center">
+          <p class="mb-2">User account has been created and credentials sent to:</p>
+          <p class="font-semibold text-blue-600 dark:text-blue-400">${emailForm.email}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Customer can now login to their account.</p>
+        </div>`,
+        timer: 3000,
+        showConfirmButton: false
+      }, darkMode)
+
+      setShowEmailPopup(false)
+      setEmailForm({ customer_id: '', email: '' })
+      fetchLeads()
+
+    } catch (err) {
+      console.error('❌ Email submit error:', err)
+      showAlert({
+        icon: 'error',
+        title: 'Failed',
+        text: err.message || 'Failed to generate user account'
       }, darkMode)
     }
   }
@@ -212,7 +299,7 @@ export default function LeadsPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Lead Name Input - BARU */}
+            {/* Lead Name Input */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
@@ -322,7 +409,7 @@ export default function LeadsPage() {
               )}
             </div>
 
-            {/* Customer Select - OPTIONAL */}
+            {/* Customer Select */}
             <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
@@ -604,6 +691,84 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
+
+      {/* ============================================ */}
+      {/* TAMBAHAN: Email Input Pop-up Modal */}
+      {/* ============================================ */}
+      {showEmailPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-md rounded-xl shadow-2xl ${
+            darkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
+            {/* Header */}
+            <div className={`flex items-center justify-between p-6 border-b ${
+              darkMode ? 'border-slate-700' : 'border-gray-200'
+            }`}>
+              <h2 className={`text-xl font-bold ${
+                darkMode ? 'text-white' : 'text-slate-900'
+              }`}>
+                Enter Customer Email
+              </h2>
+              <button
+                onClick={() => {
+                  setShowEmailPopup(false)
+                  setEmailForm({ customer_id: '', email: '' })
+                }}
+                className={`p-1 rounded-lg transition-colors ${
+                  darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-gray-100 text-gray-500'
+                }`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <form onSubmit={handleEmailSubmit} className="p-6 space-y-4">
+              <div className={`p-4 rounded-lg ${
+                darkMode ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-700'
+              }`}>
+                <p className="text-sm">
+                  <strong>ℹ️ Info:</strong> Customer account created successfully!
+                  Enter their email address to generate login credentials.
+                </p>
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  Customer Email Address
+                </label>
+                <div className="relative">
+                  <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                    darkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`} />
+                  <input
+                    type="email"
+                    placeholder="customer@example.com"
+                    value={emailForm.email}
+                    onChange={(e) => setEmailForm({ ...emailForm, email: e.target.value })}
+                    required
+                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                      darkMode
+                        ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
+                        : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                    } outline-none`}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                <Key className="w-5 h-5" />
+                Generate User Account
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <FloatingChat />
     </div>

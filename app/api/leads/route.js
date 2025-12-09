@@ -29,13 +29,13 @@ export async function POST(req) {
   return new Response(JSON.stringify(error ?? data), { status: error ? 500 : 201 })
 }
 
-// PUT: Update lead (with auto-generate user + customer on qualified)
+// PUT: Update lead
 export async function PUT(req) {
   try {
     const body = await req.json()
     const { lead_id, lead_name, lead_status, customer_id } = body
 
-    // Fetch existing lead to compare status
+    // Fetch existing lead
     const { data: existingLead, error: fetchError } = await supabase
       .from(table)
       .select('*')
@@ -47,56 +47,27 @@ export async function PUT(req) {
     }
 
     let updatedCustomerId = customer_id
+    let needEmailInput = false
 
     // ========================================
-    // AUTO-GENERATE USER + CUSTOMER ON QUALIFIED
+    // STEP 1: AUTO-GENERATE CUSTOMER (WITHOUT USER)
     // ========================================
     if (
       lead_status === 'qualified' &&
       existingLead.lead_status !== 'qualified' &&
       !existingLead.customer_id
     ) {
-      console.log('🚀 Auto-generating User + Customer for qualified lead...')
+      console.log('🚀 Auto-generating Customer for qualified lead...')
 
-      // Step 1: Generate email from lead_name
-      const emailName = lead_name
-        .toLowerCase()
-        .replace(/\s+/g, '.')
-        .replace(/[^a-z0-9.]/g, '')
-
-      const generatedEmail = `${emailName}@nadella.client`
-      const plainPassword = generatePassword()
-      const hashedPassword = await bcrypt.hash(plainPassword, 10)
-
-      // Step 2: Create USER
-      const { data: newUser, error: userError } = await supabase
-        .from('users')
-        .insert({
-          name: lead_name,
-          email: generatedEmail,
-          role: 'client',
-          password_hash: hashedPassword
-        })
-        .select()
-        .single()
-
-      if (userError) {
-        console.error('❌ Failed to create user:', userError)
-        return new Response(
-          JSON.stringify({ error: 'Failed to create user', details: userError.message }),
-          { status: 500 }
-        )
-      }
-
-      console.log('✅ User created:', newUser.user_id)
-
-      // Step 3: Create CUSTOMER (linked to user)
+      // Create CUSTOMER (tanpa user_id, email masih NULL)
       const { data: newCustomer, error: customerError } = await supabase
         .from('customers')
         .insert({
           name: lead_name,
-          email: generatedEmail,
-          user_id: newUser.user_id,
+          email: null,        // Email belum ada
+          user_id: null,      // User belum dibuat
+          phone: null,
+          address: null,
           status: 'customer'
         })
         .select()
@@ -104,10 +75,6 @@ export async function PUT(req) {
 
       if (customerError) {
         console.error('❌ Failed to create customer:', customerError)
-
-        // Rollback: Delete user if customer creation fails
-        await supabase.from('users').delete().eq('user_id', newUser.user_id)
-
         return new Response(
           JSON.stringify({ error: 'Failed to create customer', details: customerError.message }),
           { status: 500 }
@@ -115,23 +82,13 @@ export async function PUT(req) {
       }
 
       console.log('✅ Customer created:', newCustomer.customer_id)
-
-      // Update customer_id for lead update
       updatedCustomerId = newCustomer.customer_id
+      needEmailInput = true
 
-      // Step 4: Send email with credentials
-      try {
-        await sendEmailToClient(generatedEmail, plainPassword, lead_name)
-        console.log('✅ Email sent to:', generatedEmail)
-      } catch (emailError) {
-        console.error('⚠️ Email failed but user/customer created:', emailError)
-        // Don't fail the request, user/customer already created
-      }
-
-      console.log('🎉 Auto-generation complete!')
+      console.log('⏳ Waiting for email input to generate user...')
     }
 
-    // Update lead with new data (including customer_id if generated)
+    // Update lead
     const updatedBody = {
       ...body,
       customer_id: updatedCustomerId
@@ -143,6 +100,22 @@ export async function PUT(req) {
       return new Response(JSON.stringify(error), { status: 500 })
     }
 
+    // ========================================
+    // PERBAIKAN: Return customer_id yang baru dibuat!
+    // ========================================
+    if (needEmailInput) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          needEmailInput: true,
+          customer_id: updatedCustomerId,  // ← INI YANG PENTING!
+          message: 'Customer created, please provide email'
+        }),
+        { status: 200 }
+      )
+    }
+
+    // Normal update response
     return new Response(JSON.stringify(data), { status: 200 })
 
   } catch (err) {
