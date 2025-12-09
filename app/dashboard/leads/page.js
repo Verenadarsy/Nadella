@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
-  User, TrendingUp, Calendar, Clock,  ChevronDown, Phone, CheckCircle, XCircle, Sparkles
+  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle, XCircle, Sparkles, FileText
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -16,19 +16,18 @@ export default function LeadsPage() {
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
-    customer_id: "",
+    lead_name: "",      // ← TAMBAH: Nama prospek
+    customer_id: null,  // ← UBAH: Optional (NULL untuk lead baru)
     source: "",
-    lead_status: "select"
-});
+    lead_status: "new"  // ← FIX: Default "new"
+  });
 
   const [editingId, setEditingId] = useState(null)
   const [statusOpen, setStatusOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
-
   useEffect(() => {
-    // Detect dark mode from parent layout
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -67,7 +66,9 @@ export default function LeadsPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.customer_id || !form.source || !form.lead_status) {
+
+    // Validation
+    if (!form.lead_name || !form.source || !form.lead_status) {
       showAlert({
         icon: 'warning',
         title: texts.warning,
@@ -79,7 +80,7 @@ export default function LeadsPage() {
     try {
       const method = editingId ? "PUT" : "POST"
 
-      // Generate WIB timestamp for created_at
+      // Generate WIB timestamp
       const now = new Date()
       const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000)
       const createdAtWIB = wib.toISOString().slice(0, 19).replace('T', ' ')
@@ -88,7 +89,7 @@ export default function LeadsPage() {
         ? { ...form, lead_id: editingId }
         : { ...form, created_at: createdAtWIB }
 
-      console.log('Sending lead data:', body)  // Debug
+      console.log('Sending lead data:', body)
 
       const res = await fetch("/api/leads", {
         method,
@@ -108,7 +109,7 @@ export default function LeadsPage() {
         timer: 1500
       }, darkMode)
 
-      setForm({ customer_id: "", source: "", lead_status: "" })
+      setForm({ lead_name: "", customer_id: null, source: "", lead_status: "new" })
       setEditingId(null)
       fetchLeads()
     } catch (err) {
@@ -163,7 +164,8 @@ export default function LeadsPage() {
 
   function handleEdit(lead) {
     setForm({
-      customer_id: lead.customer_id || "",
+      lead_name: lead.lead_name || "",
+      customer_id: lead.customer_id || null,
       source: lead.source || "",
       lead_status: lead.lead_status || "new"
     })
@@ -209,70 +211,31 @@ export default function LeadsPage() {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Customer Select */}
-            <div className="relative">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  darkMode ? "text-slate-300" : "text-slate-700"
-                }`}
-              >
-                {texts.customer}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Lead Name Input - BARU */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                {texts.leadName || "Lead Name"} <span className="text-red-500">*</span>
               </label>
-
-              <button
-                type="button"
-                onClick={() => setCustomerOpen(!customerOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
-                }`}
-              >
-                <span
-                  className={`flex items-center gap-2 ${
-                    form.customer_id ? "opacity-90" : "opacity-60"
-                  }`}
-                >
-                  <User size={16} className="opacity-60" />
-                  {form.customer_id
-                    ? customers.find((c) => c.customer_id === form.customer_id)?.name
-                    : texts.selectCustomer}
-                </span>
-                <ChevronDown size={18} className="opacity-60" />
-              </button>
-
-              {customerOpen && (
-                <div
-                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+              <div className="relative">
+                <FileText className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} />
+                <input
+                  type="text"
+                  placeholder={texts.leadNamePlaceholder || "e.g., John Doe"}
+                  value={form.lead_name}
+                  onChange={(e) => setForm({ ...form, lead_name: e.target.value })}
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
                     darkMode
-                      ? "bg-slate-700 border-slate-600 text-white"
-                      : "bg-white border-gray-200 text-slate-900"
-                  }`}
-                >
-                  {customers.length === 0 && (
-                    <div className="px-4 py-2 text-sm opacity-60">
-                      {texts.noCustomersFound}
-                    </div>
-                  )}
-
-                  {customers.map((c) => (
-                    <button
-                      key={c.customer_id}
-                      onClick={() => {
-                        setForm({ ...form, customer_id: c.customer_id });
-                        setCustomerOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 ${
-                        darkMode ? "hover:bg-slate-600" : ""
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {c.name || "Unnamed Customer"}
-                    </button>
-                  ))}
-                </div>
-              )}
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  } outline-none`}
+                  required
+                />
+              </div>
             </div>
 
             {/* Source Input */}
@@ -280,35 +243,33 @@ export default function LeadsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.source}
+                {texts.source} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-              <TrendingUp className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                darkMode ? 'text-slate-500' : 'text-slate-400'
-              }`} />
-              <input
-                type="text"
-                name="address"
-                placeholder={texts.sourcePlaceholder}
-                value={form.source}
-                onChange={(e) => setForm({ ...form, source: e.target.value })}
-                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                } outline-none`}
-              />
+                <TrendingUp className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} />
+                <input
+                  type="text"
+                  placeholder={texts.sourcePlaceholder}
+                  value={form.source}
+                  onChange={(e) => setForm({ ...form, source: e.target.value })}
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  } outline-none`}
+                  required
+                />
               </div>
             </div>
 
             {/* Status Select */}
             <div className="relative">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  darkMode ? "text-slate-300" : "text-slate-700"
-                }`}
-              >
-                {texts.leadStatus}
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? "text-slate-300" : "text-slate-700"
+              }`}>
+                {texts.leadStatus} <span className="text-red-500">*</span>
               </label>
 
               <button
@@ -320,38 +281,22 @@ export default function LeadsPage() {
                     : "bg-white border-gray-200 text-slate-900"
                 }`}
               >
-                <span
-                  className={`flex items-center gap-2 ${
-                    form.lead_status === "select" ? "opacity-60" : "opacity-90"
-                  }`}
-                >
-                  {/* hanya tampilkan icon jika sudah memilih */}
-                  {form.lead_status !== "select" && (
-                    <>
-                      {form.lead_status === "new" && <Sparkles size={16} />}
-                      {form.lead_status === "contacted" && <Phone size={16} />}
-                      {form.lead_status === "qualified" && <CheckCircle size={16} />}
-                      {form.lead_status === "disqualified" && <XCircle size={16} />}
-                    </>
-                  )}
-
-                  {/* label */}
-                  {form.lead_status === "select"
-                    ? texts.selectLeadStatus
-                    : texts[form.lead_status]}
+                <span className="flex items-center gap-2 opacity-90">
+                  {form.lead_status === "new" && <Sparkles size={16} />}
+                  {form.lead_status === "contacted" && <Phone size={16} />}
+                  {form.lead_status === "qualified" && <CheckCircle size={16} />}
+                  {form.lead_status === "disqualified" && <XCircle size={16} />}
+                  {texts[form.lead_status]}
                 </span>
-
                 <ChevronDown size={18} className="opacity-60" />
               </button>
 
               {statusOpen && (
-                <div
-                  className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white"
-                      : "bg-white border-gray-200 text-slate-900"
-                  }`}
-                >
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
                   {[
                     { value: "new", label: texts.new, icon: <Sparkles size={16} /> },
                     { value: "contacted", label: texts.contacted, icon: <Phone size={16} /> },
@@ -360,6 +305,7 @@ export default function LeadsPage() {
                   ].map((item) => (
                     <button
                       key={item.value}
+                      type="button"
                       onClick={() => {
                         setForm({ ...form, lead_status: item.value });
                         setStatusOpen(false);
@@ -375,6 +321,85 @@ export default function LeadsPage() {
                 </div>
               )}
             </div>
+
+            {/* Customer Select - OPTIONAL */}
+            <div className="relative">
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? "text-slate-300" : "text-slate-700"
+              }`}>
+                {texts.linkedCustomer || "Linked Customer"} <span className="text-slate-400 text-xs">(Optional)</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setCustomerOpen(!customerOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}
+              >
+                <span className={`flex items-center gap-2 ${
+                  form.customer_id ? "opacity-90" : "opacity-60"
+                }`}>
+                  <User size={16} className="opacity-60" />
+                  {form.customer_id
+                    ? customers.find((c) => c.customer_id === form.customer_id)?.name
+                    : texts.noCustomerLinked || "Not linked yet"}
+                </span>
+                <ChevronDown size={18} className="opacity-60" />
+              </button>
+
+              {customerOpen && (
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                  darkMode
+                    ? "bg-slate-700 border-slate-600 text-white"
+                    : "bg-white border-gray-200 text-slate-900"
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({ ...form, customer_id: null });
+                      setCustomerOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 italic opacity-60 ${
+                      darkMode ? "hover:bg-slate-600" : ""
+                    }`}
+                  >
+                    <X size={16} />
+                    {texts.clearSelection || "Clear selection"}
+                  </button>
+
+                  {customers.map((c) => (
+                    <button
+                      key={c.customer_id}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, customer_id: c.customer_id });
+                        setCustomerOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 ${
+                        darkMode ? "hover:bg-slate-600" : ""
+                      }`}
+                    >
+                      <User size={16} className="opacity-70" />
+                      {c.name || "Unnamed Customer"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Info Box */}
+          <div className={`p-4 rounded-lg border-l-4 ${
+            darkMode
+              ? 'bg-blue-900/20 border-blue-500 text-blue-300'
+              : 'bg-blue-50 border-blue-500 text-blue-700'
+          }`}>
+            <p className="text-sm">
+              💡 <strong>Tip:</strong> {texts.leadTip || "Lead will auto-generate Customer & User when status is changed to 'Qualified'"}
+            </p>
           </div>
 
           {/* Buttons */}
@@ -405,7 +430,7 @@ export default function LeadsPage() {
                 type="button"
                 onClick={() => {
                   setEditingId(null)
-                  setForm({ customer_id: "", source: "", lead_status: "new" })
+                  setForm({ lead_name: "", customer_id: null, source: "", lead_status: "new" })
                 }}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
@@ -461,7 +486,7 @@ export default function LeadsPage() {
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.customerHeader}
+                    {texts.leadNameHeader || "Lead Name"}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
@@ -472,6 +497,11 @@ export default function LeadsPage() {
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.statusHeader}
+                  </th>
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    darkMode ? 'text-slate-300' : 'text-gray-600'
+                  }`}>
+                    {texts.linkedCustomerHeader || "Linked Customer"}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
@@ -490,12 +520,12 @@ export default function LeadsPage() {
                   <tr key={lead.lead_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      darkMode ? 'text-slate-300' : 'text-gray-700'
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                      darkMode ? 'text-slate-200' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        {customers.find((c) => c.customer_id === lead.customer_id)?.name || texts.unknown}
+                        <FileText className="w-4 h-4" />
+                        {lead.lead_name || texts.unnamed}
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
@@ -512,6 +542,20 @@ export default function LeadsPage() {
                       }`}>
                         <span className="capitalize">{texts[lead.lead_status]}</span>
                       </div>
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      darkMode ? 'text-slate-300' : 'text-gray-700'
+                    }`}>
+                      {lead.customer_id ? (
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-green-500" />
+                          {customers.find((c) => c.customer_id === lead.customer_id)?.name || texts.unknown}
+                        </div>
+                      ) : (
+                        <span className="italic opacity-50">
+                          {texts.notLinked || "Not linked"}
+                        </span>
+                      )}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
@@ -560,7 +604,7 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
-      {/* Floating Chat Imported Here */}
+
       <FloatingChat />
     </div>
   )
