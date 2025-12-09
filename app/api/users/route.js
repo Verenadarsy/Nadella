@@ -36,47 +36,54 @@ export async function POST(req) {
       }), { status: 400 })
     }
 
-    // ➤ Clean up - hapus field yang ga ada di database
+    // ➤ Clean up field yang tidak ada di database
     delete body.generate_password
     delete body.password_plain
 
-    // ➤ Hash password untuk database
+    // ➤ Hash password
     const hashed = await bcrypt.hash(plainPassword, 10)
     body.password_hash = hashed
 
+    // ➤ Create user
     const { data, error } = await create(table, body)
     
     if (error) {
       console.error("Database error:", error)
-      return new Response(JSON.stringify({ error: "Failed to create user" }), { 
-        status: 500 
-      })
+      return new Response(JSON.stringify({ error: "Failed to create user" }), { status: 500 })
     }
 
-    // ➤ Kirim password ke email client (optional, jangan sampai break proses)
+    // ➤ AUTO CREATE CUSTOMER jika role = client
+    if (body.role === "client") {
+      const { data: customerData, error: customerErr } = await create("customers", {
+        user_id: data.user_id,
+        name: body.name,
+        email: body.email,
+        status: "customer" // optional biar rapi
+      });
+
+      if (customerErr) console.error("AUTO CUSTOMER ERROR:", customerErr);
+    }
+
+
+    // ➤ Kirim password via email
     try {
       await sendEmailToClient(body.email, plainPassword, body.name)
-      console.log("✅ Email sent to:", body.email)
+      console.log("Email sent to:", body.email)
     } catch (emailError) {
       console.error("⚠️ Email failed but user created:", emailError)
-      // Tidak return error, user tetap berhasil dibuat
     }
 
-    // ➤ Return data dengan generated password
+    // ➤ Response
     return new Response(JSON.stringify({ 
       ...data, 
       generated_password: plainPassword 
-    }), {
-      status: 201
-    })
+    }), { status: 201 })
 
   } catch (err) {
     console.error("POST /api/users error:", err)
     return new Response(JSON.stringify({ 
       error: err.message || "Internal server error" 
-    }), { 
-      status: 500 
-    })
+    }), { status: 500 })
   }
 }
 

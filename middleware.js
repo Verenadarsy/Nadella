@@ -14,8 +14,18 @@ async function verifyToken(token) {
 }
 
 export async function middleware(req) {
+  const { pathname } = req.nextUrl;
+
+  // ✅ Skip middleware for static files and Next.js internals
+  if (
+    pathname.startsWith('/_next') ||     // Next.js build assets
+    pathname.startsWith('/static') ||    // public/static files
+    pathname.startsWith('/favicon.ico')  // favicon
+  ) {
+    return NextResponse.next();
+  }
+
   const token = req.cookies.get('token')?.value;
-  const pathname = req.nextUrl.pathname;
 
   // Allow public routes
   if (pathname.startsWith('/api/auth') || pathname === '/login') {
@@ -54,3 +64,13 @@ export async function middleware(req) {
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/client/:path*',
+    '/login',
+    '/api/:path*'
+  ]
+};
+
