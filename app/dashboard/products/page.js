@@ -5,7 +5,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Package, Edit2, Trash2, X, Save, Plus,
-  Banknote, FileText, ShoppingCart
+  Banknote, FileText, Search
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -15,10 +15,12 @@ export default function ProductsCRUD() {
   const { language, t } = useLanguage()
   const texts = t.products[language]
   const [products, setProducts] = useState([])
+  const [filteredProducts, setFilteredProducts] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({ product_name: "", price: "", description: "" })
   const [editId, setEditId] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -57,12 +59,28 @@ export default function ProductsCRUD() {
     return () => observer.disconnect()
   }, [router])
 
+  // Filter products berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredProducts(products)
+    } else {
+      const filtered = products.filter((product) =>
+        product.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.price?.toString().includes(searchQuery)
+      )
+      setFilteredProducts(filtered)
+    }
+  }, [searchQuery, products])
+
   const fetchProducts = async () => {
     try {
       setLoading(true)
       const res = await fetch("/api/products")
       const data = await res.json()
-      setProducts(Array.isArray(data) ? data : [])
+      const productsData = Array.isArray(data) ? data : []
+      setProducts(productsData)
+      setFilteredProducts(productsData)
     } catch (err) {
       console.error('Error fetching products:', err)
     } finally {
@@ -291,16 +309,36 @@ export default function ProductsCRUD() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.productsList} ({products?.length || 0})
-          </h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.productsList} ({filteredProducts?.length || 0})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchProducts}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-400'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingProducts} />
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="p-12 text-center">
             <Package className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -308,12 +346,12 @@ export default function ProductsCRUD() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noProductsYet}
+              {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noProductsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.createFirstProduct}
+              {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirstProduct}
             </p>
           </div>
         ) : (
@@ -336,7 +374,7 @@ export default function ProductsCRUD() {
                   }`}>
                     {texts.descriptionHeader}
                   </th>
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider w-32 ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
@@ -344,7 +382,7 @@ export default function ProductsCRUD() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr key={product.product_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
@@ -352,7 +390,7 @@ export default function ProductsCRUD() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4" />
+                        <Package className="w-4 h-4 flex-shrink-0" />
                         <span className="font-medium">{product.product_name}</span>
                       </div>
                     </td>
@@ -372,11 +410,11 @@ export default function ProductsCRUD() {
                         {product.description || '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-center w-32">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(product)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
                             darkMode
                               ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                               : 'bg-yellow-500 hover:bg-yellow-600 text-white'
@@ -387,7 +425,7 @@ export default function ProductsCRUD() {
                         </button>
                         <button
                           onClick={() => handleDelete(product.product_id)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
                             darkMode
                               ? 'bg-red-600 hover:bg-red-700 text-white'
                               : 'bg-red-500 hover:bg-red-600 text-white'

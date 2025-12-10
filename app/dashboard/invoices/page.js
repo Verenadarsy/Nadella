@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   FileText, Edit2, Trash2, X, Save, Plus,
-  Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown
+  Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown, Search
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -25,6 +25,9 @@ export default function InvoicesPage() {
   const [customerOpen, setCustomerOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredInvoices, setFilteredInvoices] = useState([])
+  const [customerSearch, setCustomerSearch] = useState("")
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -37,15 +40,51 @@ export default function InvoicesPage() {
     fetchInvoices()
     fetchCustomers()
 
-    return () => observer.disconnect()
+    // Close dropdown when clicking outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-container')) {
+        setCustomerOpen(false)
+        setStatusOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
+
+  // Filter invoices berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredInvoices(invoices)
+    } else {
+      const filtered = invoices.filter((invoice) => {
+        const customerName = getCustomerName(invoice.customer_id).toLowerCase()
+        const amount = invoice.amount?.toString() || ""
+        const status = invoice.status?.toLowerCase() || ""
+        const dueDate = invoice.due_date || ""
+
+        return (
+          customerName.includes(searchQuery.toLowerCase()) ||
+          amount.includes(searchQuery) ||
+          status.includes(searchQuery.toLowerCase()) ||
+          dueDate.includes(searchQuery)
+        )
+      })
+      setFilteredInvoices(filtered)
+    }
+  }, [searchQuery, invoices])
 
   const fetchInvoices = async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/invoices')
       const data = await res.json()
-      setInvoices(Array.isArray(data) ? data : [])
+      const invoicesData = Array.isArray(data) ? data : []  // ← TAMBAH BARIS INI
+      setInvoices(invoicesData)  // ← UBAH JADI INI
+      setFilteredInvoices(invoicesData)  // ← TAMBAH BARIS INI
     } catch (err) {
       console.error('Error fetching invoices:', err)
     } finally {
@@ -267,7 +306,7 @@ export default function InvoicesPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer */}
-            <div className="relative">
+            <div className="relative dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -279,43 +318,90 @@ export default function InvoicesPage() {
                 onClick={() => setCustomerOpen(!customerOpen)}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-slate-50 border-gray-200 text-slate-900"
+                    ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
+                    : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
-                  formData.customer_id ? "opacity-90" : "opacity-60"
+                  formData.customer_id ? "" : "opacity-60"
                 }`}>
                   <User size={16} className="opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
                     : texts.selectCustomer}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown size={18} className={`opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {customerOpen && (
-                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border-2 z-50 ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
+                    ? "bg-slate-700 border-slate-600"
+                    : "bg-white border-gray-200"
                 }`}>
-                  {customers.map((c) => (
-                    <button
-                      key={c.customer_id}
-                      type="button"
-                      onClick={() => {
-                        setFormData({ ...formData, customer_id: c.customer_id })
-                        setCustomerOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {c.name}
-                    </button>
-                  ))}
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customerSearch}
+                        onChange={(e) => setCustomerSearch(e.target.value)}
+                        placeholder={texts.searchCustomers || 'Cari customer...'}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`} />
+                    </div>
+                  </div>
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}>
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+                    {customers.filter((c) =>
+                      c.name.toLowerCase().includes(customerSearch.toLowerCase())
+                    ).length > 0 ? (
+                      customers.filter((c) =>
+                        c.name.toLowerCase().includes(customerSearch.toLowerCase())
+                      ).map((c) => (
+                        <button
+                          key={c.customer_id}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, customer_id: c.customer_id })
+                            setCustomerOpen(false)
+                            setCustomerSearch('')
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                            formData.customer_id === c.customer_id
+                              ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                              : (darkMode ? "hover:bg-slate-600 text-white" : "hover:bg-slate-100 text-slate-900")
+                          }`}
+                        >
+                          <User size={16} className="opacity-70" />
+                          {c.name}
+                        </button>
+                      ))
+                    ) : (
+                      <div className={`px-4 py-2 text-center ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        {texts.noResults || 'Tidak ada hasil'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -502,16 +588,36 @@ export default function InvoicesPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.invoicesList} ({invoices.length})
-          </h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.invoicesList} ({filteredInvoices.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchInvoices || 'Cari invoice...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-400'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingInvoices} />
-        ) : invoices.length === 0 ? (
+        ) : filteredInvoices.length === 0 ? (
           <div className="p-12 text-center">
             <FileText className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -519,12 +625,12 @@ export default function InvoicesPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noInvoicesYet}
+              {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noInvoicesYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.createFirst}
+              {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirst}
             </p>
           </div>
         ) : (
@@ -565,7 +671,7 @@ export default function InvoicesPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {invoices.map((i) => (
+                {filteredInvoices.map((i) => (
                   <tr key={i.invoice_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>

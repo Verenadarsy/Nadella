@@ -24,6 +24,9 @@ export default function CommunicationsPage() {
   const [customerOpen, setCustomerOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [filteredCommunications, setFilteredCommunications] = useState([]);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -36,15 +39,45 @@ export default function CommunicationsPage() {
     fetchData();
     fetchCustomers();
 
-    return () => observer.disconnect();
+    // Close dropdown when clicking outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.customer-dropdown-container')) {
+        setCustomerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
+
+  // Filter communications berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCommunications(communications);
+    } else {
+      const filtered = communications.filter((comm) => {
+        const customerName = customers.find(c => c.customer_id === comm.customer_id)?.name || "";
+        return (
+          customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          comm.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          comm.content.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredCommunications(filtered);
+    }
+  }, [searchQuery, communications, customers]);
 
   async function fetchData() {
     try {
       setLoading(true);
       const res = await fetch("/api/communications");
       const data = await res.json();
-      setCommunications(data);
+      const commData = Array.isArray(data) ? data : [];
+      setCommunications(commData);
+      setFilteredCommunications(commData);
     } finally {
       setLoading(false);
     }
@@ -182,6 +215,11 @@ export default function CommunicationsPage() {
     { value: 'whatsapp', label: texts.whatsapp, icon: <Send className="w-4 h-4" /> }
   ];
 
+  // Filter customers berdasarkan search di dropdown
+  const filteredCustomers = customers.filter((cust) =>
+    cust.name.toLowerCase().includes(customerSearch.toLowerCase())
+  );
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -207,7 +245,7 @@ export default function CommunicationsPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer Dropdown */}
-            <div className="relative">
+            <div className="relative customer-dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -231,31 +269,73 @@ export default function CommunicationsPage() {
                     ? customers.find((c) => c.customer_id === form.customer_id)?.name
                     : texts.selectCustomer}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown size={18} className={`opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {customerOpen && (
-                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 max-h-60 overflow-y-auto ${
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-white border-gray-200 text-slate-900"
                 }`}>
-                  {customers.map((c) => (
-                    <button
-                      key={c.customer_id}
-                      type="button"
-                      onClick={() => {
-                        setForm({ ...form, customer_id: c.customer_id })
-                        setCustomerOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {c.name}
-                    </button>
-                  ))}
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customerSearch}
+                        onChange={(e) => setCustomerSearch(e.target.value)}
+                        placeholder={texts.searchCustomer || "Cari customer..."}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <User className={`absolute left-3 top-2.5 w-5 h-5 ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`} />
+                    </div>
+                  </div>
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}>
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+                    {filteredCustomers.map((c) => (
+                      <button
+                        key={c.customer_id}
+                        type="button"
+                        onClick={() => {
+                          setForm({ ...form, customer_id: c.customer_id })
+                          setCustomerOpen(false)
+                          setCustomerSearch('')
+                        }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                          form.customer_id === c.customer_id
+                            ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                            : (darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100")
+                        }`}
+                      >
+                        <User size={16} className="opacity-70" />
+                        {c.name}
+                      </button>
+                    ))}
+                    {filteredCustomers.length === 0 && (
+                      <div className={`px-4 py-2 text-center ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        {texts.noResults || 'Tidak ada hasil'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -296,11 +376,19 @@ export default function CommunicationsPage() {
               </button>
 
               {typeOpen && (
-                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 max-h-60 overflow-y-auto ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-white border-gray-200 text-slate-900"
-                }`}>
+                }`} style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}>
+                  <style jsx>{`
+                    div::-webkit-scrollbar {
+                      display: none;
+                    }
+                  `}</style>
                   {typeOptions.map((option) => (
                     <button
                       key={option.value}
@@ -400,16 +488,36 @@ export default function CommunicationsPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.communicationsList} ({communications.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.communicationsList} ({filteredCommunications.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchCommunications || 'Cari komunikasi...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
+                }`}
+              />
+              <MessageSquare className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingCommunications} />
-        ) : communications.length === 0 ? (
+        ) : filteredCommunications.length === 0 ? (
           <div className="p-12 text-center">
             <MessageSquare className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -417,12 +525,12 @@ export default function CommunicationsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noCommunicationsYet}
+              {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noCommunicationsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.createFirstCommunicationAbove}
+              {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirstCommunicationAbove}
             </p>
           </div>
         ) : (
@@ -458,7 +566,7 @@ export default function CommunicationsPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {communications.map((item) => (
+                {filteredCommunications.map((item) => (
                   <tr key={item.communication_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>

@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import {
   Ticket, Edit2, Trash2, X, Save, Plus,
   User, Clock, AlertTriangle, CheckCircle, Circle, Loader, ChevronDown, FileText, Target, Activity,
-  Flag, TrendingUp, Zap, ArrowRight
+  Flag, TrendingUp, Zap, ArrowRight, Search
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -46,6 +46,10 @@ export default function TicketsPage() {
   const [priorityOpen, setPriorityOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [assignedOpen, setAssignedOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredTickets, setFilteredTickets] = useState([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [assignedSearch, setAssignedSearch] = useState("");
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -59,15 +63,55 @@ export default function TicketsPage() {
     fetchUsers()
     fetchCustomers()
 
-    return () => observer.disconnect()
+    // Close dropdown when clicking outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-container')) {
+        setCustomerOpen(false)
+        setPriorityOpen(false)
+        setStatusOpen(false)
+        setAssignedOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
+
+  // Filter tickets berdasarkan search query
+    useEffect(() => {
+      if (searchQuery.trim() === "") {
+        setFilteredTickets(tickets);
+      } else {
+        const filtered = tickets.filter((ticket) => {
+          const customerName = getCustomerName(ticket.customer_id).toLowerCase();
+          const assignedName = getUserName(ticket.assigned_to).toLowerCase();
+          const issueType = ticket.issue_type?.toLowerCase() || "";
+          const status = ticket.status?.toLowerCase() || "";
+          const priority = ticket.priority?.toLowerCase() || "";
+
+          return (
+            customerName.includes(searchQuery.toLowerCase()) ||
+            assignedName.includes(searchQuery.toLowerCase()) ||
+            issueType.includes(searchQuery.toLowerCase()) ||
+            status.includes(searchQuery.toLowerCase()) ||
+            priority.includes(searchQuery.toLowerCase())
+          );
+        });
+        setFilteredTickets(filtered);
+      }
+    }, [searchQuery, tickets]);
 
   const fetchTickets = async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/tickets')
       const data = await res.json()
-      setTickets(Array.isArray(data) ? data : [])
+      const ticketsData = Array.isArray(data) ? data : []
+      setTickets(ticketsData)
+      setFilteredTickets(ticketsData)
     } catch (err) {
       console.error('Error fetching tickets:', err)
     } finally {
@@ -75,10 +119,34 @@ export default function TicketsPage() {
     }
   }
 
+  // Filter tickets berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredTickets(tickets);
+    } else {
+      const filtered = tickets.filter((ticket) => {
+        const customerName = getCustomerName(ticket.customer_id).toLowerCase();
+        const assignedName = getUserName(ticket.assigned_to).toLowerCase();
+        const issueType = ticket.issue_type?.toLowerCase() || "";
+        const status = ticket.status?.toLowerCase() || "";
+        const priority = ticket.priority?.toLowerCase() || "";
+
+        return (
+          customerName.includes(searchQuery.toLowerCase()) ||
+          assignedName.includes(searchQuery.toLowerCase()) ||
+          issueType.includes(searchQuery.toLowerCase()) ||
+          status.includes(searchQuery.toLowerCase()) ||
+          priority.includes(searchQuery.toLowerCase())
+        );
+      });
+      setFilteredTickets(filtered);
+    }
+  }, [searchQuery, tickets]);
+
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users')
+      const res = await fetch('/api/users?role=admin')
       const data = await res.json()
       setUsers(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -341,6 +409,14 @@ export default function TicketsPage() {
     { value: 'closed', label: texts.closed, icon: <ArrowRight className="w-4 h-4" /> }
   ]
 
+    const filteredCustomersDropdown = customers.filter((c) =>
+    c.name.toLowerCase().includes(customerSearch.toLowerCase())
+  );
+
+  const filteredUsersDropdown = users.filter((u) =>
+    u.name.toLowerCase().includes(assignedSearch.toLowerCase())
+  );
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -366,7 +442,7 @@ export default function TicketsPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer */}
-            <div className="relative">
+            <div className="relative dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -378,43 +454,90 @@ export default function TicketsPage() {
                 onClick={() => setCustomerOpen(!customerOpen)}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-slate-50 border-gray-200 text-slate-900"
+                    ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
+                    : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
-                  formData.customer_id ? "opacity-90" : "opacity-60"
+                  formData.customer_id ? "" : "opacity-60"
                 }`}>
                   <User size={16} className="opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
                     : texts.selectCustomer}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown size={18} className={`opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {customerOpen && (
                 <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
+                    ? "bg-slate-700 border-slate-600"
+                    : "bg-white border-gray-200"
                 }`}>
-                  {customers.map((c) => (
-                    <button
-                      key={c.customer_id}
-                      type="button"
-                      onClick={() => {
-                        setFormData({ ...formData, customer_id: c.customer_id })
-                        setCustomerOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {c.name}
-                    </button>
-                  ))}
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customerSearch}
+                        onChange={(e) => setCustomerSearch(e.target.value)}
+                        placeholder={texts.searchCustomers || 'Cari customer...'}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+
+                      <Search
+                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                          darkMode ? 'text-slate-400' : 'text-slate-400'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}>
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+                    {filteredCustomersDropdown.length > 0 ? (
+                      filteredCustomersDropdown.map((c) => (
+                        <button
+                          key={c.customer_id}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, customer_id: c.customer_id })
+                            setCustomerOpen(false)
+                            setCustomerSearch('')
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                            formData.customer_id === c.customer_id
+                              ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                              : (darkMode ? "hover:bg-slate-600 text-white" : "hover:bg-slate-100 text-slate-900")
+                          }`}
+                        >
+                          <User size={16} className="opacity-70" />
+                          {c.name}
+                        </button>
+                      ))
+                    ) : (
+                      <div className={`px-4 py-2 text-center ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        {texts.noResults || 'Tidak ada hasil'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -569,58 +692,120 @@ export default function TicketsPage() {
             </div>
 
             {/* Assigned To */}
-            <div className="md:col-span-2 relative">
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                {texts.assignTo}
-              </label>
+            {/* Assigned To */}
+<div className="md:col-span-2 relative dropdown-container">
+  <label className={`block text-sm font-medium mb-2 ${
+    darkMode ? 'text-slate-300' : 'text-slate-700'
+  }`}>
+    {texts.assignTo}
+  </label>
 
-              <button
-                type="button"
-                onClick={() => setAssignedOpen(!assignedOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-slate-50 border-gray-200 text-slate-900"
-                }`}
-              >
-                <span className={`flex items-center gap-2 ${
-                  formData.assigned_to ? "opacity-90" : "opacity-60"
-                }`}>
-                  <User size={16} className="opacity-60" />
-                  {formData.assigned_to
-                    ? users.find((u) => u.user_id === formData.assigned_to)?.name
-                    : texts.selectUser}
-                </span>
-                <ChevronDown size={18} className="opacity-60" />
-              </button>
+  <button
+    type="button"
+    onClick={() => setAssignedOpen(!assignedOpen)}
+    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+      darkMode
+        ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
+        : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
+    }`}
+  >
+    <span className={`flex items-center gap-2 ${
+      formData.assigned_to ? "" : "opacity-60"
+    }`}>
+      <User size={16} className="opacity-60" />
+      {formData.assigned_to
+        ? users.find((u) => u.user_id === formData.assigned_to)?.name
+        : texts.selectUser}
+    </span>
+    <ChevronDown size={18} className={`opacity-60 transition-transform ${assignedOpen ? 'rotate-180' : ''}`} />
+  </button>
 
-              {assignedOpen && (
-                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
-                }`}>
-                  {users.map((u) => (
-                    <button
-                      key={u.user_id}
-                      type="button"
-                      onClick={() => {
-                        setFormData({ ...formData, assigned_to: u.user_id })
-                        setAssignedOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {u.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+  {assignedOpen && (
+    <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
+      darkMode
+        ? "bg-slate-700 border-slate-600"
+        : "bg-white border-gray-200"
+    }`}>
+      {/* Search Input */}
+      <div
+        className="p-2 border-b-2 relative"
+        style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}
+      >
+        <Search
+          className={`absolute left-3 top-2.5 w-5 h-5 ${
+            darkMode ? 'text-slate-400' : 'text-slate-400'
+          }`}
+        />
+
+        <input
+          type="text"
+          value={assignedSearch}
+          onChange={(e) => setAssignedSearch(e.target.value)}
+          placeholder={texts.searchPIC || 'Cari user...'}
+          className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+            darkMode
+              ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+              : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+
+
+      {/* Options List */}
+      <div className="max-h-60 overflow-y-auto" style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
+      }}>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <button
+          type="button"
+          onClick={() => {
+            setFormData({ ...formData, assigned_to: '' })
+            setAssignedOpen(false)
+            setAssignedSearch('')
+          }}
+          className={`w-full px-4 py-2 text-left hover:bg-opacity-50 transition-colors ${
+            darkMode ? 'hover:bg-slate-600 text-slate-400' : 'hover:bg-gray-100 text-slate-400'
+          }`}
+        >
+          {texts.selectUser || 'Pilih User'}
+        </button>
+        {filteredUsersDropdown.length > 0 ? (
+          filteredUsersDropdown.map((u) => (
+            <button
+              key={u.user_id}
+              type="button"
+              onClick={() => {
+                setFormData({ ...formData, assigned_to: u.user_id })
+                setAssignedOpen(false)
+                setAssignedSearch('')
+              }}
+              className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                formData.assigned_to === u.user_id
+                  ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                  : (darkMode ? "hover:bg-slate-600 text-white" : "hover:bg-slate-100 text-slate-900")
+              }`}
+            >
+              <User size={16} className="opacity-70" />
+              {u.name}
+            </button>
+          ))
+        ) : (
+          <div className={`px-4 py-2 text-center ${
+            darkMode ? 'text-slate-400' : 'text-slate-400'
+          }`}>
+            {texts.noResults || 'Tidak ada hasil'}
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>
           </div>
 
           {/* Buttons */}
@@ -672,16 +857,36 @@ export default function TicketsPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.ticketsList} ({tickets.length})
-          </h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.ticketsList} ({filteredTickets.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchTickets || 'Cari tiket...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-400'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingTickets} />
-        ) : tickets.length === 0 ? (
+        ) : filteredTickets.length === 0 ? (
           <div className="p-12 text-center">
             <Ticket className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -689,7 +894,12 @@ export default function TicketsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noTicketsYet}
+              {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noTicketsYet}
+            </p>
+            <p className={`text-sm mt-1 ${
+              darkMode ? 'text-slate-500' : 'text-gray-400'
+            }`}>
+              {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirst}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
@@ -740,7 +950,7 @@ export default function TicketsPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {tickets.map((t) => (
+                {filteredTickets.map((t) => (
                   <tr key={t.ticket_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>

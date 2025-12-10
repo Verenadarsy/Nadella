@@ -5,7 +5,7 @@ import SectionLoader from '../components/sectionloader'
 import {
   Megaphone, Edit2, Trash2, X, Save, Plus,
   Calendar, TrendingUp, Mail, Smartphone, Radio,
-  Banknote, ChevronDown, Activity
+  Banknote, ChevronDown, Activity, Search
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
@@ -26,6 +26,8 @@ export default function CampaignsPage() {
   })
   const [channelOpen, setChannelOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredCampaigns, setFilteredCampaigns] = useState([])
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -45,13 +47,28 @@ export default function CampaignsPage() {
       setLoading(true)
       const res = await fetch('/api/campaigns')
       const data = await res.json()
-      setCampaigns(Array.isArray(data) ? data : [])
+      const campaignsData = Array.isArray(data) ? data : []
+      setCampaigns(campaignsData)
+      setFilteredCampaigns(campaignsData)
     } catch (error) {
       console.error('Fetch campaigns error:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  // Filter campaigns berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCampaigns(campaigns)
+    } else {
+      const filtered = campaigns.filter((camp) =>
+        camp.campaign_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        camp.channel.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredCampaigns(filtered)
+    }
+  }, [searchQuery, campaigns])
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -466,16 +483,36 @@ export default function CampaignsPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.campaignsList} ({campaigns.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.campaignsList} ({filteredCampaigns.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchCampaigns || 'Cari campaign...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                  darkMode
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-gray-400' : 'text-gray-500'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingCampaigns} />
-        ) : campaigns.length === 0 ? (
+        ) : filteredCampaigns.length === 0 ? (
           <div className="p-12 text-center">
             <Megaphone className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -483,12 +520,12 @@ export default function CampaignsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noCampaignsYet}
+              {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noCampaignsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.createFirst}
+              {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirst}
             </p>
           </div>
         ) : (
@@ -524,7 +561,7 @@ export default function CampaignsPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {campaigns.map((campaign) => (
+                {filteredCampaigns.map((campaign) => (
                   <tr key={campaign.campaign_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>

@@ -5,7 +5,7 @@ import SectionLoader from '../components/sectionloader'
 import {
   Calendar, Clock, User, Edit2, Trash2,
   X, Save, Plus, Phone, Mail, Users,
-  MessageSquare, FileText, ChevronDown
+  MessageSquare, FileText, ChevronDown, Search
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
@@ -40,6 +40,9 @@ export default function ActivitiesPage() {
   const [typeOpen, setTypeOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [userOpen, setUserOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredActivities, setFilteredActivities] = useState([])
+  const [userSearchQuery, setUserSearchQuery] = useState("")
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -55,19 +58,34 @@ export default function ActivitiesPage() {
     return () => observer.disconnect()
   }, [])
 
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredActivities(activities)
+    } else {
+      const filtered = activities.filter((activity) =>
+        activity.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        activity.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getUserName(activity.assigned_to).toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredActivities(filtered)
+    }
+  }, [searchQuery, activities])
+
   const fetchActivities = async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/activities')
       const data = await res.json()
-      setActivities(Array.isArray(data) ? data : [])
+      const activitiesData = Array.isArray(data) ? data : []
+      setActivities(activitiesData)
+      setFilteredActivities(activitiesData)
     } finally {
       setLoading(false)
     }
   }
 
   const fetchUsers = async () => {
-    const res = await fetch('/api/users')
+    const res = await fetch('/api/users?role=admin')
     const data = await res.json()
     setUsers(Array.isArray(data) ? data : [])
   }
@@ -298,22 +316,60 @@ export default function ActivitiesPage() {
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-white border-gray-200 text-slate-900"
                 }`}>
-                  {users.map((u) => (
-                    <button
-                      key={u.user_id}
-                      type="button"
-                      onClick={() => {
-                        setFormData({ ...formData, assigned_to: u.user_id })
-                        setUserOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {u.name}
-                    </button>
-                  ))}
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        placeholder={texts.searchUser || 'Cari user...'}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+
+                      <Search
+                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                          darkMode ? 'text-slate-400' : 'text-slate-400'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
+                    {users
+                      .filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase()))
+                      .map((u) => (
+                        <button
+                          key={u.user_id}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, assigned_to: u.user_id })
+                            setUserOpen(false)
+                            setUserSearchQuery("")
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                            darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                          }`}
+                        >
+                          <User size={16} className="opacity-70" />
+                          {u.name}
+                        </button>
+                      ))}
+                    {users.filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
+                      <div className={`px-4 py-2 text-center text-sm ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        {texts.noResults || 'Tidak ada hasil'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -397,11 +453,31 @@ export default function ActivitiesPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.activitiesList} ({activities.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.activitiesList} ({filteredActivities.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchActivities || 'Cari activities...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-400'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (

@@ -14,9 +14,24 @@ function generatePassword(length = 12) {
   return pass
 }
 
-export async function GET() {
+export async function GET(req) {
+  // ➤ Cek query parameter untuk filter role
+  const { searchParams } = new URL(req.url)
+  const roleFilter = searchParams.get('role')
+
   const { data, error } = await getAll(table)
-  return new Response(JSON.stringify(error ?? data), { status: error ? 500 : 200 })
+
+  if (error) {
+    return new Response(JSON.stringify(error), { status: 500 })
+  }
+
+  // ➤ Filter hanya admin jika ada parameter role=admin
+  if (roleFilter === 'admin') {
+    const adminUsers = data.filter(user => user.role === 'admin')
+    return new Response(JSON.stringify(adminUsers), { status: 200 })
+  }
+
+  return new Response(JSON.stringify(data), { status: 200 })
 }
 
 export async function POST(req) {
@@ -24,15 +39,15 @@ export async function POST(req) {
     const body = await req.json()
 
     let plainPassword = null
-    
+
     // ➤ Cek apakah user request generate password
     if (body.generate_password) {
       plainPassword = generatePassword()
     } else if (body.password_plain) {
       plainPassword = body.password_plain
     } else {
-      return new Response(JSON.stringify({ 
-        error: "Password is required or enable generate_password" 
+      return new Response(JSON.stringify({
+        error: "Password is required or enable generate_password"
       }), { status: 400 })
     }
 
@@ -46,7 +61,7 @@ export async function POST(req) {
 
     // ➤ Create user
     const { data, error } = await create(table, body)
-    
+
     if (error) {
       console.error("Database error:", error)
       return new Response(JSON.stringify({ error: "Failed to create user" }), { status: 500 })
@@ -74,15 +89,15 @@ export async function POST(req) {
     }
 
     // ➤ Response
-    return new Response(JSON.stringify({ 
-      ...data, 
-      generated_password: plainPassword 
+    return new Response(JSON.stringify({
+      ...data,
+      generated_password: plainPassword
     }), { status: 201 })
 
   } catch (err) {
     console.error("POST /api/users error:", err)
-    return new Response(JSON.stringify({ 
-      error: err.message || "Internal server error" 
+    return new Response(JSON.stringify({
+      error: err.message || "Internal server error"
     }), { status: 500 })
   }
 }
@@ -103,18 +118,18 @@ export async function PUT(req) {
     // ➤ Clean up dan hash password jika ada
     delete body.generate_password
     delete body.password_plain
-    
+
     if (plainPassword) {
       const hashed = await bcrypt.hash(plainPassword, 10)
       body.password_hash = hashed
     }
 
     const { data, error } = await update(table, idField, body)
-    
+
     if (error) {
       console.error("Database error:", error)
-      return new Response(JSON.stringify({ error: "Failed to update user" }), { 
-        status: 500 
+      return new Response(JSON.stringify({ error: "Failed to update user" }), {
+        status: 500
       })
     }
 
@@ -129,7 +144,7 @@ export async function PUT(req) {
     }
 
     // ➤ Return dengan generated password jika ada
-    const response = plainPassword 
+    const response = plainPassword
       ? { ...data, generated_password: plainPassword }
       : data
 
@@ -137,10 +152,10 @@ export async function PUT(req) {
 
   } catch (err) {
     console.error("PUT /api/users error:", err)
-    return new Response(JSON.stringify({ 
-      error: err.message || "Internal server error" 
-    }), { 
-      status: 500 
+    return new Response(JSON.stringify({
+      error: err.message || "Internal server error"
+    }), {
+      status: 500
     })
   }
 }
@@ -149,11 +164,11 @@ export async function DELETE(req) {
   try {
     const { id } = await req.json()
     const { error } = await remove(table, idField, id)
-    
+
     if (error) {
       console.error("Database error:", error)
-      return new Response(JSON.stringify({ error: "Failed to delete user" }), { 
-        status: 500 
+      return new Response(JSON.stringify({ error: "Failed to delete user" }), {
+        status: 500
       })
     }
 
@@ -161,10 +176,10 @@ export async function DELETE(req) {
 
   } catch (err) {
     console.error("DELETE /api/users error:", err)
-    return new Response(JSON.stringify({ 
-      error: err.message || "Internal server error" 
-    }), { 
-      status: 500 
+    return new Response(JSON.stringify({
+      error: err.message || "Internal server error"
+    }), {
+      status: 500
     })
   }
 }

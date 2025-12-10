@@ -22,6 +22,8 @@ export default function ManageUsers() {
   const [editId, setEditId] = useState(null)
   const [generatePassword, setGeneratePassword] = useState(false)
   const [roleOpen, setRoleOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -35,17 +37,31 @@ export default function ManageUsers() {
 
     // Close dropdown when clicking outside
     const handleClickOutside = (e) => {
-      if (roleOpen && !e.target.closest('.relative')) {
+      if (!e.target.closest('.role-dropdown-container')) {
         setRoleOpen(false)
       }
     }
-    document.addEventListener('click', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside)
 
     return () => {
       observer.disconnect()
-      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [roleOpen])
+
+  // Filter users berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter((user) =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchQuery, users]);
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -53,6 +69,7 @@ export default function ManageUsers() {
     const data = await res.json()
     const userList = data.filter((user) => user.role === 'admin' || user.role === 'client')
     setUsers(userList)
+    setFilteredUsers(userList)
     setLoading(false)
   }
 
@@ -117,7 +134,7 @@ export default function ManageUsers() {
           showConfirmButton: false
         }, darkMode)
       }
-      
+
       setForm({ name: '', email: '', password_plain: '', role: '' })
       setEditId(null)
       setGeneratePassword(false)
@@ -303,7 +320,7 @@ export default function ManageUsers() {
             </div>
 
             {/* Role Dropdown */}
-            <div className="relative">
+            <div className="relative role-dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -354,8 +371,8 @@ export default function ManageUsers() {
                         setRoleOpen(false)
                       }}
                       className={`w-full flex items-center gap-2 px-4 py-2.5 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                        darkMode 
-                          ? 'text-slate-200 hover:bg-slate-600' 
+                        darkMode
+                          ? 'text-slate-200 hover:bg-slate-600'
                           : 'text-slate-800 hover:bg-slate-100'
                       } ${form.role === item.value ? (darkMode ? 'bg-slate-600' : 'bg-slate-100') : ''}`}
                     >
@@ -471,11 +488,31 @@ export default function ManageUsers() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            All Users ({users.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              All Users ({filteredUsers.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search users by name, email, or role..."
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
+                }`}
+              />
+              <Users className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -485,22 +522,22 @@ export default function ManageUsers() {
               {texts.loadingAdmins}
             </p>
           </div>
-        ) : users.length === 0 ? (
-          <div className="p-12 text-center">
-            <UserCog className={`w-16 h-16 mx-auto mb-4 ${
-              darkMode ? 'text-slate-600' : 'text-gray-300'
-            }`} />
-            <p className={`text-lg font-medium ${
-              darkMode ? 'text-slate-400' : 'text-gray-500'
-            }`}>
-              No users yet
-            </p>
-            <p className={`text-sm mt-1 ${
-              darkMode ? 'text-slate-500' : 'text-gray-400'
-            }`}>
-              Add your first user to get started
-            </p>
-          </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="p-12 text-center">
+              <UserCog className={`w-16 h-16 mx-auto mb-4 ${
+                darkMode ? 'text-slate-600' : 'text-gray-300'
+              }`} />
+              <p className={`text-lg font-medium ${
+                darkMode ? 'text-slate-400' : 'text-gray-500'
+              }`}>
+                {searchQuery ? 'No results found' : 'No users yet'}
+              </p>
+              <p className={`text-sm mt-1 ${
+                darkMode ? 'text-slate-500' : 'text-gray-400'
+              }`}>
+                {searchQuery ? 'Try different keywords' : 'Add your first user to get started'}
+              </p>
+            </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -534,7 +571,7 @@ export default function ManageUsers() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user.user_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
@@ -543,7 +580,7 @@ export default function ManageUsers() {
                     }`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          user.role === 'admin' 
+                          user.role === 'admin'
                             ? (darkMode ? 'bg-purple-600' : 'bg-purple-500')
                             : (darkMode ? 'bg-blue-600' : 'bg-blue-500')
                         }`}>

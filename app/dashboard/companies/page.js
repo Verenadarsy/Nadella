@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Building2, Edit2, Trash2, X, Save, Plus,
-  Globe, MapPin, Briefcase, Calendar
+  Globe, MapPin, Briefcase, Calendar, Search
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -13,6 +13,7 @@ export default function CompaniesPage() {
   const { language, t } = useLanguage()
   const texts = t.companies[language]
   const [companies, setCompanies] = useState([])
+  const [filteredCompanies, setFilteredCompanies] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
     company_id: '',
@@ -23,6 +24,7 @@ export default function CompaniesPage() {
   })
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -38,13 +40,30 @@ export default function CompaniesPage() {
     return () => observer.disconnect()
   }, [])
 
+  // Filter companies berdasarkan search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCompanies(companies)
+    } else {
+      const filtered = companies.filter((company) =>
+        company.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.website?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        company.address?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredCompanies(filtered)
+    }
+  }, [searchQuery, companies])
+
   // Fetch all companies
   const fetchCompanies = async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/companies')
       const data = await res.json()
-      setCompanies(Array.isArray(data) ? data : [])
+      const companiesData = Array.isArray(data) ? data : []
+      setCompanies(companiesData)
+      setFilteredCompanies(companiesData)
     } finally {
       setLoading(false)
     }
@@ -94,7 +113,6 @@ export default function CompaniesPage() {
       }, darkMode)
     }
   }
-
 
   // Delete company
   const handleDelete = async (id) => {
@@ -173,112 +191,111 @@ export default function CompaniesPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Company Name */}
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              darkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}>
-              {texts.companyName}
-            </label>
-            <div className="relative">
-              <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                darkMode ? 'text-slate-500' : 'text-slate-400'
-              }`} />
-              <input
-                type="text"
-                name="company_name"
-                placeholder={texts.companyNamePlaceholder}
-                value={form.company_name}
-                onChange={handleChange}
-                required
-                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                } outline-none`}
-              />
+            {/* Company Name */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                {texts.companyName}
+              </label>
+              <div className="relative">
+                <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} />
+                <input
+                  type="text"
+                  name="company_name"
+                  placeholder={texts.companyNamePlaceholder}
+                  value={form.company_name}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  } outline-none`}
+                />
+              </div>
+            </div>
+
+            {/* Industry */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                {texts.industry}
+              </label>
+              <div className="relative">
+                <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} />
+                <input
+                  type="text"
+                  name="industry"
+                  placeholder={texts.industryPlaceholder}
+                  value={form.industry}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  } outline-none`}
+                />
+              </div>
+            </div>
+
+            {/* Website */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                {texts.website}
+              </label>
+              <div className="relative">
+                <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} />
+                <input
+                  type="text"
+                  name="website"
+                  placeholder={texts.websitePlaceholder}
+                  value={form.website}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  } outline-none`}
+                />
+              </div>
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                {texts.address}
+              </label>
+              <div className="relative">
+                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-slate-500' : 'text-slate-400'
+                }`} />
+                <input
+                  type="text"
+                  name="address"
+                  placeholder={texts.addressPlaceholder}
+                  value={form.address}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    darkMode
+                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                  } outline-none`}
+                />
+              </div>
             </div>
           </div>
-
-          {/* Industry */}
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              darkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}>
-              {texts.industry}
-            </label>
-            <div className="relative">
-              <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                darkMode ? 'text-slate-500' : 'text-slate-400'
-              }`} />
-              <input
-                type="text"
-                name="industry"
-                placeholder={texts.industryPlaceholder}
-                value={form.industry}
-                onChange={handleChange}
-                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                } outline-none`}
-              />
-            </div>
-          </div>
-
-          {/* Website */}
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              darkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}>
-              {texts.website}
-            </label>
-            <div className="relative">
-              <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                darkMode ? 'text-slate-500' : 'text-slate-400'
-              }`} />
-              <input
-                type="text"
-                name="website"
-                placeholder={texts.websitePlaceholder}
-                value={form.website}
-                onChange={handleChange}
-                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                } outline-none`}
-              />
-            </div>
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${
-              darkMode ? 'text-slate-300' : 'text-slate-700'
-            }`}>
-              {texts.address}
-            </label>
-            <div className="relative">
-              <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                darkMode ? 'text-slate-500' : 'text-slate-400'
-              }`} />
-              <input
-                type="text"
-                name="address"
-                placeholder={texts.addressPlaceholder}
-                value={form.address}
-                onChange={handleChange}
-                className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                    : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                } outline-none`}
-              />
-            </div>
-          </div>
-        </div>
-
 
           {/* Buttons */}
           <div className="flex gap-3">
@@ -328,16 +345,36 @@ export default function CompaniesPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.companiesList} ({companies.length})
-          </h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.companiesList} ({filteredCompanies.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchCompanies || "Cari perusahaan..."}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-400'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingCompanies} />
-        ) : companies.length === 0 ? (
+        ) : filteredCompanies.length === 0 ? (
           <div className="p-12 text-center">
             <Building2 className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -345,12 +382,12 @@ export default function CompaniesPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noCompaniesYet}
+              {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noCompaniesYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.createFirst}
+              {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirst}
             </p>
           </div>
         ) : (
@@ -391,7 +428,7 @@ export default function CompaniesPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {companies.map((c) => (
+                {filteredCompanies.map((c) => (
                   <tr key={c.company_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
@@ -399,17 +436,14 @@ export default function CompaniesPage() {
                       darkMode ? 'text-slate-300' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4" />
+                        <Building2 className="w-4 h-4 flex-shrink-0" />
                         <span className="font-medium">{c.company_name}</span>
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4" />
-                        {c.industry || '-'}
-                      </div>
+                      {c.industry || '-'}
                     </td>
                     <td className={`px-6 py-4 text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
@@ -419,10 +453,9 @@ export default function CompaniesPage() {
                           href={c.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-500 hover:text-blue-600 hover:underline"
+                          className="text-blue-500 hover:text-blue-600 hover:underline truncate block max-w-[200px]"
                         >
-                          <Globe className="w-4 h-4" />
-                          <span className="truncate max-w-[200px]">{c.website}</span>
+                          {c.website}
                         </a>
                       ) : (
                         <span className={darkMode ? 'text-slate-500' : 'text-gray-400'}>-</span>
@@ -431,22 +464,25 @@ export default function CompaniesPage() {
                     <td className={`px-6 py-4 text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span className="truncate max-w-[150px]">{c.address || '-'}</span>
-                      </div>
+                      {c.address ? (
+                        <span
+                          className={`truncate block max-w-[200px] ${c.address.length > 30 ? 'cursor-pointer' : ''}`}
+                          title={c.address.length > 30 ? c.address : undefined}
+                        >
+                          {c.address}
+                        </span>
+                      ) : (
+                        <span className={darkMode ? 'text-slate-500' : 'text-gray-400'}>-</span>
+                      )}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(c.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </div>
+                      {new Date(c.created_at).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">

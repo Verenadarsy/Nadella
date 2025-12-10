@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   Handshake, Edit2, Trash2, X, Save, Plus,
-  Banknote, Calendar, User, Building2, TrendingUp, ChevronDown
+  Banknote, Calendar, User, Building2, TrendingUp, ChevronDown, Search
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -30,6 +30,12 @@ export default function DealsPage() {
   const [stageOpen, setStageOpen] = useState(false)
   const [companyOpen, setCompanyOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredDeals, setFilteredDeals] = useState([])
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false)
+  const [companySearchOpen, setCompanySearchOpen] = useState(false)
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("")
+  const [companySearchQuery, setCompanySearchQuery] = useState("")
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -47,12 +53,29 @@ export default function DealsPage() {
     return () => observer.disconnect()
   }, [])
 
+      // Filter deals based on search query
+    useEffect(() => {
+      if (searchQuery.trim() === "") {
+        setFilteredDeals(deals)
+      } else {
+        const filtered = deals.filter((deal) =>
+          deal.deal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          deal.deal_stage.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          getCustomerName(deal.customer_id).toLowerCase().includes(searchQuery.toLowerCase()) ||
+          getCompanyName(deal.company_id).toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        setFilteredDeals(filtered)
+      }
+    }, [searchQuery, deals])
+
   const fetchDeals = async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/deals')
       const data = await res.json()
-      setDeals(Array.isArray(data) ? data : [])
+      const dealsData = Array.isArray(data) ? data : []
+      setDeals(dealsData)
+      setFilteredDeals(dealsData)
     } catch (err) {
       console.error('Error fetching deals:', err)
     } finally {
@@ -433,21 +456,51 @@ export default function DealsPage() {
                       : "bg-white border-gray-200 text-slate-900"
                   }`}
                 >
-                  {customers.map((c) => (
-                    <button
-                      key={c.customer_id}
-                      onClick={() => {
-                        setFormData({ ...formData, customer_id: c.customer_id });
-                        setCustomerOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <User size={16} className="opacity-70" />
-                      {c.name}
-                    </button>
-                  ))}
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customerSearchQuery}
+                        onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                        placeholder={texts.searchCustomer || 'Cari customer...'}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Search
+                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                          darkMode ? 'text-slate-400' : 'text-slate-400'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
+                    {customers
+                      .filter(c => c.name.toLowerCase().includes(customerSearchQuery.toLowerCase()))
+                      .map((c) => (
+                        <button
+                          key={c.customer_id}
+                          onClick={() => {
+                            setFormData({ ...formData, customer_id: c.customer_id });
+                            setCustomerOpen(false);
+                            setCustomerSearchQuery("");
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                            darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                          }`}
+                        >
+                          <User size={16} className="opacity-70" />
+                          {c.name}
+                        </button>
+                      ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -496,21 +549,51 @@ export default function DealsPage() {
                       : "bg-white border-gray-200 text-slate-900"
                   }`}
                 >
-                  {companies.map((c) => (
-                    <button
-                      key={c.company_id}
-                      onClick={() => {
-                        setFormData({ ...formData, company_id: c.company_id });
-                        setCompanyOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                      }`}
-                    >
-                      <Building2 size={16} className="opacity-70" />
-                      {c.company_name}
-                    </button>
-                  ))}
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={companySearchQuery}
+                        onChange={(e) => setCompanySearchQuery(e.target.value)}
+                        placeholder={texts.searchCompany || 'Cari company...'}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Search
+                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                          darkMode ? 'text-slate-400' : 'text-slate-400'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
+                    {companies
+                      .filter(c => c.company_name.toLowerCase().includes(companySearchQuery.toLowerCase()))
+                      .map((c) => (
+                        <button
+                          key={c.company_id}
+                          onClick={() => {
+                            setFormData({ ...formData, company_id: c.company_id });
+                            setCompanyOpen(false);
+                            setCompanySearchQuery("");
+                          }}
+                          className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                            darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                          }`}
+                        >
+                          <Building2 size={16} className="opacity-70" />
+                          {c.company_name}
+                        </button>
+                      ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -565,16 +648,36 @@ export default function DealsPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.dealsList} ({deals.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.dealsList} ({filteredDeals.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchDeals}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
+                    : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-400'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingDeals} />
-        ) : deals.length === 0 ? (
+        ) : filteredDeals.length === 0 ? (
           <div className="p-12 text-center">
             <Handshake className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -633,7 +736,7 @@ export default function DealsPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {deals.map((deal) => (
+                {filteredDeals.map((deal) => (
                   <tr key={deal.deal_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
@@ -666,7 +769,6 @@ export default function DealsPage() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
                         {getCustomerName(deal.customer_id)}
                       </div>
                     </td>
@@ -674,7 +776,6 @@ export default function DealsPage() {
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4" />
                         {getCompanyName(deal.company_id)}
                       </div>
                     </td>

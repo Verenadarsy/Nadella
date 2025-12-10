@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
-  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle, XCircle, Sparkles, FileText, Mail, Key
+  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle, XCircle, Sparkles, Mail, Key, Search
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -13,6 +13,7 @@ export default function LeadsPage() {
   const { language, t } = useLanguage()
   const texts = t.leads[language]
   const [leads, setLeads] = useState([])
+  const [filteredLeads, setFilteredLeads] = useState([])
   const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [form, setForm] = useState({
@@ -27,11 +28,13 @@ export default function LeadsPage() {
   const [customerOpen, setCustomerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // ============================================
-  // TAMBAHAN: State untuk pop-up email
-  // ============================================
+  // State untuk email popup
   const [showEmailPopup, setShowEmailPopup] = useState(false)
   const [emailForm, setEmailForm] = useState({ customer_id: '', email: '' })
+
+  // State untuk search
+  const [customerSearch, setCustomerSearch] = useState("")
+  const [tableSearch, setTableSearch] = useState("")
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -44,15 +47,46 @@ export default function LeadsPage() {
     fetchLeads()
     fetchCustomers()
 
-    return () => observer.disconnect()
+    // Close dropdown when clicking outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.customer-dropdown-container')) {
+        setCustomerOpen(false);
+      }
+      if (!e.target.closest('.status-dropdown-container')) {
+        setStatusOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, [])
+
+  // Filter leads berdasarkan table search
+  useEffect(() => {
+    if (tableSearch.trim() === "") {
+      setFilteredLeads(leads);
+    } else {
+      const filtered = leads.filter((lead) =>
+        lead.lead_name?.toLowerCase().includes(tableSearch.toLowerCase()) ||
+        lead.source?.toLowerCase().includes(tableSearch.toLowerCase()) ||
+        lead.lead_status?.toLowerCase().includes(tableSearch.toLowerCase()) ||
+        customers.find(c => c.customer_id === lead.customer_id)?.name?.toLowerCase().includes(tableSearch.toLowerCase())
+      );
+      setFilteredLeads(filtered);
+    }
+  }, [tableSearch, leads, customers]);
 
   async function fetchLeads() {
     try {
       setLoading(true)
       const res = await fetch("/api/leads")
       const data = await res.json()
-      setLeads(Array.isArray(data) ? data : [])
+      const leadsData = Array.isArray(data) ? data : []
+      setLeads(leadsData)
+      setFilteredLeads(leadsData)
     } catch (err) {
       console.error("Failed to fetch leads:", err)
     } finally {
@@ -70,9 +104,6 @@ export default function LeadsPage() {
     }
   }
 
-  // ============================================
-  // UPDATE: handleSubmit dengan email logic
-  // ============================================
   async function handleSubmit(e) {
     e.preventDefault()
 
@@ -113,15 +144,13 @@ export default function LeadsPage() {
       const result = await res.json()
       console.log('🔍 Backend response:', result)
 
-      // ========================================
       // CHECK IF EMAIL INPUT IS NEEDED
-      // ========================================
       if (result.needEmailInput && result.customer_id) {
         console.log('⏳ Email input needed for customer:', result.customer_id)
 
         // Show pop-up untuk input email
         setEmailForm({
-          customer_id: result.customer_id,  // ← customer_id dari backend
+          customer_id: result.customer_id,
           email: ''
         })
         setShowEmailPopup(true)
@@ -151,9 +180,6 @@ export default function LeadsPage() {
     }
   }
 
-  // ============================================
-  // TAMBAHAN: Handle email submit
-  // ============================================
   async function handleEmailSubmit(e) {
     e.preventDefault()
 
@@ -166,7 +192,6 @@ export default function LeadsPage() {
       return
     }
 
-    // Debug: cek data yang dikirim
     console.log('📧 Sending email data:', emailForm)
 
     try {
@@ -275,6 +300,14 @@ export default function LeadsPage() {
     }
   }
 
+  // Filter customer berdasarkan search dropdown (TANPA filter role)
+  const filteredCustomers = customers.filter((c) =>
+    c.name?.toLowerCase().includes(customerSearch.toLowerCase())
+  )
+
+  // Get selected customer name
+  const selectedCustomerName = customers.find(c => c.customer_id === form.customer_id)?.name || (texts.noCustomerLinked || "Not linked yet")
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -307,7 +340,7 @@ export default function LeadsPage() {
                 {texts.leadName || "Lead Name"} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <FileText className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                <UserPlus className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input
@@ -352,7 +385,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Status Select */}
-            <div className="relative">
+            <div className="relative status-dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
@@ -375,7 +408,7 @@ export default function LeadsPage() {
                   {form.lead_status === "disqualified" && <XCircle size={16} />}
                   {texts[form.lead_status]}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown size={18} className={`opacity-60 transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {statusOpen && (
@@ -397,8 +430,10 @@ export default function LeadsPage() {
                         setForm({ ...form, lead_status: item.value });
                         setStatusOpen(false);
                       }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 ${
-                        darkMode ? "hover:bg-slate-600" : ""
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                        form.lead_status === item.value
+                          ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                          : (darkMode ? 'hover:bg-slate-600' : 'hover:bg-gray-100')
                       }`}
                     >
                       {item.icon}
@@ -409,8 +444,8 @@ export default function LeadsPage() {
               )}
             </div>
 
-            {/* Customer Select */}
-            <div className="relative">
+            {/* Customer Select dengan Search */}
+            <div className="relative customer-dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
@@ -430,11 +465,9 @@ export default function LeadsPage() {
                   form.customer_id ? "opacity-90" : "opacity-60"
                 }`}>
                   <User size={16} className="opacity-60" />
-                  {form.customer_id
-                    ? customers.find((c) => c.customer_id === form.customer_id)?.name
-                    : texts.noCustomerLinked || "Not linked yet"}
+                  {selectedCustomerName}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown size={18} className={`opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {customerOpen && (
@@ -443,36 +476,80 @@ export default function LeadsPage() {
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-white border-gray-200 text-slate-900"
                 }`}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForm({ ...form, customer_id: null });
-                      setCustomerOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 italic opacity-60 ${
-                      darkMode ? "hover:bg-slate-600" : ""
-                    }`}
-                  >
-                    <X size={16} />
-                    {texts.clearSelection || "Clear selection"}
-                  </button>
+                  {/* Search Input */}
+                  <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={customerSearch}
+                        onChange={(e) => setCustomerSearch(e.target.value)}
+                        placeholder="Search customer..."
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`} />
+                    </div>
+                  </div>
 
-                  {customers.map((c) => (
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}>
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
                     <button
-                      key={c.customer_id}
                       type="button"
                       onClick={() => {
-                        setForm({ ...form, customer_id: c.customer_id });
+                        setForm({ ...form, customer_id: null });
                         setCustomerOpen(false);
+                        setCustomerSearch('');
                       }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 hover:bg-slate-100 ${
-                        darkMode ? "hover:bg-slate-600" : ""
+                      className={`w-full flex items-center gap-2 px-4 py-2 transition-colors italic opacity-60 ${
+                        darkMode ? "hover:bg-slate-600" : "hover:bg-gray-100"
                       }`}
                     >
-                      <User size={16} className="opacity-70" />
-                      {c.name || "Unnamed Customer"}
+                      <X size={16} />
+                      {texts.clearSelection || "Clear selection"}
                     </button>
-                  ))}
+
+                    {filteredCustomers.map((c) => (
+                      <button
+                        key={c.customer_id}
+                        type="button"
+                        onClick={() => {
+                          setForm({ ...form, customer_id: c.customer_id });
+                          setCustomerOpen(false);
+                          setCustomerSearch('');
+                        }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                          form.customer_id === c.customer_id
+                            ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                            : (darkMode ? 'hover:bg-slate-600' : 'hover:bg-gray-100')
+                        }`}
+                      >
+                        <User size={16} className="opacity-70" />
+                        {c.name || "Unnamed Customer"}
+                      </button>
+                    ))}
+
+                    {filteredCustomers.length === 0 && (
+                      <div className={`px-4 py-2 text-center ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        {customerSearch ? 'No results found' : 'No customers available'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -540,16 +617,36 @@ export default function LeadsPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.leadsList} ({leads.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.leadsList} ({filteredLeads.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={tableSearch}
+                onChange={(e) => setTableSearch(e.target.value)}
+                placeholder={texts.searchLeads || 'Search leads...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                  darkMode
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+              />
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-gray-400' : 'text-gray-500'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingLeads} />
-        ) : leads.length === 0 ? (
+        ) : filteredLeads.length === 0 ? (
           <div className="p-12 text-center">
             <UserPlus className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -557,12 +654,12 @@ export default function LeadsPage() {
             <p className={`text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
-              {texts.noLeadsYet}
+              {tableSearch ? (texts.noResults || 'No results found') : texts.noLeadsYet}
             </p>
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
-              {texts.createFirst}
+              {tableSearch ? (texts.tryDifferentKeyword || 'Try different keyword') : texts.createFirst}
             </p>
           </div>
         ) : (
@@ -603,7 +700,7 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {leads.map((lead) => (
+                {filteredLeads.map((lead) => (
                   <tr key={lead.lead_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
@@ -611,17 +708,14 @@ export default function LeadsPage() {
                       darkMode ? 'text-slate-200' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
+                        <UserPlus className="w-4 h-4" />
                         {lead.lead_name || texts.unnamed}
                       </div>
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        {lead.source}
-                      </div>
+                      {lead.source}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
@@ -692,9 +786,7 @@ export default function LeadsPage() {
         )}
       </div>
 
-      {/* ============================================ */}
-      {/* TAMBAHAN: Email Input Pop-up Modal */}
-      {/* ============================================ */}
+      {/* Email Input Pop-up Modal */}
       {showEmailPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className={`w-full max-w-md rounded-xl shadow-2xl ${

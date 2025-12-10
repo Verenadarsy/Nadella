@@ -23,6 +23,8 @@ export default function TeamsPage() {
     manager_id: ''
   })
   const [managerOpen, setManagerOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [managerSearch, setManagerSearch] = useState("");
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -35,8 +37,39 @@ export default function TeamsPage() {
     fetchTeams()
     fetchUsers()
 
-    return () => observer.disconnect()
+    // Close dropdown when clicking outside
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.manager-dropdown-container')) {
+        setManagerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [])
+
+  // Filter teams berdasarkan search query
+  const [filteredTeams, setFilteredTeams] = useState([]);
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredTeams(teams);
+    } else {
+      const filtered = teams.filter((team) =>
+        team.team_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getManagerName(team.manager_id)?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredTeams(filtered);
+    }
+  }, [searchQuery, teams]);
+
+  // Filter users berdasarkan manager search
+  const filteredUsers = users.filter((user) =>
+    (user.name || user.username).toLowerCase().includes(managerSearch.toLowerCase())
+  );
 
   const fetchTeams = async () => {
     try {
@@ -53,7 +86,7 @@ export default function TeamsPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users')
+      const res = await fetch('/api/users?role=admin')
       const data = await res.json()
       setUsers(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -247,7 +280,7 @@ export default function TeamsPage() {
             </div>
 
             {/* Manager Dropdown */}
-            <div className="relative">
+            <div className="relative manager-dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -260,7 +293,7 @@ export default function TeamsPage() {
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-slate-50 border-gray-200 text-slate-900"
+                    : "bg-white border-gray-200 text-slate-900"
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
@@ -271,49 +304,99 @@ export default function TeamsPage() {
                     ? getManagerName(formData.manager_id)
                     : texts.selectManager}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown size={18} className={`opacity-60 transition-transform ${managerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {managerOpen && (
-                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 max-h-60 overflow-y-auto ${
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
+                    ? "bg-slate-700 border-slate-600"
+                    : "bg-white border-gray-200"
                 }`}>
-                  {/* Option for no manager */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, manager_id: '' })
-                      setManagerOpen(false)
-                    }}
-                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                      darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
-                    }`}
-                  >
-                    <User size={16} className="opacity-50" />
-                    <span className="opacity-60">{texts.noManager}</span>
-                  </button>
+                  {/* Search Input - FIXED STICKY */}
+                  <div className={`sticky top-0 z-10 p-2 border-b-2 ${
+                    darkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-gray-200'
+                  }`} style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={managerSearch}
+                        onChange={(e) => setManagerSearch(e.target.value)}
+                        placeholder={texts.searchManager || 'Cari manager...'}
+                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                            : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                        }`}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <UserCog className={`absolute left-3 top-2.5 w-5 h-5 ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`} />
+                    </div>
+                  </div>
 
-                  {users.map((u) => (
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto" style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}>
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+
+                    {/* Option for no manager */}
                     <button
-                      key={u.user_id}
                       type="button"
                       onClick={() => {
-                        setFormData({ ...formData, manager_id: u.user_id })
+                        setFormData({ ...formData, manager_id: '' })
                         setManagerOpen(false)
+                        setManagerSearch('')
                       }}
                       className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
-                        darkMode ? "hover:bg-slate-600" : "hover:bg-slate-100"
+                        !formData.manager_id
+                          ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                          : (darkMode ? "hover:bg-slate-600 text-white" : "hover:bg-gray-100 text-slate-900")
                       }`}
                     >
-                      <UserCog size={16} className="opacity-70" />
-                      {u.name || u.username}
+                      <User size={16} className="opacity-70" />
+                      <span>{texts.noManager || 'Tidak ada manager'}</span>
                     </button>
-                  ))}
+
+                    {filteredUsers.map((u) => (
+                      <button
+                        key={u.user_id}
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, manager_id: u.user_id })
+                          setManagerOpen(false)
+                          setManagerSearch('')
+                        }}
+                        className={`w-full flex items-center gap-2 px-4 py-2 transition-colors ${
+                          formData.manager_id === u.user_id
+                            ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                            : (darkMode ? "hover:bg-slate-600 text-white" : "hover:bg-gray-100 text-slate-900")
+                        }`}
+                      >
+                        <UserCog size={16} className="opacity-70" />
+                        {u.name || u.username}
+                      </button>
+                    ))}
+
+                    {/* No results message */}
+                    {filteredUsers.length === 0 && (
+                      <div className={`px-4 py-2 text-center ${
+                        darkMode ? 'text-slate-400' : 'text-slate-400'
+                      }`}>
+                        {texts.noResults || 'Tidak ada hasil'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-            </div>
+</div>
           </div>
 
           {/* Buttons */}
@@ -368,16 +451,36 @@ export default function TeamsPage() {
         <div className={`px-6 py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <h2 className={`text-lg font-semibold ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            {texts.teamsList} ({teams.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className={`text-lg font-semibold ${
+              darkMode ? 'text-white' : 'text-slate-900'
+            }`}>
+              {texts.teamsList} ({filteredTeams.length})
+            </h2>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-md">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={texts.searchTeams || 'Search teams...'}
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
+                }`}
+              />
+              <UsersRound className={`absolute left-3 top-2.5 w-5 h-5 ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`} />
+            </div>
+          </div>
         </div>
 
         {loading ? (
           <SectionLoader darkMode={darkMode} text={texts.loadingTeams} />
-        ) : teams.length === 0 ? (
+        ) : filteredTeams.length === 0 ? (
           <div className="p-12 text-center">
             <UsersRound className={`w-16 h-16 mx-auto mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
@@ -421,7 +524,7 @@ export default function TeamsPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {teams.map((team) => {
+                {filteredTeams.map((team) => {
                   const managerName = getManagerName(team.manager_id)
                   return (
                     <tr key={team.team_id} className={`transition-colors ${
