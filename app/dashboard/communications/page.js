@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { showAlert } from '@/lib/sweetalert';
 import {
   MessageSquare, Edit2, Trash2, X, Save, Plus,
-  Mail, Phone, MessageCircle, Send, User, Clock, ChevronDown, FileText
+  Mail, Phone, MessageCircle, Send, User, Clock, ChevronDown, FileText,
+  Search
 } from 'lucide-react';
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -285,7 +286,7 @@ export default function CommunicationsPage() {
                         type="text"
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
-                        placeholder={texts.searchCustomer || "Cari customer..."}
+                        placeholder={texts.searchCustomer}
                         className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
@@ -293,7 +294,7 @@ export default function CommunicationsPage() {
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <User className={`absolute left-3 top-2.5 w-5 h-5 ${
+                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
                         darkMode ? 'text-slate-400' : 'text-slate-400'
                       }`} />
                     </div>
@@ -496,19 +497,19 @@ export default function CommunicationsPage() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={texts.searchCommunications || 'Cari komunikasi...'}
+                placeholder={texts.searchCommunications}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
                     : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
                 }`}
               />
-              <MessageSquare className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`} />
             </div>

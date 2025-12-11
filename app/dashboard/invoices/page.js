@@ -346,7 +346,7 @@ export default function InvoicesPage() {
                         type="text"
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
-                        placeholder={texts.searchCustomers || 'Cari customer...'}
+                        placeholder={texts.searchCustomers}
                         className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
@@ -411,7 +411,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.amount} (Rp)
+                {texts.amount}
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -420,7 +420,7 @@ export default function InvoicesPage() {
                 <input
                   type="number"
                   name="amount"
-                  placeholder={texts.enterAmount}
+                  placeholder={texts.amountPlaceholder}
                   value={formData.amount}
                   onChange={handleChange}
                   required
@@ -596,12 +596,12 @@ export default function InvoicesPage() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={texts.searchInvoices || 'Cari invoice...'}
+                placeholder={texts.searchInvoices}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'

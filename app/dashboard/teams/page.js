@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   UsersRound, Edit2, Trash2, X, Save, Plus,
-  User, Calendar, UserCog, ChevronDown, Clock
+  User, Calendar, UserCog, ChevronDown, Clock,
+  Search
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
@@ -322,7 +323,7 @@ export default function TeamsPage() {
                         type="text"
                         value={managerSearch}
                         onChange={(e) => setManagerSearch(e.target.value)}
-                        placeholder={texts.searchManager || 'Cari manager...'}
+                        placeholder={texts.searchManager}
                         className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
@@ -330,7 +331,7 @@ export default function TeamsPage() {
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <UserCog className={`absolute left-3 top-2.5 w-5 h-5 ${
+                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
                         darkMode ? 'text-slate-400' : 'text-slate-400'
                       }`} />
                     </div>
@@ -396,7 +397,7 @@ export default function TeamsPage() {
                   </div>
                 </div>
               )}
-</div>
+            </div>
           </div>
 
           {/* Buttons */}
@@ -459,19 +460,19 @@ export default function TeamsPage() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={texts.searchTeams || 'Search teams...'}
+                placeholder={texts.searchTeams}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
                     : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
                 }`}
               />
-              <UsersRound className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`} />
             </div>

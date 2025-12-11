@@ -408,7 +408,7 @@ export default function CampaignsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.budget} (Rp)
+                {texts.budget}
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -491,12 +491,12 @@ export default function CampaignsPage() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={texts.searchCampaigns || 'Cari campaign...'}
+                placeholder={texts.searchCampaigns}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
                   darkMode
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'

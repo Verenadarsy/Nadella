@@ -353,12 +353,12 @@ export default function CompaniesPage() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={texts.searchCompanies || "Cari perusahaan..."}
+                placeholder={texts.searchCompanies}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'

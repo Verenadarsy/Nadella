@@ -209,7 +209,7 @@ export default function ProductsCRUD() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.price} (Rp)
+                {texts.price}
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -317,7 +317,7 @@ export default function ProductsCRUD() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
@@ -329,7 +329,7 @@ export default function ProductsCRUD() {
                     : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                 }`}
               />
-              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-3 top-2.5 w-5 h-5 pointer-events-none ${
                 darkMode ? 'text-slate-400' : 'text-slate-400'
               }`} />
             </div>

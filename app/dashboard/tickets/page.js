@@ -482,7 +482,7 @@ export default function TicketsPage() {
                         type="text"
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
-                        placeholder={texts.searchCustomers || 'Cari customer...'}
+                        placeholder={texts.searchCustomers}
                         className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
@@ -492,7 +492,7 @@ export default function TicketsPage() {
                       />
 
                       <Search
-                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                        className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${
                           darkMode ? 'text-slate-400' : 'text-slate-400'
                         }`}
                       />
@@ -728,27 +728,29 @@ export default function TicketsPage() {
     }`}>
       {/* Search Input */}
       <div
-        className="p-2 border-b-2 relative"
+        className="p-2 border-b-2"
         style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}
       >
-        <Search
-          className={`absolute left-3 top-2.5 w-5 h-5 ${
-            darkMode ? 'text-slate-400' : 'text-slate-400'
-          }`}
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={assignedSearch}
+            onChange={(e) => setAssignedSearch(e.target.value)}
+            placeholder={texts.searchPIC}
+            className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+              darkMode
+                ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          />
 
-        <input
-          type="text"
-          value={assignedSearch}
-          onChange={(e) => setAssignedSearch(e.target.value)}
-          placeholder={texts.searchPIC || 'Cari user...'}
-          className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
-            darkMode
-              ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
-              : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        />
+          <Search
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${
+              darkMode ? 'text-slate-400' : 'text-slate-400'
+            }`}
+          />
+        </div>
       </div>
 
 
@@ -865,12 +867,12 @@ export default function TicketsPage() {
             </h2>
 
             {/* Search Bar */}
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={texts.searchTickets || 'Cari tiket...'}
+                placeholder={texts.searchTickets}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
