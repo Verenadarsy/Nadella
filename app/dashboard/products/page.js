@@ -21,6 +21,7 @@ export default function ProductsCRUD() {
   const [editId, setEditId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -53,6 +54,7 @@ export default function ProductsCRUD() {
       }, darkMode).then(() => router.push("/dashboard"))
       return
     }
+    setUserRole(roleCookie)
 
     fetchProducts()
 
@@ -125,6 +127,14 @@ export default function ProductsCRUD() {
   }
 
   const handleDelete = async (id) => {
+    if (userRole !== 'superadmin') {
+    showAlert({
+      icon: 'error',
+      title: texts.accessDenied || 'Akses Ditolak',
+      text: 'Hanya Superadmin yang dapat menghapus produk'
+    }, darkMode)
+    return
+  }
     const confirm = await showAlert({
       title: texts.deleteProduct,
       text: texts.cannotUndo,
@@ -411,18 +421,21 @@ export default function ProductsCRUD() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center w-32">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
-                            darkMode
-                              ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                          }`}
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                          darkMode
+                            ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                            : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                        }`}
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+
+                      {/* HANYA YANG INI - HAPUS TOMBOL DELETE YANG KEDUA */}
+                      {userRole === 'superadmin' && (
                         <button
                           onClick={() => handleDelete(product.product_id)}
                           className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
@@ -434,8 +447,9 @@ export default function ProductsCRUD() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      </div>
-                    </td>
+                      )}
+                    </div>
+                  </td>
                   </tr>
                 ))}
               </tbody>

@@ -25,6 +25,7 @@ export default function CompaniesPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -34,6 +35,13 @@ export default function CompaniesPage() {
     checkDarkMode()
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+
+    const roleCookie = document.cookie
+    .split("; ")
+    .find((r) => r.startsWith("userRole="))
+    ?.split("=")[1]
+
+  setUserRole(roleCookie)
 
     fetchCompanies()
 
@@ -116,6 +124,14 @@ export default function CompaniesPage() {
 
   // Delete company
   const handleDelete = async (id) => {
+      if (userRole !== 'superadmin') {
+        showAlert({
+          icon: 'error',
+          title: texts.accessDenied || 'Akses Ditolak',
+          text: 'Hanya Superadmin yang dapat menghapus perusahaan'
+        }, darkMode)
+        return
+      }
     const confirm = await showAlert({
       title: texts.deleteCompany,
       text: texts.cannotUndo,
@@ -169,174 +185,176 @@ export default function CompaniesPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* FORM */}
-      <div className={`rounded-xl p-6 mb-6 shadow-lg ${
-        darkMode ? 'bg-slate-800' : 'bg-white'
-      }`}>
-        <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-          darkMode ? 'text-white' : 'text-slate-900'
+      {/* FORM - Hanya tampil untuk superadmin */}
+      {userRole === 'superadmin' && (
+        <div className={`rounded-xl p-6 mb-6 shadow-lg ${
+          darkMode ? 'bg-slate-800' : 'bg-white'
         }`}>
-          {isEditing ? (
-            <>
-              <Edit2 className="w-5 h-5" />
-              {texts.editCompany}
-            </>
-          ) : (
-            <>
-              <Plus className="w-5 h-5" />
-              {texts.addNewCompany}
-            </>
-          )}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Company Name */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                {texts.companyName}
-              </label>
-              <div className="relative">
-                <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                  darkMode ? 'text-slate-500' : 'text-slate-400'
-                }`} />
-                <input
-                  type="text"
-                  name="company_name"
-                  placeholder={texts.companyNamePlaceholder}
-                  value={form.company_name}
-                  onChange={handleChange}
-                  required
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                  } outline-none`}
-                />
-              </div>
-            </div>
-
-            {/* Industry */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                {texts.industry}
-              </label>
-              <div className="relative">
-                <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                  darkMode ? 'text-slate-500' : 'text-slate-400'
-                }`} />
-                <input
-                  type="text"
-                  name="industry"
-                  placeholder={texts.industryPlaceholder}
-                  value={form.industry}
-                  onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                  } outline-none`}
-                />
-              </div>
-            </div>
-
-            {/* Website */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                {texts.website}
-              </label>
-              <div className="relative">
-                <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                  darkMode ? 'text-slate-500' : 'text-slate-400'
-                }`} />
-                <input
-                  type="text"
-                  name="website"
-                  placeholder={texts.websitePlaceholder}
-                  value={form.website}
-                  onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                  } outline-none`}
-                />
-              </div>
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                {texts.address}
-              </label>
-              <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                  darkMode ? 'text-slate-500' : 'text-slate-400'
-                }`} />
-                <input
-                  type="text"
-                  name="address"
-                  placeholder={texts.addressPlaceholder}
-                  value={form.address}
-                  onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                  } outline-none`}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
-                isEditing
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              } shadow-lg hover:shadow-xl`}
-            >
-              {isEditing ? (
-                <>
-                  <Save className="w-5 h-5" />
-                  {texts.updateCompany}
-                </>
-              ) : (
-                <>
-                  <Plus className="w-5 h-5" />
-                  {texts.addCompany}
-                </>
-              )}
-            </button>
-
-            {isEditing && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                  darkMode
-                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                <X className="w-5 h-5" />
-                {texts.cancel}
-              </button>
+          <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+            darkMode ? 'text-white' : 'text-slate-900'
+          }`}>
+            {isEditing ? (
+              <>
+                <Edit2 className="w-5 h-5" />
+                {texts.editCompany}
+              </>
+            ) : (
+              <>
+                <Plus className="w-5 h-5" />
+                {texts.addNewCompany}
+              </>
             )}
-          </div>
-        </form>
-      </div>
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Company Name */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  {texts.companyName}
+                </label>
+                <div className="relative">
+                  <Building2 className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                    darkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`} />
+                  <input
+                    type="text"
+                    name="company_name"
+                    placeholder={texts.companyNamePlaceholder}
+                    value={form.company_name}
+                    onChange={handleChange}
+                    required
+                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                      darkMode
+                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                    } outline-none`}
+                  />
+                </div>
+              </div>
+
+              {/* Industry */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  {texts.industry}
+                </label>
+                <div className="relative">
+                  <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                    darkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`} />
+                  <input
+                    type="text"
+                    name="industry"
+                    placeholder={texts.industryPlaceholder}
+                    value={form.industry}
+                    onChange={handleChange}
+                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                      darkMode
+                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                    } outline-none`}
+                  />
+                </div>
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  {texts.website}
+                </label>
+                <div className="relative">
+                  <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                    darkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`} />
+                  <input
+                    type="text"
+                    name="website"
+                    placeholder={texts.websitePlaceholder}
+                    value={form.website}
+                    onChange={handleChange}
+                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                      darkMode
+                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                    } outline-none`}
+                  />
+                </div>
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  {texts.address}
+                </label>
+                <div className="relative">
+                  <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                    darkMode ? 'text-slate-500' : 'text-slate-400'
+                  }`} />
+                  <input
+                    type="text"
+                    name="address"
+                    placeholder={texts.addressPlaceholder}
+                    value={form.address}
+                    onChange={handleChange}
+                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                      darkMode
+                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                    } outline-none`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+                  isEditing
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } shadow-lg hover:shadow-xl`}
+              >
+                {isEditing ? (
+                  <>
+                    <Save className="w-5 h-5" />
+                    {texts.updateCompany}
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5" />
+                    {texts.addCompany}
+                  </>
+                )}
+              </button>
+
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                    darkMode
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  <X className="w-5 h-5" />
+                  {texts.cancel}
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* COMPANIES LIST */}
       <div className={`rounded-xl overflow-hidden shadow-lg ${
@@ -484,32 +502,40 @@ export default function CompaniesPage() {
                         year: 'numeric'
                       })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(c)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                          }`}
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(c.company_id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-red-500 hover:bg-red-600 text-white'
-                          }`}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {userRole === 'superadmin' ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(c)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                darkMode
+                                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                              }`}
+                              title="Edit"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(c.company_id)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                darkMode
+                                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                                  : 'bg-red-500 hover:bg-red-600 text-white'
+                              }`}
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={`text-sm ${
+                            darkMode ? 'text-slate-400' : 'text-gray-500'
+                          }`}>
+                            -
+                          </span>
+                        )}
+                      </td>
                   </tr>
                 ))}
               </tbody>

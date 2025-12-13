@@ -26,6 +26,7 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [picSearch, setPicSearch] = useState("");
   const [isPicDropdownOpen, setIsPicDropdownOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -35,6 +36,13 @@ export default function CustomersPage() {
     checkDarkMode();
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true });
+
+    const roleCookie = document.cookie
+    .split("; ")
+    .find((r) => r.startsWith("userRole="))
+    ?.split("=")[1];
+
+  setUserRole(roleCookie);
 
     fetchData();
     fetchAdminUsers();
@@ -159,6 +167,16 @@ export default function CustomersPage() {
   };
 
   const handleDelete = async (id) => {
+    // Proteksi - hanya superadmin yang bisa delete
+    if (userRole !== 'superadmin') {
+      showAlert({
+        icon: 'error',
+        title: texts.accessDenied || 'Akses Ditolak',
+        text: 'Hanya Superadmin yang dapat menghapus customer'
+      }, darkMode);
+      return;
+    }
+
     const confirm = await showAlert({
       title: texts.deleteCustomer,
       text: texts.cannotUndo,
@@ -222,300 +240,314 @@ export default function CustomersPage() {
       <div className="max-w-7xl mx-auto">
 
         {/* FORM */}
-        <div className={`rounded-xl shadow-lg p-8 mb-8 transition-colors ${
-          darkMode ? 'bg-gray-800' : 'bg-white'
-        }`}>
-          <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${
-            darkMode ? 'text-white' : 'text-gray-900'
+        {(userRole === 'superadmin' || (userRole === 'admin' && editing)) && (
+          <div className={`rounded-xl shadow-lg p-8 mb-8 transition-colors ${
+            darkMode ? 'bg-gray-800' : 'bg-white'
           }`}>
-            {editing ? (
-              <>
-                <Edit2 className="w-7 h-7" />
-                {texts.editCustomer}
-              </>
-            ) : (
-              <>
-                <Plus className="w-7 h-7" />
-                {texts.addNewCustomer}
-              </>
-            )}
-          </h2>
+            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              {editing ? (
+                <>
+                  <Edit2 className="w-7 h-7" />
+                  {texts.editCustomer}
+                </>
+              ) : (
+                <>
+                  <Plus className="w-7 h-7" />
+                  {texts.addNewCustomer}
+                </>
+              )}
+            </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Customer Name */}
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-2 ${
-                    darkMode ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  {texts.customerName}
-                </label>
-
-                <div className="relative">
-                  <User
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                      darkMode ? "text-slate-500" : "text-slate-400"
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Customer Name */}
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
-                  />
+                  >
+                    {texts.customerName}
+                  </label>
 
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder={texts.customerNamePlaceholder || "e.g. John Doe"}
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
-                      darkMode
-                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                    }`}
-                  />
+                  <div className="relative">
+                    <User
+                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                        darkMode ? "text-slate-500" : "text-slate-400"
+                      }`}
+                    />
+
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder={texts.customerNamePlaceholder}
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      disabled={userRole === 'admin'}
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                        userRole === 'admin'
+                          ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                          : (darkMode
+                            ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                            : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600")
+                      }`}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Email */}
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-2 ${
-                    darkMode ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  {texts.email}
-                </label>
-
-                <div className="relative">
-                  <Mail
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                      darkMode ? "text-slate-500" : "text-slate-400"
+                {/* Email */}
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
-                  />
+                  >
+                    {texts.email}
+                  </label>
 
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder={texts.emailPlaceholder || "e.g. john@example.com"}
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
-                      darkMode
-                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                    }`}
-                  />
+                  <div className="relative">
+                    <Mail
+                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                        darkMode ? "text-slate-500" : "text-slate-400"
+                      }`}
+                    />
+
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder={texts.emailPlaceholder || "e.g. john@example.com"}
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={userRole === 'admin'}
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                        userRole === 'admin'
+                          ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                          : (darkMode
+                            ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                            : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600")
+                      }`}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Phone */}
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-2 ${
-                    darkMode ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  {texts.phone}
-                </label>
-
-                <div className="relative">
-                  <Phone
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                      darkMode ? "text-slate-500" : "text-slate-400"
+                {/* Phone */}
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
-                  />
+                  >
+                    {texts.phone}
+                  </label>
 
-                  <input
-                    type="text"
-                    name="phone"
-                    placeholder={texts.phonePlaceholder || "e.g. +62 812 3456 7890"}
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
-                      darkMode
-                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                    }`}
-                  />
+                  <div className="relative">
+                    <Phone
+                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                        darkMode ? "text-slate-500" : "text-slate-400"
+                      }`}
+                    />
+
+                    <input
+                      type="text"
+                      name="phone"
+                      placeholder={texts.phonePlaceholder || "e.g. +62 812 3456 7890"}
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={userRole === 'admin'}
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                        userRole === 'admin'
+                          ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                          : (darkMode
+                            ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                            : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600")
+                      }`}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* PIC dengan Dropdown Custom */}
-              <div className="relative pic-dropdown-container">
-                <label className={`block text-sm font-medium mb-2 ${ darkMode ? 'text-slate-300' : 'text-slate-700' }`}>
-                  {texts.pic || 'PIC (Person In Charge)'}
-                </label>
+                {/* PIC dengan Dropdown Custom */}
+                <div className="relative pic-dropdown-container">
+                  <label className={`block text-sm font-medium mb-2 ${ darkMode ? 'text-slate-300' : 'text-slate-700' }`}>
+                    {texts.pic || 'PIC (Person In Charge)'}
+                  </label>
 
-                {/* Dropdown Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsPicDropdownOpen(!isPicDropdownOpen)}
-                  className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors outline-none text-left flex items-center justify-between ${
-                    darkMode
-                      ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
-                      : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
-                  }`}
-                >
-                  <span className={!formData.pic_id ? (darkMode ? 'text-slate-500' : 'text-slate-400') : ''}>
-                    {selectedPicName}
-                  </span>
-                  <svg className={`w-5 h-5 transition-transform ${isPicDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPicDropdownOpen(!isPicDropdownOpen)}
+                    className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors outline-none text-left flex items-center justify-between ${
+                      darkMode
+                        ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
+                        : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
+                    }`}
+                  >
+                    <span className={!formData.pic_id ? (darkMode ? 'text-slate-500' : 'text-slate-400') : ''}>
+                      {selectedPicName}
+                    </span>
+                    <svg className={`w-5 h-5 transition-transform ${isPicDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-                {/* Dropdown Menu */}
-                {isPicDropdownOpen && (
-                  <div className={`absolute z-10 w-full mt-1 rounded-lg border-2 shadow-lg ${
-                    darkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-gray-200'
-                  }`}>
-                    {/* Search Input */}
-                    <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={picSearch}
-                          onChange={(e) => setPicSearch(e.target.value)}
-                          placeholder={texts.searchPIC}
-                          className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
-                            darkMode
-                              ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
-                              : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
-                          }`}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
-                          darkMode ? 'text-slate-400' : 'text-slate-400'
-                        }`} />
+                  {/* Dropdown Menu */}
+                  {isPicDropdownOpen && (
+                    <div className={`absolute z-10 w-full mt-1 rounded-lg border-2 shadow-lg ${
+                      darkMode ? 'bg-slate-700 border-slate-600' : 'bg-white border-gray-200'
+                    }`}>
+                      {/* Search Input */}
+                      <div className="p-2 border-b-2" style={{ borderColor: darkMode ? '#475569' : '#E2E8F0' }}>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={picSearch}
+                            onChange={(e) => setPicSearch(e.target.value)}
+                            placeholder={texts.searchPIC}
+                            className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                              darkMode
+                                ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
+                                : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                            }`}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                            darkMode ? 'text-slate-400' : 'text-slate-400'
+                          }`} />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Options List */}
-                    <div className="max-h-60 overflow-y-auto" style={{
-                      scrollbarWidth: 'none',
-                      msOverflowStyle: 'none'
-                    }}>
-                      <style jsx>{`
-                        div::-webkit-scrollbar {
-                          display: none;
-                        }
-                      `}</style>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData({ ...formData, pic_id: '' });
-                          setIsPicDropdownOpen(false);
-                          setPicSearch('');
-                        }}
-                        className={`w-full px-4 py-2 text-left hover:bg-opacity-50 transition-colors ${
-                          darkMode ? 'hover:bg-slate-600 text-slate-400' : 'hover:bg-gray-100 text-slate-400'
-                        }`}
-                      >
-                        {texts.selectPIC}
-                      </button>
-                      {filteredAdminUsers.map((user) => (
+                      {/* Options List */}
+                      <div className="max-h-60 overflow-y-auto" style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none'
+                      }}>
+                        <style jsx>{`
+                          div::-webkit-scrollbar {
+                            display: none;
+                          }
+                        `}</style>
                         <button
-                          key={user.user_id}
                           type="button"
                           onClick={() => {
-                            setFormData({ ...formData, pic_id: user.user_id });
+                            setFormData({ ...formData, pic_id: '' });
                             setIsPicDropdownOpen(false);
                             setPicSearch('');
                           }}
-                          className={`w-full px-4 py-2 text-left transition-colors ${
-                            formData.pic_id === user.user_id
-                              ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
-                              : (darkMode ? 'hover:bg-slate-600 text-white' : 'hover:bg-gray-100 text-slate-900')
+                          className={`w-full px-4 py-2 text-left hover:bg-opacity-50 transition-colors ${
+                            darkMode ? 'hover:bg-slate-600 text-slate-400' : 'hover:bg-gray-100 text-slate-400'
                           }`}
                         >
-                          {user.name}
+                          {texts.selectPIC}
                         </button>
-                      ))}
-                      {filteredAdminUsers.length === 0 && (
-                        <div className={`px-4 py-2 text-center ${
-                          darkMode ? 'text-slate-400' : 'text-slate-400'
-                        }`}>
-                          {texts.noResults || 'Tidak ada hasil'}
-                        </div>
-                      )}
+                        {filteredAdminUsers.map((user) => (
+                          <button
+                            key={user.user_id}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ ...formData, pic_id: user.user_id });
+                              setIsPicDropdownOpen(false);
+                              setPicSearch('');
+                            }}
+                            className={`w-full px-4 py-2 text-left transition-colors ${
+                              formData.pic_id === user.user_id
+                                ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+                                : (darkMode ? 'hover:bg-slate-600 text-white' : 'hover:bg-gray-100 text-slate-900')
+                            }`}
+                          >
+                            {user.name}
+                          </button>
+                        ))}
+                        {filteredAdminUsers.length === 0 && (
+                          <div className={`px-4 py-2 text-center ${
+                            darkMode ? 'text-slate-400' : 'text-slate-400'
+                          }`}>
+                            {texts.noResults || 'Tidak ada hasil'}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Address - Full Width */}
-            <div>
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  darkMode ? "text-slate-300" : "text-slate-700"
-                }`}
-              >
-                {texts.address}
-              </label>
-
-              <div className="relative">
-                <MapPin
-                  className={`absolute left-3 top-3 w-4 h-4 ${
-                    darkMode ? "text-slate-500" : "text-slate-400"
-                  }`}
-                />
-
-                <textarea
-                  name="address"
-                  placeholder={texts.addressPlaceholder || "e.g. Jl. Merdeka No. 123, Bandung"}
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows={3}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none resize-none ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
-                  }`}
-                />
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
-                  editing
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                } shadow-lg hover:shadow-xl`}
-              >
-                {editing ? (
-                  <>
-                    <Save className="w-5 h-5" />
-                    {texts.updateCustomer}
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-5 h-5" />
-                    {texts.addCustomer}
-                  </>
-                )}
-              </button>
-
-              {editing && (
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                    darkMode
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              {/* Address - Full Width */}
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-2 ${
+                    darkMode ? "text-slate-300" : "text-slate-700"
                   }`}
                 >
-                  <X className="w-5 h-5" />
-                  {texts.cancel}
+                  {texts.address}
+                </label>
+
+                <div className="relative">
+                  <MapPin
+                    className={`absolute left-3 top-3 w-4 h-4 ${
+                      darkMode ? "text-slate-500" : "text-slate-400"
+                    }`}
+                  />
+
+                  <textarea
+                    name="address"
+                    placeholder={texts.addressPlaceholder || "e.g. Jl. Merdeka No. 123, Bandung"}
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows={3}
+                    disabled={userRole === 'admin'}
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none resize-none ${
+                      userRole === 'admin'
+                        ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                        : (darkMode
+                          ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                          : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600")
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+                    editing
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } shadow-lg hover:shadow-xl`}
+                >
+                  {editing ? (
+                    <>
+                      <Save className="w-5 h-5" />
+                      {texts.updateCustomer}
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5" />
+                      {texts.addCustomer}
+                    </>
+                  )}
                 </button>
-              )}
-            </div>
-          </form>
-        </div>
+
+                {editing && (
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                      darkMode
+                        ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    <X className="w-5 h-5" />
+                    {texts.cancel}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* CUSTOMERS LIST */}
         <div className={`rounded-xl shadow-lg p-8 transition-colors ${
@@ -679,17 +711,21 @@ export default function CustomersPage() {
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => handleDelete(cust.customer_id)}
-                            className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
-                              darkMode
-                                ? 'bg-red-600 hover:bg-red-700 text-white'
-                                : 'bg-red-500 hover:bg-red-600 text-white'
-                            }`}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+
+                          {/* Tombol Delete hanya untuk superadmin */}
+                          {userRole === 'superadmin' && (
+                            <button
+                              onClick={() => handleDelete(cust.customer_id)}
+                              className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                                darkMode
+                                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                                  : 'bg-red-500 hover:bg-red-600 text-white'
+                              }`}
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
