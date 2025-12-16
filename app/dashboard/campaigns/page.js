@@ -28,6 +28,7 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredCampaigns, setFilteredCampaigns] = useState([])
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -36,6 +37,13 @@ export default function CampaignsPage() {
     checkDarkMode()
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
 
     fetchCampaigns()
 
@@ -133,6 +141,14 @@ export default function CampaignsPage() {
   }
 
   const handleDelete = async (id) => {
+      if (userRole !== 'superadmin') {
+        showAlert({
+          icon: 'error',
+          title: texts.accessDenied || 'Akses Ditolak',
+          text: 'Hanya Superadmin yang dapat menghapus campaign'
+        }, darkMode);
+        return;
+      }
     const confirm = await showAlert({
       title: texts.deleteCampaign,
       text: texts.cannotUndo,
@@ -623,6 +639,7 @@ export default function CampaignsPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
+                        {userRole === 'superadmin' && (
                         <button
                           onClick={() => handleDelete(campaign.campaign_id)}
                           className={`p-2 rounded-lg transition-colors ${
@@ -634,6 +651,7 @@ export default function CampaignsPage() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                      )}
                       </div>
                     </td>
                   </tr>

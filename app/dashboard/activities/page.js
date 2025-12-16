@@ -29,7 +29,7 @@ export default function ActivitiesPage() {
   const { language, t } = useLanguage()
   const texts = t.activities[language]
   const [activities, setActivities] = useState([])
-  const [users, setUsers] = useState([])
+  const [customers, setCustomers] = useState([])
   const [darkMode, setDarkMode] = useState(false)
   const [formData, setFormData] = useState({
     type: '',
@@ -43,6 +43,7 @@ export default function ActivitiesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredActivities, setFilteredActivities] = useState([])
   const [userSearchQuery, setUserSearchQuery] = useState("")
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -52,8 +53,15 @@ export default function ActivitiesPage() {
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
 
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
+
     fetchActivities()
-    fetchUsers()
+    fetchCustomers()
 
     return () => observer.disconnect()
   }, [])
@@ -65,7 +73,7 @@ export default function ActivitiesPage() {
       const filtered = activities.filter((activity) =>
         activity.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         activity.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getUserName(activity.assigned_to).toLowerCase().includes(searchQuery.toLowerCase())
+        getCustomerName(activity.assigned_to).toLowerCase().includes(searchQuery.toLowerCase())
       )
       setFilteredActivities(filtered)
     }
@@ -84,10 +92,10 @@ export default function ActivitiesPage() {
     }
   }
 
-  const fetchUsers = async () => {
-    const res = await fetch('/api/users?role=admin')
+  const fetchCustomers = async () => {
+    const res = await fetch('/api/customers')
     const data = await res.json()
-    setUsers(Array.isArray(data) ? data : [])
+    setCustomers(Array.isArray(data) ? data : [])
   }
 
   const handleChange = (e) => {
@@ -133,6 +141,15 @@ export default function ActivitiesPage() {
   }
 
   const handleDelete = (id) => {
+    if (userRole !== 'superadmin') {
+      showAlert({
+        icon: 'error',
+        title: texts.accessDenied || 'Akses Ditolak',
+        text: 'Hanya Superadmin yang dapat menghapus activity'
+      }, darkMode);
+      return;
+    }
+
     showAlert({
       title: texts.deleteActivity,
       text: texts.cannotUndo,
@@ -180,7 +197,7 @@ export default function ActivitiesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const getUserName = (id) => users.find((u) => u.user_id === id)?.name || '-'
+  const getCustomerName = (id) => customers.find((c) => c.customer_id === id)?.name || '-'
 
   const getActivityIcon = (type) => {
     switch(type) {
@@ -304,8 +321,8 @@ export default function ActivitiesPage() {
                 }`}>
                   <User size={16} className="opacity-60" />
                   {formData.assigned_to
-                    ? users.find((u) => u.user_id === formData.assigned_to)?.name
-                    : texts.selectUser}
+                    ? customers.find((c) => c.customer_id === formData.assigned_to)?.name
+                    : texts.selectUser || "Select Customer"}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
               </button>
@@ -323,7 +340,7 @@ export default function ActivitiesPage() {
                         type="text"
                         value={userSearchQuery}
                         onChange={(e) => setUserSearchQuery(e.target.value)}
-                        placeholder={texts.searchUser}
+                        placeholder={texts.searchUser || "Search customer..."}
                         className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
@@ -343,14 +360,14 @@ export default function ActivitiesPage() {
                   {/* Options List */}
                   <div className="max-h-60 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
-                    {users
-                      .filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase()))
-                      .map((u) => (
+                    {customers
+                      .filter(c => c.name.toLowerCase().includes(userSearchQuery.toLowerCase()))
+                      .map((c) => (
                         <button
-                          key={u.user_id}
+                          key={c.customer_id}
                           type="button"
                           onClick={() => {
-                            setFormData({ ...formData, assigned_to: u.user_id })
+                            setFormData({ ...formData, assigned_to: c.customer_id })
                             setUserOpen(false)
                             setUserSearchQuery("")
                           }}
@@ -359,10 +376,10 @@ export default function ActivitiesPage() {
                           }`}
                         >
                           <User size={16} className="opacity-70" />
-                          {u.name}
+                          {c.name}
                         </button>
                       ))}
-                    {users.filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
+                    {customers.filter(c => c.name.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
                       <div className={`px-4 py-2 text-center text-sm ${
                         darkMode ? 'text-slate-400' : 'text-slate-400'
                       }`}>
@@ -563,7 +580,7 @@ export default function ActivitiesPage() {
                     }`}>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        {getUserName(activity.assigned_to)}
+                        {getCustomerName(activity.assigned_to)}
                       </div>
                     </td>
                     <td className={`px-6 py-4 text-sm ${
@@ -586,17 +603,19 @@ export default function ActivitiesPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(activity.activity_id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-red-500 hover:bg-red-600 text-white'
-                          }`}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {userRole === 'superadmin' && (
+                          <button
+                            onClick={() => handleDelete(activity.activity_id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              darkMode
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-red-500 hover:bg-red-600 text-white'
+                            }`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -36,6 +36,7 @@ export default function DealsPage() {
   const [companySearchOpen, setCompanySearchOpen] = useState(false)
   const [customerSearchQuery, setCustomerSearchQuery] = useState("")
   const [companySearchQuery, setCompanySearchQuery] = useState("")
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -45,6 +46,13 @@ export default function DealsPage() {
     checkDarkMode()
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
 
     fetchDeals()
     fetchCustomers()
@@ -154,6 +162,15 @@ export default function DealsPage() {
   }
 
   const handleDelete = async (id) => {
+    if (userRole !== 'superadmin') {
+        showAlert({
+          icon: 'error',
+          title: texts.accessDenied || 'Akses Ditolak',
+          text: 'Hanya Superadmin yang dapat menghapus deal'
+        }, darkMode);
+        return;
+      }
+
     const confirm = await showAlert({
       title: texts.deleteDeal,
       text: texts.cannotUndo,
@@ -804,17 +821,19 @@ export default function DealsPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(deal.deal_id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-red-500 hover:bg-red-600 text-white'
-                          }`}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {userRole === 'superadmin' && (
+                          <button
+                            onClick={() => handleDelete(deal.deal_id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              darkMode
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-red-500 hover:bg-red-600 text-white'
+                            }`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

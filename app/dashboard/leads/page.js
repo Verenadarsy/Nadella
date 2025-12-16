@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { showAlert } from '@/lib/sweetalert';
+import { sowAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
@@ -27,6 +27,7 @@ export default function LeadsPage() {
   const [statusOpen, setStatusOpen] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState(null);
 
   // State untuk email popup
   const [showEmailPopup, setShowEmailPopup] = useState(false)
@@ -43,6 +44,13 @@ export default function LeadsPage() {
     checkDarkMode()
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
 
     fetchLeads()
     fetchCustomers()
@@ -235,6 +243,15 @@ export default function LeadsPage() {
   }
 
   async function handleDelete(id) {
+    if (userRole !== 'superadmin') {
+      showAlert({
+        icon: 'error',
+        title: texts.accessDenied || 'Akses Ditolak',
+        text: 'Hanya Superadmin yang dapat menghapus lead'
+      }, darkMode);
+      return;
+    }
+
     const confirm = await showAlert({
       title: texts.deleteLead,
       text: texts.cannotUndo,
@@ -765,17 +782,21 @@ export default function LeadsPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(lead.lead_id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-red-500 hover:bg-red-600 text-white'
-                          }`}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+
+                        {/* Tombol Delete hanya untuk superadmin */}
+                        {userRole === 'superadmin' && (
+                          <button
+                            onClick={() => handleDelete(lead.lead_id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              darkMode
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-red-500 hover:bg-red-600 text-white'
+                            }`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

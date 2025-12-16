@@ -28,8 +28,15 @@ export default function InvoicesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredInvoices, setFilteredInvoices] = useState([])
   const [customerSearch, setCustomerSearch] = useState("")
+  const [userRole, setUserRole] = useState('')
 
   useEffect(() => {
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
     const checkDarkMode = () => {
       setDarkMode(document.documentElement.classList.contains('dark'))
     }
@@ -109,14 +116,29 @@ export default function InvoicesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+
+
     // Validasi
-    if (!formData.customer_id || !formData.amount || !formData.due_date || !formData.status) {
-      showAlert({
-        icon: 'warning',
-        title: texts.warning,
-        text: texts.fillAllFields
-      }, darkMode)
-      return
+    if (isEditing && userRole === 'admin') {
+      // Admin cuma perlu isi status
+      if (!formData.status) {
+        showAlert({
+          icon: 'warning',
+          title: texts.warning,
+          text: 'Pilih status terlebih dahulu!'
+        }, darkMode)
+        return
+      }
+    } else {
+      // User biasa harus isi semua
+      if (!formData.customer_id || !formData.amount || !formData.due_date || !formData.status) {
+        showAlert({
+          icon: 'warning',
+          title: texts.warning,
+          text: texts.fillAllFields
+        }, darkMode)
+        return
+      }
     }
 
     const method = isEditing ? 'PUT' : 'POST'
@@ -128,19 +150,28 @@ export default function InvoicesPage() {
 
     // BUAT PAYLOAD YANG PROPER
     const payload = isEditing
-      ? {
-          invoice_id: formData.invoice_id,
-          customer_id: formData.customer_id,
-          amount: parseFloat(formData.amount),
-          due_date: formData.due_date,
-          status: formData.status,
-        }
+      ? (userRole === 'admin'
+          ? {
+              // Admin cuma update status
+              invoice_id: formData.invoice_id,
+              status: formData.status,
+            }
+          : {
+              // User biasa update semua
+              invoice_id: formData.invoice_id,
+              customer_id: formData.customer_id,
+              amount: parseFloat(formData.amount),
+              due_date: formData.due_date,
+              status: formData.status,
+            }
+        )
       : {
+          // Create baru (cuma user biasa yang bisa)
           customer_id: formData.customer_id,
           amount: parseFloat(formData.amount),
           due_date: formData.due_date,
           status: formData.status,
-          created_at: createdAtWIB  // ← ADD INI!
+          created_at: createdAtWIB
         }
 
     console.log('Sending invoice data:', payload)
@@ -203,6 +234,15 @@ export default function InvoicesPage() {
   }
 
   const handleDelete = (id) => {
+    if (userRole === 'admin') {
+      showAlert({
+        icon: 'error',
+        title: texts.accessDenied || 'Akses Ditolak',
+        text: 'Hanya Superadmin yang dapat menghapus invoice'
+      }, darkMode);
+      return;
+    }
+
     showAlert({
       title: texts.deleteInvoice,
       text: texts.cannotUndo,
@@ -293,7 +333,7 @@ export default function InvoicesPage() {
           {isEditing ? (
             <>
               <Edit2 className="w-5 h-5" />
-              {texts.editInvoice}
+              {userRole === 'admin' ? 'Update Status Invoice' : texts.editInvoice}
             </>
           ) : (
             <>
@@ -316,10 +356,13 @@ export default function InvoicesPage() {
               <button
                 type="button"
                 onClick={() => setCustomerOpen(!customerOpen)}
+                disabled={userRole === 'admin' && isEditing}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
-                    : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
+                  userRole === 'admin' && isEditing
+                    ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                    : (darkMode
+                      ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
+                      : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600")
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
@@ -334,7 +377,7 @@ export default function InvoicesPage() {
               </button>
 
               {customerOpen && (
-                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border-2 z-50 ${
+                <div className={`absolute mt-2 w-full rounded-lg shadow-lg border z-50 ${
                   darkMode
                     ? "bg-slate-700 border-slate-600"
                     : "bg-white border-gray-200"
@@ -354,7 +397,7 @@ export default function InvoicesPage() {
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                      <Search className={`absolute left-3 top-2.5 w-5 h-5 pointer-events-none ${
                         darkMode ? 'text-slate-400' : 'text-slate-400'
                       }`} />
                     </div>
@@ -365,17 +408,10 @@ export default function InvoicesPage() {
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none'
                   }}>
-                    <style jsx>{`
-                      div::-webkit-scrollbar {
-                        display: none;
-                      }
-                    `}</style>
-                    {customers.filter((c) =>
-                      c.name.toLowerCase().includes(customerSearch.toLowerCase())
-                    ).length > 0 ? (
-                      customers.filter((c) =>
-                        c.name.toLowerCase().includes(customerSearch.toLowerCase())
-                      ).map((c) => (
+                    <style jsx>{`div::-webkit-scrollbar { display: none; }`}</style>
+                    {customers
+                      .filter((c) => c.name.toLowerCase().includes(customerSearch.toLowerCase()))
+                      .map((c) => (
                         <button
                           key={c.customer_id}
                           type="button"
@@ -393,14 +429,7 @@ export default function InvoicesPage() {
                           <User size={16} className="opacity-70" />
                           {c.name}
                         </button>
-                      ))
-                    ) : (
-                      <div className={`px-4 py-2 text-center ${
-                        darkMode ? 'text-slate-400' : 'text-slate-400'
-                      }`}>
-                        {texts.noResults || 'Tidak ada hasil'}
-                      </div>
-                    )}
+                      ))}
                   </div>
                 </div>
               )}
@@ -411,7 +440,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.amount}
+                {texts.amount} (Rp)
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -423,11 +452,14 @@ export default function InvoicesPage() {
                   placeholder={texts.amountPlaceholder}
                   value={formData.amount}
                   onChange={handleChange}
+                  disabled={userRole === 'admin' && isEditing}
                   required
                   className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                    userRole === 'admin' && isEditing
+                      ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                      : (darkMode
+                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600")
                   }`}
                 />
               </div>
@@ -436,14 +468,16 @@ export default function InvoicesPage() {
             {/* Due Date */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? "text-slate-300" : "text-slate-700"
+                darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.dueDate}
               </label>
-
-              <div
-                className="relative cursor-pointer"
-                onClick={() => document.getElementById("dueDateInput").showPicker()}
+              <div className="relative cursor-pointer"
+                onClick={() => {
+                  if (!(userRole === 'admin' && isEditing)) {
+                    document.getElementById("dueDateInput").showPicker()
+                  }
+                }}
               >
                 <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
                   darkMode ? "text-slate-500" : "text-slate-400"
@@ -455,13 +489,16 @@ export default function InvoicesPage() {
                   name="due_date"
                   value={formData.due_date}
                   onChange={handleChange}
+                  disabled={userRole === 'admin' && isEditing}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
 
                 <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
+                  userRole === 'admin' && isEditing
+                    ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                    : (darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-white border-gray-200 text-slate-900")
                 }`}>
                   <span className={formData.due_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
                     {formData.due_date
@@ -478,7 +515,7 @@ export default function InvoicesPage() {
             </div>
 
             {/* Status */}
-            <div className="relative">
+            <div className="relative dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -553,7 +590,7 @@ export default function InvoicesPage() {
               {isEditing ? (
                 <>
                   <Save className="w-5 h-5" />
-                  {texts.updateInvoice}
+                  {userRole === 'admin' ? 'Update Status' : texts.updateInvoice}
                 </>
               ) : (
                 <>
@@ -742,17 +779,19 @@ export default function InvoicesPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(i.invoice_id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-red-500 hover:bg-red-600 text-white'
-                          }`}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {userRole !== 'admin' && (
+                          <button
+                            onClick={() => handleDelete(i.invoice_id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              darkMode
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-red-500 hover:bg-red-600 text-white'
+                            }`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -50,6 +50,7 @@ export default function TicketsPage() {
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [assignedSearch, setAssignedSearch] = useState("");
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -58,6 +59,13 @@ export default function TicketsPage() {
     checkDarkMode()
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
 
     fetchTickets()
     fetchUsers()
@@ -293,6 +301,14 @@ export default function TicketsPage() {
   }
 
   const handleDelete = (id) => {
+    if (userRole !== 'superadmin') {
+      showAlert({
+        icon: 'error',
+        title: texts.accessDenied || 'Akses Ditolak',
+        text: 'Hanya Superadmin yang dapat menghapus ticket'
+      }, darkMode);
+      return;
+    }
     showAlert({
       title: texts.deleteTicket,
       text: texts.cannotUndo,
@@ -452,10 +468,13 @@ export default function TicketsPage() {
               <button
                 type="button"
                 onClick={() => setCustomerOpen(!customerOpen)}
+                disabled={userRole === 'admin' && isEditing}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
-                    : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
+                  userRole === 'admin' && isEditing
+                    ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                    : (darkMode
+                      ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
+                      : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600")
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
@@ -560,10 +579,13 @@ export default function TicketsPage() {
                   value={formData.issue_type}
                   onChange={handleChange}
                   required
+                  disabled={userRole === 'admin' && isEditing}  // TAMBAHKAN INI
                   className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
-                    darkMode
-                      ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
-                      : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
+                    userRole === 'admin' && isEditing
+                      ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                      : (darkMode
+                        ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
+                        : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600")
                   }`}
                 />
               </div>
@@ -580,10 +602,13 @@ export default function TicketsPage() {
               <button
                 type="button"
                 onClick={() => setPriorityOpen(!priorityOpen)}
+                disabled={userRole === 'admin' && isEditing}  // TAMBAHKAN INI
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
-                  darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-slate-50 border-gray-200 text-slate-900"
+                  userRole === 'admin' && isEditing
+                    ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+                    : (darkMode
+                      ? "bg-slate-700 border-slate-600 text-white"
+                      : "bg-slate-50 border-gray-200 text-slate-900")
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
@@ -703,10 +728,13 @@ export default function TicketsPage() {
   <button
     type="button"
     onClick={() => setAssignedOpen(!assignedOpen)}
+    disabled={userRole === 'admin' && isEditing}  // TAMBAHKAN INI
     className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
-      darkMode
-        ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
-        : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
+      userRole === 'admin' && isEditing
+        ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
+        : (darkMode
+          ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
+          : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600")
     }`}
   >
     <span className={`flex items-center gap-2 ${
@@ -1024,17 +1052,19 @@ export default function TicketsPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(t.ticket_id)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-red-600 hover:bg-red-700 text-white'
-                              : 'bg-red-500 hover:bg-red-600 text-white'
-                          }`}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {userRole === 'superadmin' && (
+                          <button
+                            onClick={() => handleDelete(t.ticket_id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              darkMode
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-red-500 hover:bg-red-600 text-white'
+                            }`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

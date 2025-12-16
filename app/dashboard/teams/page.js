@@ -26,6 +26,7 @@ export default function TeamsPage() {
   const [managerOpen, setManagerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("");
   const [managerSearch, setManagerSearch] = useState("");
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -34,6 +35,13 @@ export default function TeamsPage() {
     checkDarkMode()
     const observer = new MutationObserver(checkDarkMode)
     observer.observe(document.documentElement, { attributes: true })
+
+    const roleCookie = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("userRole="))
+      ?.split("=")[1];
+
+    setUserRole(roleCookie);
 
     fetchTeams()
     fetchUsers()
@@ -178,6 +186,14 @@ export default function TeamsPage() {
   }
 
   const handleDelete = async (id) => {
+    if (userRole !== 'superadmin') {
+      showAlert({
+        icon: 'error',
+        title: texts.accessDenied || 'Akses Ditolak',
+        text: 'Hanya Superadmin yang dapat menghapus team'
+      }, darkMode);
+      return;
+    }
     const confirm = await showAlert({
       title: texts.deleteTeam,
       text: texts.cannotUndo,
@@ -232,6 +248,7 @@ export default function TeamsPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
+      {userRole === 'superadmin' && (
       <div className={`rounded-xl p-6 mb-6 shadow-lg ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
@@ -444,6 +461,7 @@ export default function TeamsPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* TEAMS LIST */}
       <div className={`rounded-xl overflow-hidden shadow-lg ${
@@ -575,30 +593,38 @@ export default function TeamsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(team)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              darkMode
-                                ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                                : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                            }`}
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(team.team_id)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              darkMode
-                                ? 'bg-red-600 hover:bg-red-700 text-white'
-                                : 'bg-red-500 hover:bg-red-600 text-white'
-                            }`}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {userRole === 'superadmin' ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(team)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                darkMode
+                                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                              }`}
+                              title="Edit"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(team.team_id)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                darkMode
+                                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                                  : 'bg-red-500 hover:bg-red-600 text-white'
+                              }`}
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={`text-sm ${
+                            darkMode ? 'text-slate-400' : 'text-gray-500'
+                          }`}>
+                            -
+                          </span>
+                        )}
                       </td>
                     </tr>
                   )
