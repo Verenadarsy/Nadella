@@ -116,6 +116,8 @@ export default function CustomerChart({ dark }) {
           <YAxis
             stroke={dark ? '#9ca3af' : '#6b7280'}
             style={{ fontSize: '12px' }}
+            allowDecimals={false}        // ⬅️ INI PENTING
+            tickFormatter={(value) => Math.round(value)} // ⬅️ Format biar integer
           />
           <Tooltip content={<CustomTooltip />} />
           <Line
