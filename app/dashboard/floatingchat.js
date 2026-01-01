@@ -124,11 +124,51 @@ export default function FloatingChat() {
 
             {messages.length === 0 && (
               <div
-                className={`p-3 rounded-lg max-w-[85%]
-                ${darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"}`}
-              >
-                Halo! aku <b>Nadella</b>. Ada yang bisa aku bantu hari ini?
+              className={`p-4 rounded-lg max-w-[85%] space-y-3
+              ${darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"}`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">👋</span>
+                <p className="font-semibold">
+                  Halo! Aku <span className="text-blue-500 dark:text-blue-300">Nadella</span> siap membantu Anda hari ini! <span className="text-xl">🚀</span>
+                </p>
               </div>
+
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5">📌</span>
+                  <div>
+                    <p className="font-semibold mb-1">Apa yang bisa saya bantu:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      <li>Cari data pelanggan, produk, atau transaksi</li>
+                      <li>Buat laporan PDF dengan filter tanggal</li>
+                      <li>Analisis data penjualan dan aktivitas tim</li>
+                      <li>Jawab pertanyaan berdasarkan database CRM</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5">💡</span>
+                  <div>
+                    <p className="font-semibold mb-1">Contoh permintaan:</p>
+                    <div className="space-y-1.5 text-sm">
+                      <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
+                        "rekap penjualan bulan ini"
+                      </div>
+                      <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
+                        "cari customer bernama Budi"
+                      </div>
+                      <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
+                        "buat laporan invoice Desember 2025"
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             )}
 
             {messages.map((msg, i) => (
