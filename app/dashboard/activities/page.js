@@ -34,7 +34,7 @@ export default function ActivitiesPage() {
   const [formData, setFormData] = useState({
     type: '',
     notes: '',
-    assigned_to: '',
+    customer_id: '',
   })
   const [editingId, setEditingId] = useState(null)
   const [typeOpen, setTypeOpen] = useState(false)
@@ -73,7 +73,7 @@ export default function ActivitiesPage() {
       const filtered = activities.filter((activity) =>
         activity.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         activity.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getCustomerName(activity.assigned_to).toLowerCase().includes(searchQuery.toLowerCase())
+        getCustomerName(activity.customer_id).toLowerCase().includes(searchQuery.toLowerCase())  // ✅ UBAH
       )
       setFilteredActivities(filtered)
     }
@@ -106,7 +106,9 @@ export default function ActivitiesPage() {
     e.preventDefault()
 
     const activityData = {
-      ...formData,
+      type: formData.type,
+      notes: formData.notes,
+      customer_id: formData.customer_id,
       date: getCurrentWIB(),
     }
 
@@ -127,7 +129,7 @@ export default function ActivitiesPage() {
           showConfirmButton: false,
           timer: 1500
         }, darkMode)
-        setFormData({ type: '', notes: '', assigned_to: '' })
+        setFormData({ type: '', notes: '', customer_id: '' })
         setEditingId(null)
         fetchActivities()
       } else {
@@ -192,7 +194,7 @@ export default function ActivitiesPage() {
     setFormData({
       type: activity.type,
       notes: activity.notes,
-      assigned_to: activity.assigned_to,
+      customer_id: activity.customer_id,
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -317,11 +319,11 @@ export default function ActivitiesPage() {
                 }`}
               >
                 <span className={`flex items-center gap-2 ${
-                  formData.assigned_to ? "opacity-90" : "opacity-60"
+                  formData.customer_id ? "opacity-90" : "opacity-60"
                 }`}>
                   <User size={16} className="opacity-60" />
-                  {formData.assigned_to
-                    ? customers.find((c) => c.customer_id === formData.assigned_to)?.name
+                  {formData.customer_id
+                    ? customers.find((c) => c.customer_id === formData.customer_id)?.name
                     : texts.selectUser || "Select Customer"}
                 </span>
                 <ChevronDown size={18} className="opacity-60" />
@@ -367,7 +369,7 @@ export default function ActivitiesPage() {
                           key={c.customer_id}
                           type="button"
                           onClick={() => {
-                            setFormData({ ...formData, assigned_to: c.customer_id })
+                            setFormData({ ...formData, customer_id: c.customer_id })
                             setUserOpen(false)
                             setUserSearchQuery("")
                           }}
@@ -447,7 +449,7 @@ export default function ActivitiesPage() {
                 type="button"
                 onClick={() => {
                   setEditingId(null)
-                  setFormData({ type: '', notes: '', assigned_to: '' })
+                  setFormData({ type: '', notes: '', customer_id: '' })
                 }}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
@@ -580,7 +582,7 @@ export default function ActivitiesPage() {
                     }`}>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        {getCustomerName(activity.assigned_to)}
+                        {getCustomerName(activity.customer_id)}
                       </div>
                     </td>
                     <td className={`px-6 py-4 text-sm ${
