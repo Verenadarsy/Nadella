@@ -9,9 +9,9 @@ import { id as idLocale } from "date-fns/locale";
 // DATE PARSER UTILITY FUNCTIONS
 // ============================================
 
-/**
+/** 
  * Parse periode dari teks bahasa Indonesia (lebih komprehensif)
- */
+ **/
 export function parseDateRangeFromText(text) {
   if (!text || typeof text !== 'string') return null;
   
@@ -114,7 +114,7 @@ export function parseDateRangeFromText(text) {
   return null;
 }
 
-/**
+/*
  * Parse bulan spesifik dari teks
  */
 function parseMonthFromText(text, monthName, monthIndex) {
@@ -153,7 +153,7 @@ function parseMonthFromText(text, monthName, monthIndex) {
   };
 }
 
-/**
+/*
  * Generate date filter object
  */
 function generateDateFilter(periodType) {
@@ -235,7 +235,7 @@ function generateDateFilter(periodType) {
 // PDF INTENT & PARAMETER DETECTION
 // ============================================
 
-/**
+/*
  * Deteksi apakah ini permintaan PDF
  */
 function isPDFRequest(message) {
@@ -257,7 +257,7 @@ function isPDFRequest(message) {
   return pdfKeywords.some(keyword => lowerMsg.includes(keyword));
 }
 
-/**
+/*
  * Deteksi intent PDF dari pesan
  */
 function detectPDFIntent(message) {
@@ -353,7 +353,7 @@ function detectPDFIntent(message) {
   return bestMatch;
 }
 
-/**
+/*
  * Ekstrak parameter dari pesan
  */
 function extractParameters(message) {
@@ -393,7 +393,7 @@ function extractParameters(message) {
 // PDF GENERATION TRIGGER
 // ============================================
 
-/**
+/*
  * Trigger PDF generation dengan sistem baru
  */
 async function triggerSmartPDF(type, parameters = null, rawQuery = null) {
@@ -467,7 +467,7 @@ async function triggerSmartPDF(type, parameters = null, rawQuery = null) {
 // FALLBACK DATA QUERY
 // ============================================
 
-/**
+/*
  * Query data langsung sebagai fallback
  */
 async function queryDirectDataFallback(intent, parameters = {}) {
@@ -548,45 +548,45 @@ async function queryDirectDataFallback(intent, parameters = {}) {
 // RESPONSE FORMATTER
 // ============================================
 
-/**
+/*
  * Format response untuk PDF berhasil
  */
 function formatPDFSuccessResponse(pdfResult, intent, parameters) {
-  let reply = `✅ **Laporan PDF Berhasil Dibuat!**\n\n`;
+  let reply = `✅ Laporan PDF Berhasil Dibuat!\n\n`;
   
   if (pdfResult.description) {
-    reply += `📄 **${pdfResult.description}**\n`;
+    reply += `📄 ${pdfResult.description}\n`;
   } else {
-    reply += `📄 **Laporan ${intent.replace('_', ' ').toUpperCase()}**\n`;
+    reply += `📄 Laporan ${intent.replace('_', ' ').toUpperCase()}\n`;
   }
   
   reply += `🔗 [📥 Download PDF](${pdfResult.url})\n\n`;
   
   if (pdfResult.totalData !== undefined) {
-    reply += `📊 **Total Data:** ${pdfResult.totalData} record\n`;
+    reply += `📊 Total Data: ${pdfResult.totalData} record\n`;
   }
   
   if (parameters?.dateFilter) {
-    reply += `📅 **Periode:** ${parameters.dateFilter.display}\n`;
+    reply += `📅 Periode: ${parameters.dateFilter.display}\n`;
   }
   
-  reply += `\n⏰ **Waktu Generate:** ${format(new Date(), 'HH:mm')}`;
+  reply += `\n⏰ Waktu Generate: ${format(new Date(), 'HH:mm')}`;
   
   if (pdfResult.period) {
-    reply += `\n🗓️ **Rentang:** ${pdfResult.period}`;
+    reply += `\n🗓️ Rentang: ${pdfResult.period}`;
   }
   
   return reply;
 }
 
-/**
+/*
  * Format response untuk data fallback
  */
 function formatDataFallbackResponse(dataResult, intent, parameters, pdfError = null) {
   const { data, description, success } = dataResult;
   
   if (!success || !data || data.length === 0) {
-    let reply = `📭 **Tidak Ada Data Ditemukan**\n\n`;
+    let reply = `📭 Tidak Ada Data Ditemukan\n\n`;
     
     if (parameters?.dateFilter) {
       reply += `Untuk periode: ${parameters.dateFilter.display}\n\n`;
@@ -595,23 +595,23 @@ function formatDataFallbackResponse(dataResult, intent, parameters, pdfError = n
     reply += `Coba dengan:\n• Periode yang berbeda\n• Filter yang lebih spesifik\n• Tabel lain`;
     
     if (pdfError) {
-      reply += `\n\n❌ **PDF Gagal:** ${pdfError}`;
+      reply += `\n\n❌ PDF Gagal: ${pdfError}`;
     }
     
     return reply;
   }
   
-  let reply = `📊 **${description}**\n\n`;
+  let reply = `📊 ${description}\n\n`;
   
   if (parameters?.dateFilter) {
-    reply += `📅 **Periode:** ${parameters.dateFilter.display}\n`;
+    reply += `📅 Periode: ${parameters.dateFilter.display}\n`;
   }
   
-  reply += `✅ **Total Data:** ${data.length} record\n\n`;
+  reply += `✅ Total Data: ${data.length} record\n\n`;
   
   // Tampilkan sample data
   const sampleCount = Math.min(3, data.length);
-  reply += `**Contoh Data (${sampleCount} dari ${data.length}):**\n`;
+  reply += `Contoh Data (${sampleCount} dari ${data.length}):\n`;
   
   const sample = data.slice(0, sampleCount);
   const headers = Object.keys(sample[0] || {}).slice(0, 3); // Ambil 3 kolom pertama
@@ -621,7 +621,7 @@ function formatDataFallbackResponse(dataResult, intent, parameters, pdfError = n
     headers.forEach(header => {
       if (item[header]) {
         const value = item[header].toString();
-        reply += `**${header}:** ${value.length > 30 ? value.substring(0, 30) + '...' : value} `;
+        reply += `${header}: ${value.length > 30 ? value.substring(0, 30) + '...' : value} `;
       }
     });
     reply += '\n';
@@ -631,14 +631,14 @@ function formatDataFallbackResponse(dataResult, intent, parameters, pdfError = n
     reply += `\n📋 *Dan ${data.length - sampleCount} record lainnya...*\n`;
   }
   
-  reply += `\n💡 **Untuk laporan lengkap, ketik:** "buat PDF ${intent}"`;
+  reply += `\n💡 Untuk laporan lengkap, ketik: "buat PDF ${intent}"`;
   
   if (parameters?.dateFilter) {
     reply += ` ${parameters.dateFilter.display}`;
   }
   
   if (pdfError) {
-    reply += `\n\n⚠️ **Note:** PDF gagal dibuat: ${pdfError}`;
+    reply += `\n\n⚠️ Note: PDF gagal dibuat: ${pdfError}`;
   }
   
   return reply;
@@ -674,7 +674,7 @@ export async function POST(req) {
       
       if (!pdfIntent) {
         return NextResponse.json({
-          reply: `❌ **Permintaan tidak jelas**\n\nSaya tidak bisa mengidentifikasi jenis laporan yang Anda minta.\n\n**Contoh yang valid:**\n• "buat PDF produk"\n• "rekap customer"\n• "export invoice bulan ini"\n• "laporan deals 2024"`,
+          reply: `❌ Permintaan tidak jelas\n\nSaya tidak bisa mengidentifikasi jenis laporan yang Anda minta.\n\nContoh yang valid:\n• "buat PDF produk"\n• "rekap customer"\n• "export invoice bulan ini"\n• "laporan deals 2024"`,
           metadata: {
             type: "error",
             error: "Intent tidak terdeteksi"
@@ -709,7 +709,7 @@ export async function POST(req) {
           console.error("Full rekap error:", error);
           
           return NextResponse.json({
-            reply: `❌ **Gagal Membuat Rekap Lengkap**\n\n**Error:** ${error.message}\n\n**Saran:**\n1. Coba buat laporan per kategori:\n   • "buat PDF produk"\n   • "buat PDF customer"\n   • "buat PDF invoice"\n2. Cek koneksi server\n3. Hubungi administrator`,
+            reply: `❌ Gagal Membuat Rekap Lengkap\n\nError: ${error.message}\n\nSaran:\n1. Coba buat laporan per kategori:\n   • "buat PDF produk"\n   • "buat PDF customer"\n   • "buat PDF invoice"\n2. Cek koneksi server\n3. Hubungi administrator`,
             metadata: {
               type: "error",
               intent: 'rekap_semua',
@@ -808,13 +808,13 @@ export async function POST(req) {
       
       // Tambahkan konteks tanggal jika ada
       if (dateFilter) {
-        reply += `\n\n📅 **Konteks Periode:** ${dateFilter.display}`;
+        reply += `\n\n📅 Konteks Periode: ${dateFilter.display}`;
       }
       
       // Tambahkan info sumber data
       if (ragData.sources && ragData.sources.length > 0) {
         const dataCount = ragData.sources.length;
-        reply += `\n\n📊 **Referensi Data:** ${dataCount} record ditemukan`;
+        reply += `\n\n📊 Referensi Data: ${dataCount} record ditemukan`;
         
         // Auto-suggest PDF jika data banyak dan relevan
         const hasRelevantData = ragData.type === "data" || 
@@ -831,7 +831,7 @@ export async function POST(req) {
           
           if (uniqueTables.length === 1) {
             const table = uniqueTables[0];
-            let suggestion = `\n\n💡 **Ingin laporan lengkap?**\nKetik "buat PDF ${table}"`;
+            let suggestion = `\n\n💡 Ingin laporan lengkap?\nKetik "buat PDF ${table}"`;
             
             if (dateFilter) {
               suggestion += ` ${dateFilter.display}`;
@@ -846,7 +846,7 @@ export async function POST(req) {
         }
       } else if (ragData.type === "data") {
         // Jika RAG mengatakan ini tentang data tapi tidak ada sources
-        reply += `\n\n💡 **Tips:** Untuk query data spesifik, coba format:\n`;
+        reply += `\n\n💡 Tips: Untuk query data spesifik, coba format:\n`;
         reply += `• "data produk hari ini"\n`;
         reply += `• "customer aktif bulan ini"\n`;
         reply += `• "rekap invoice 2024"`;
@@ -863,7 +863,7 @@ export async function POST(req) {
         // Coba deteksi intent sederhana
         const simpleIntent = detectPDFIntent(lowerMsg);
         if (simpleIntent && simpleIntent !== 'rekap_semua') {
-          reply += `\n\n🚀 **Quick Action:** Ketik "PDF ${simpleIntent}"`;
+          reply += `\n\n🚀 Quick Action: Ketik "PDF ${simpleIntent}"`;
           if (dateFilter) {
             reply += ` ${dateFilter.display}`;
           }
@@ -907,7 +907,7 @@ export async function POST(req) {
       }
       
       return NextResponse.json({
-        reply: `❌ **Sistem AI sedang tidak tersedia**\n\nError: ${ragError.message}\n\n**Alternatif:**\n• Coba query data langsung: "data produk"\n• Gunakan filter tanggal: "invoice bulan ini"\n• Hubungi administrator untuk bantuan`,
+        reply: `❌ Sistem AI sedang tidak tersedia\n\nError: ${ragError.message}\n\nAlternatif:\n• Coba query data langsung: "data produk"\n• Gunakan filter tanggal: "invoice bulan ini"\n• Hubungi administrator untuk bantuan`,
         metadata: {
           type: "system_error",
           error: ragError.message,
@@ -920,7 +920,7 @@ export async function POST(req) {
     console.error("💥 Chat route error:", error);
     
     return NextResponse.json({
-      reply: `❌ **Terjadi Kesalahan Sistem**\n\n${error.message}\n\nSilakan coba lagi atau hubungi administrator.`,
+      reply: `❌ Terjadi Kesalahan Sistem\n\n${error.message}\n\nSilakan coba lagi atau hubungi administrator.`,
       metadata: {
         type: "critical_error",
         error: error.message,
