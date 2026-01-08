@@ -157,13 +157,13 @@ export default function FloatingChat() {
                     <p className="font-semibold mb-1">Contoh permintaan:</p>
                     <div className="space-y-1.5 text-sm">
                       <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        rekap penjualan bulan ini
+                        rekap customer bulan ini
                       </div>
                       <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
                         cari customer bernama Budi
                       </div>
                       <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        buat laporan invoice Desember 2025
+                        buat laporan deal Desember 2025
                       </div>
                     </div>
                   </div>
