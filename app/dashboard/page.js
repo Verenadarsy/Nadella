@@ -50,33 +50,33 @@ export default function DashboardHome() {
   <div className="p-6 max-w-7xl mx-auto relative space-y-6">
     {/* Banner */}
     <div
-      className={`rounded-xl p-8 shadow-xl text-white ${
+      className={`rounded-2xl p-6 sm:p-8 shadow-xl text-white transition-all duration-300 ${
         darkMode
           ? "bg-gradient-to-r from-blue-600 to-blue-800"
           : "bg-gradient-to-r from-blue-900 to-blue-700"
       }`}
     >
-      <h1 className="text-3xl font-bold mb-2">{texts.welcomeBack}</h1>
-      <p className="text-blue-100">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-2">{texts.welcomeBack}</h1>
+      <p className="text-sm sm:text-base text-blue-100">
         {texts.bannerSubtitle}
       </p>
     </div>
 
     {/* Overview + Won Deals Table */}
     <div
-      className={`rounded-xl p-6 shadow-lg space-y-6 ${
+      className={`rounded-2xl p-4 sm:p-6 shadow-xl space-y-6 transition-all duration-300 ${
         darkMode ? "bg-slate-800" : "bg-white"
       }`}
     >
       <div>
         <h2
-          className={`text-xl font-bold mb-2 ${
+          className={`text-lg sm:text-xl font-bold mb-2 ${
             darkMode ? "text-white" : "text-slate-900"
           }`}
         >
           {texts.dashboardOverview}
         </h2>
-        <p className={`${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+        <p className={`text-sm sm:text-base ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
           {texts.overviewSubtitle}
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function DashboardHome() {
       ) : (
         <>
           {/* KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <KpiCard
               title={texts.totalCustomers}
               value={kpis?.totalCustomers || 0}
@@ -113,38 +113,38 @@ export default function DashboardHome() {
           {/* WON DEALS TABLE */}
           <div className="mt-6">
             <h3
-              className={`text-lg font-bold mb-3 ${
+              className={`text-base sm:text-lg font-bold mb-3 ${
                 darkMode ? "text-white" : "text-slate-900"
               }`}
             >
               {texts.wonDeals}
             </h3>
 
-            <div className={`overflow-hidden rounded-lg border ${
+            <div className={`overflow-hidden rounded-xl border transition-all duration-300 ${
               darkMode ? 'border-slate-700' : 'border-gray-200'
             }`}>
-              <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
-                <table className="w-full">
-                  <thead className={`sticky top-0 ${
+              <div className="max-h-[320px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                <table className="w-full min-w-[600px]">
+                  <thead className={`sticky top-0 z-10 ${
                     darkMode ? "bg-slate-700" : "bg-gray-100"
                   }`}>
                     <tr>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                      <th className={`px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
                         {texts.dealName}
                       </th>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${
+                      <th className={`px-3 sm:px-4 py-3 text-left text-xs sm:text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
                         {texts.customer}
                       </th>
-                      <th className={`px-4 py-3 text-right text-sm font-semibold ${
+                      <th className={`px-3 sm:px-4 py-3 text-right text-xs sm:text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
                         {texts.amount}
                       </th>
-                      <th className={`px-4 py-3 text-center text-sm font-semibold ${
+                      <th className={`px-3 sm:px-4 py-3 text-center text-xs sm:text-sm font-semibold ${
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}>
                         {texts.status}
@@ -160,22 +160,22 @@ export default function DashboardHome() {
                             darkMode ? "border-slate-700 hover:bg-slate-700/50" : "border-gray-200 hover:bg-gray-50"
                           } transition-colors`}
                         >
-                          <td className={`px-4 py-3 text-sm ${
+                          <td className={`px-3 sm:px-4 py-3 text-xs sm:text-sm ${
                             darkMode ? "text-slate-300" : "text-slate-700"
                           }`}>
                             {deal.dealName}
                           </td>
-                          <td className={`px-4 py-3 text-sm ${
+                          <td className={`px-3 sm:px-4 py-3 text-xs sm:text-sm ${
                             darkMode ? "text-slate-300" : "text-slate-700"
                           }`}>
                             {deal.customerName}
                           </td>
-                          <td className={`px-4 py-3 text-sm text-right font-medium ${
+                          <td className={`px-3 sm:px-4 py-3 text-xs sm:text-sm text-right font-medium ${
                             darkMode ? "text-green-400" : "text-green-600"
                           }`}>
                             Rp {deal.amount.toLocaleString('id-ID')}
                           </td>
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-3 sm:px-4 py-3 text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               {texts.won}
                             </span>
@@ -184,7 +184,7 @@ export default function DashboardHome() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" className={`px-4 py-8 text-center text-sm ${
+                        <td colSpan="4" className={`px-3 sm:px-4 py-8 text-center text-xs sm:text-sm ${
                           darkMode ? "text-slate-400" : "text-slate-500"
                         }`}>
                           {texts.noWonDeals}
@@ -203,14 +203,14 @@ export default function DashboardHome() {
     {/* CHART SECTION */}
     {loading ? (
       <div
-        className={`rounded-xl p-6 shadow-lg ${
+        className={`rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 ${
           darkMode ? "bg-slate-800" : "bg-white"
         }`}
       >
         <SectionLoader darkMode={darkMode} text={texts.loadingCharts} />
       </div>
     ) : (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Line Chart - Customers */}
         <CustomerChart dark={darkMode} />
 
@@ -229,5 +229,4 @@ export default function DashboardHome() {
     <FloatingChat />
   </div>
 );
-
 }
