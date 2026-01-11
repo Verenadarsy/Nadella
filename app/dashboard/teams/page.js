@@ -152,7 +152,7 @@ export default function TeamsPage() {
         showAlert({
           icon: 'success',
           title: texts.success,
-          text: isEditing ? texts.edited : texts.added,
+          text: isEditing ? texts.teamEdited : texts.teamAdded,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)

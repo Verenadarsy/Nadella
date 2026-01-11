@@ -202,7 +202,7 @@ export default function InvoicesPage() {
       showAlert({
         icon: 'success',
         title: texts.success,
-        text: `Invoice successfully ${isEditing ? texts.invoiceUpdated : texts.invoiceAdded}!`,
+        text: `${isEditing ? texts.invoiceUpdated : texts.invoiceAdded}!`,
         showConfirmButton: false,
         timer: 1500
       }, darkMode)
@@ -228,6 +228,14 @@ export default function InvoicesPage() {
   }
 
   const handleEdit = (invoice) => {
+    if (isInvoicePaid(invoice.status)) {
+      showAlert({
+        icon: 'warning',
+        title: texts.cannotEdit || 'Tidak Dapat Diedit',
+        text: texts.invoiceAlreadyPaid || 'Invoice dengan status Paid tidak dapat diubah lagi'
+      }, darkMode)
+      return
+    }
     setFormData(invoice)
     setIsEditing(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -313,6 +321,10 @@ export default function InvoicesPage() {
       default:
         return darkMode ? 'bg-gray-600/20 text-gray-400 border-gray-600/30' : 'bg-gray-100 text-gray-700 border-gray-200'
     }
+  }
+
+  const isInvoicePaid = (status) => {
+    return status === 'paid'
   }
 
   const statusOptions = [
@@ -440,7 +452,7 @@ export default function InvoicesPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.amount} (Rp)
+                {texts.amount}
               </label>
               <div className="relative">
                 <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
@@ -770,12 +782,15 @@ export default function InvoicesPage() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(i)}
+                          disabled={isInvoicePaid(i.status)}
                           className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            isInvoicePaid(i.status)
+                              ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'  // TAMBAH - disabled state
+                              : (darkMode
+                                ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                                : 'bg-yellow-500 hover:bg-yellow-600 text-white')
                           }`}
-                          title="Edit"
+                          title={isInvoicePaid(i.status) ? (texts.cannotEditPaidInvoice || 'Invoice sudah dibayar, tidak bisa diedit') : 'Edit'}  // TAMBAH TITLE CONDITIONAL
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>

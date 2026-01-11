@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { sowAlert } from '@/lib/sweetalert';
+import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
+
 
 export default function LeadsPage() {
   const { language, t } = useLanguage()
@@ -317,6 +318,10 @@ export default function LeadsPage() {
     }
   }
 
+  const isLeadQualified = (status) => {
+    return status === 'qualified'
+  }
+
   // Filter customer berdasarkan search dropdown (TANPA filter role)
   const filteredCustomers = customers.filter((c) =>
     c.name?.toLowerCase().includes(customerSearch.toLowerCase())
@@ -354,7 +359,7 @@ export default function LeadsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.leadName || "Lead Name"} <span className="text-red-500">*</span>
+                {texts.leadName || "Lead Name"}
               </label>
               <div className="relative">
                 <UserPlus className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -380,7 +385,7 @@ export default function LeadsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                {texts.source} <span className="text-red-500">*</span>
+                {texts.source}
               </label>
               <div className="relative">
                 <TrendingUp className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -406,7 +411,7 @@ export default function LeadsPage() {
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
-                {texts.leadStatus} <span className="text-red-500">*</span>
+                {texts.leadStatus}
               </label>
 
               <button
@@ -572,16 +577,7 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          {/* Info Box */}
-          <div className={`p-4 rounded-lg border-l-4 ${
-            darkMode
-              ? 'bg-blue-900/20 border-blue-500 text-blue-300'
-              : 'bg-blue-50 border-blue-500 text-blue-700'
-          }`}>
-            <p className="text-sm">
-              💡 <strong>Tip:</strong> {texts.leadTip || "Lead will auto-generate Customer & User when status is changed to 'Qualified'"}
-            </p>
-          </div>
+
 
           {/* Buttons */}
           <div className="flex gap-3">
@@ -773,12 +769,15 @@ export default function LeadsPage() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(lead)}
+                          disabled={isLeadQualified(lead.lead_status)}
                           className={`p-2 rounded-lg transition-colors ${
-                            darkMode
-                              ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            isLeadQualified(lead.lead_status)
+                              ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'  // TAMBAH - disabled state
+                              : (darkMode
+                                ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                                : 'bg-yellow-500 hover:bg-yellow-600 text-white')
                           }`}
-                          title="Edit"
+                          title={isLeadQualified(lead.lead_status) ? (texts.cannotEditQualifiedLead || 'Lead sudah qualified, tidak bisa diedit') : 'Edit'}  // TAMBAH TITLE CONDITIONAL
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>

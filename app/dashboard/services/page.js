@@ -37,7 +37,7 @@ export default function ServicesPage() {
     service_id: '',
     customer_id: '',
     service_type: '',
-    status: 'active',
+    status: '',
   })
 
   // Dropdown states
@@ -208,7 +208,7 @@ export default function ServicesPage() {
         timer: 1500
       }, darkMode)
 
-      setFormData({ service_id: '', customer_id: '', service_type: '', status: 'active' })
+      setFormData({ service_id: '', customer_id: '', service_type: '', status: '' })
       setIsEditing(false)
       fetchServices()
     } catch (err) {
@@ -601,7 +601,7 @@ export default function ServicesPage() {
                 type="button"
                 onClick={() => {
                   setIsEditing(false)
-                  setFormData({ service_id: '', customer_id: '', service_type: '', status: 'active' })
+                  setFormData({ service_id: '', customer_id: '', service_type: '', status: '' })
                 }}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode

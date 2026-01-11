@@ -115,7 +115,7 @@ export default function CampaignsPage() {
         showAlert({
           icon: 'success',
           title: texts.success,
-          text: `Campaign successfully ${isEditing ? texts.campaignEdited : texts.campaignAdded}!`,
+          text: `${isEditing ? texts.campaignEdited : texts.campaignAdded}!`,
           showConfirmButton: false,
           timer: 1500
         }, darkMode)

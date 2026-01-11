@@ -295,6 +295,14 @@ export default function TicketsPage() {
   }
 
   const handleEdit = (ticket) => {
+    if (isTicketFinal(ticket.status)) {
+      showAlert({
+        icon: 'warning',
+        title: texts.cannotEdit || 'Tidak Dapat Diedit',
+        text: texts.ticketAlreadyFinal || 'Ticket dengan status Resolved atau Closed tidak dapat diubah lagi'
+      }, darkMode)
+      return
+    }
     setFormData(ticket)
     setIsEditing(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -360,6 +368,9 @@ export default function TicketsPage() {
 
   const getUserName = (id) => users.find((u) => u.user_id === id)?.name || '-'
   const getCustomerName = (id) => customers.find((c) => c.customer_id === id)?.name || '-'
+  const isTicketFinal = (status) => {
+    return status === 'resolved' || status === 'closed'
+  }
 
   const getPriorityIcon = (priority) => {
     switch(priority) {
@@ -592,7 +603,7 @@ export default function TicketsPage() {
             </div>
 
             {/* Priority */}
-            <div className="relative">
+            <div className="relative dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -656,7 +667,7 @@ export default function TicketsPage() {
             </div>
 
             {/* Status */}
-            <div className="relative">
+            <div className="relative dropdown-container">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -716,7 +727,6 @@ export default function TicketsPage() {
               )}
             </div>
 
-            {/* Assigned To */}
             {/* Assigned To */}
 <div className="md:col-span-2 relative dropdown-container">
   <label className={`block text-sm font-medium mb-2 ${
@@ -1043,12 +1053,15 @@ export default function TicketsPage() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(t)}
+                          disabled={isTicketFinal(t.status)}
                           className={`p-2 rounded-lg transition-colors ${
-                            darkMode
+                            isTicketFinal(t.status)
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'  // UBAH INI - lebih jelas disabled
+                            : (darkMode
                               ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                              : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                          }`}
-                          title="Edit"
+                              : 'bg-yellow-500 hover:bg-yellow-600 text-white')
+                        }`}
+                          title={isTicketFinal(t.status) ? (texts.cannotEditFinalTicket || 'Ticket sudah selesai, tidak bisa diedit') : 'Edit'}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
