@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
-import { Users, Edit2, Trash2, X, Save, Plus, Mail, Phone, MapPin, Calendar, Search, User } from 'lucide-react';
+import { Users, Edit2, Trash2, X, Save, Plus, Mail, Phone, MapPin, Calendar,
+  Search, User, ArrowUpDown, ArrowUp, ArrowDown }
+  from 'lucide-react';
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
 
@@ -26,6 +28,8 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [picSearch, setPicSearch] = useState("");
   const [isPicDropdownOpen, setIsPicDropdownOpen] = useState(false);
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
@@ -61,21 +65,31 @@ export default function CustomersPage() {
     };
   }, []);
 
-  // Filter customers berdasarkan search query
+  // Filter dan Sort customers
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCustomers(customers);
-    } else {
-      const filtered = customers.filter((cust) =>
+    let result = [...customers];
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((cust) =>
         cust.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cust.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cust.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cust.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cust.pic_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredCustomers(filtered);
     }
-  }, [searchQuery, customers]);
+
+    // Sort berdasarkan nama customer
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = a.name.localeCompare(b.name);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    }
+
+    setFilteredCustomers(result);
+  }, [searchQuery, customers, sortBy, sortDirection]);
 
   // Ambil semua data customer
   const fetchData = async () => {
@@ -232,6 +246,26 @@ export default function CustomersPage() {
 
   // Get selected PIC name
   const selectedPicName = adminUsers.find(u => u.user_id === formData.pic_id)?.name || (texts.selectPIC);
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />;
+  };
 
   return (
     <div className={`min-h-screen p-8 transition-colors ${
@@ -601,42 +635,59 @@ export default function CustomersPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead>
-                  <tr className={`border-b-2 ${
-                    darkMode ? 'border-gray-700' : 'border-gray-200'
-                  }`}>
-                    <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+                <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
+                  <tr>
+                    {/* CUSTOMER NAME - CLICKABLE SORT */}
+                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
-                      {texts.customerNameHeader}
+                      <button
+                        onClick={() => handleSort('name')}
+                        className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                      >
+                        {texts.customerNameHeader}
+                        {getSortIcon('name')}
+                      </button>
                     </th>
-                    <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+
+                    {/* EMAIL - NO SORT */}
+                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.emailHeader}
                     </th>
-                    <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+
+                    {/* PHONE - NO SORT */}
+                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.phoneHeader}
                     </th>
-                    <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+
+                    {/* ADDRESS - NO SORT */}
+                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.addressHeader}
                     </th>
-                    <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+
+                    {/* PIC - NO SORT */}
+                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.pic || 'PIC'}
                     </th>
-                    <th className={`px-4 py-3 text-left text-sm font-semibold ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+
+                    {/* CREATED AT - NO SORT, WHITESPACE NOWRAP */}
+                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.createdAt}
                     </th>
-                    <th className={`px-4 py-3 text-center text-sm font-semibold w-32 ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
+
+                    {/* ACTIONS - NO SORT */}
+                    <th className={`px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider w-32 ${
+                      darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.actions}
                     </th>

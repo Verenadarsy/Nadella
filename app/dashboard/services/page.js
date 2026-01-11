@@ -4,7 +4,8 @@ import { showAlert } from '@/lib/sweetalert';
 import {
   Wrench, Edit2, Trash2, X, Save, Plus,
   User, Calendar, CheckCircle, XCircle, Clock, ChevronDown,
-  Phone, Video, Cloud, Activity, Search
+  Phone, Video, Cloud, Activity, Search,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -49,6 +50,8 @@ export default function ServicesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredServices, setFilteredServices] = useState([])
   const [customerSearch, setCustomerSearch] = useState("")
+  const [sortBy, setSortBy] = useState(null) // null, 'customer', 'type', atau 'status'
+  const [sortDirection, setSortDirection] = useState('asc')
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -79,10 +82,11 @@ export default function ServicesPage() {
 
   // Filter services berdasarkan search query
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredServices(services)
-    } else {
-      const filtered = services.filter((service) => {
+    let result = [...services]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((service) => {
         const customerName = getCustomerName(service.customer_id).toLowerCase()
         const serviceType = service.service_type?.toLowerCase() || ""
         const status = service.status?.toLowerCase() || ""
@@ -93,9 +97,52 @@ export default function ServicesPage() {
           status.includes(searchQuery.toLowerCase())
         )
       })
-      setFilteredServices(filtered)
     }
-  }, [searchQuery, services])
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'customer') {
+      result.sort((a, b) => {
+        const compare = getCustomerName(a.customer_id).localeCompare(getCustomerName(b.customer_id))
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'type') {
+      // Urutan type: sip_trunk -> cctv -> gcp_aws
+      const typeOrder = { sip_trunk: 1, cctv: 2, gcp_aws: 3 }
+      result.sort((a, b) => {
+        const compare = (typeOrder[a.service_type] || 999) - (typeOrder[b.service_type] || 999)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'status') {
+      // Urutan status: active -> inactive -> terminated
+      const statusOrder = { active: 1, inactive: 2, terminated: 3 }
+      result.sort((a, b) => {
+        const compare = (statusOrder[a.status] || 999) - (statusOrder[b.status] || 999)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredServices(result)
+  }, [searchQuery, services, sortBy, sortDirection])
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
+  }
 
   const fetchServices = async () => {
     try {
@@ -674,27 +721,54 @@ export default function ServicesPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  {/* CUSTOMER - CLICKABLE SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.customerHeader}
+                    <button
+                      onClick={() => handleSort('customer')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.customerHeader}
+                      {getSortIcon('customer')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* SERVICE TYPE - CLICKABLE SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.serviceTypeHeader}
+                    <button
+                      onClick={() => handleSort('type')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.serviceTypeHeader}
+                      {getSortIcon('type')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* STATUS - CLICKABLE SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.statusHeader}
+                    <button
+                      onClick={() => handleSort('status')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.statusHeader}
+                      {getSortIcon('status')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* START DATE - NO SORT, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider whitespace-nowrap uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.startDate}
                   </th>
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* ACTIONS - NO SORT */}
+                  <th className={`px-6 py-3 text-center text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}

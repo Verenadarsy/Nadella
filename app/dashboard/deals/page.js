@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   Handshake, Edit2, Trash2, X, Save, Plus,
-  Banknote, Calendar, User, Building2, TrendingUp, ChevronDown, Search
+  Banknote, Calendar, User, Building2, TrendingUp, ChevronDown, Search,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -36,7 +37,11 @@ export default function DealsPage() {
   const [companySearchOpen, setCompanySearchOpen] = useState(false)
   const [customerSearchQuery, setCustomerSearchQuery] = useState("")
   const [companySearchQuery, setCompanySearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState(null) // null, 'name', atau 'stage'
+  const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calendarDate, setCalendarDate] = useState(new Date())
 
   useEffect(() => {
     // Detect dark mode from parent layout
@@ -61,20 +66,50 @@ export default function DealsPage() {
     return () => observer.disconnect()
   }, [])
 
-      // Filter deals based on search query
-    useEffect(() => {
-      if (searchQuery.trim() === "") {
-        setFilteredDeals(deals)
-      } else {
-        const filtered = deals.filter((deal) =>
-          deal.deal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.deal_stage.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          getCustomerName(deal.customer_id).toLowerCase().includes(searchQuery.toLowerCase()) ||
-          getCompanyName(deal.company_id).toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        setFilteredDeals(filtered)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showCalendar && !e.target.closest('.relative')) {
+        setShowCalendar(false)
       }
-    }, [searchQuery, deals])
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)  // ✅ CUMA INI AJA!
+    }
+  }, [showCalendar])
+
+      // Filter dan Sort deals
+      useEffect(() => {
+        let result = [...deals]
+
+        // Filter berdasarkan search query
+        if (searchQuery.trim() !== "") {
+          result = result.filter((deal) =>
+            deal.deal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            deal.deal_stage.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            getCustomerName(deal.customer_id).toLowerCase().includes(searchQuery.toLowerCase()) ||
+            getCompanyName(deal.company_id).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        }
+
+        // Sort berdasarkan kolom yang dipilih
+        if (sortBy === 'name') {
+          result.sort((a, b) => {
+            const compare = a.deal_name.localeCompare(b.deal_name)
+            return sortDirection === 'asc' ? compare : -compare
+          })
+        } else if (sortBy === 'stage') {
+          // Urutan stage: prospect -> negotiation -> won -> lost
+          const stageOrder = { prospect: 1, negotiation: 2, won: 3, lost: 4 }
+          result.sort((a, b) => {
+            const compare = (stageOrder[a.deal_stage] || 999) - (stageOrder[b.deal_stage] || 999)
+            return sortDirection === 'asc' ? compare : -compare
+          })
+        }
+
+        setFilteredDeals(result)
+      }, [searchQuery, deals, sortBy, sortDirection])
 
   const fetchDeals = async () => {
     try {
@@ -240,6 +275,92 @@ export default function DealsPage() {
     }
   }
 
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
+  }
+
+  // Helper untuk calendar
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+
+    const days = []
+
+    // Empty cells untuk hari sebelum tanggal 1
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null)
+    }
+
+    // Tanggal aktual
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day)
+    }
+
+    return days
+  }
+
+  const formatMonthYear = (date) => {
+    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  const isToday = (day) => {
+    if (!day) return false
+    const today = new Date()
+    return (
+      day === today.getDate() &&
+      calendarDate.getMonth() === today.getMonth() &&
+      calendarDate.getFullYear() === today.getFullYear()
+    )
+  }
+
+  const isSelected = (day) => {
+    if (!day || !formData.expected_close_date) return false
+    const selected = new Date(formData.expected_close_date + 'T00:00:00')
+    return (
+      day === selected.getDate() &&
+      calendarDate.getMonth() === selected.getMonth() &&
+      calendarDate.getFullYear() === selected.getFullYear()
+    )
+  }
+
+  const handleDateSelect = (day) => {
+    if (!day) return
+    const year = calendarDate.getFullYear()
+    const month = String(calendarDate.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    setFormData({ ...formData, expected_close_date: `${year}-${month}-${dayStr}` })
+    setShowCalendar(false)
+  }
+
+  const changeMonth = (offset) => {
+    const newDate = new Date(calendarDate)
+    newDate.setMonth(newDate.getMonth() + offset)
+    setCalendarDate(newDate)
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -376,60 +497,177 @@ export default function DealsPage() {
             </div>
 
             {/* Expected Close Date */}
-            <div>
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  darkMode ? "text-slate-300" : "text-slate-700"
-                }`}
-              >
+            <div className="relative">
+              <label className={`block text-sm font-medium mb-2 ${
+                darkMode ? "text-slate-300" : "text-slate-700"
+              }`}>
                 {texts.expectedCloseDate}
               </label>
 
-              <div
-                className="relative cursor-pointer"
-                onClick={() => document.getElementById("expectedCloseDateInput").showPicker()}
-              >
-
-                {/* ICON KIRI */}
-                <Calendar
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
-                    darkMode ? "text-slate-500" : "text-slate-400"
-                  }`}
-                />
-
-                {/* INPUT DATE (HIDDEN) */}
-                <input
-                  id="expectedCloseDateInput"
-                  type="date"
-                  name="expected_close_date"
-                  value={formData.expected_close_date}
-                  onChange={handleChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-
-                {/* VISUAL INPUT */}
-                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+              {/* Custom Date Input */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCalendar(!showCalendar)
+                  if (!formData.expected_close_date) {
+                    setCalendarDate(new Date())
+                  } else {
+                    setCalendarDate(new Date(formData.expected_close_date + 'T00:00:00'))
+                  }
+                }}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
+                    ? "bg-slate-700 border-slate-600 text-white hover:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 hover:border-blue-600"
+                }`}
+              >
+                <Calendar className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                <span className={formData.expected_close_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
+                  {formData.expected_close_date
+                    ? new Date(formData.expected_close_date + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })
+                    : (language === 'id' ? 'Pilih tanggal' : 'Select date')
+                  }
+                </span>
+              </button>
+
+              {/* Custom Calendar Popup */}
+              {showCalendar && (
+                <div className={`absolute mt-2 z-50 rounded-xl shadow-2xl border-2 p-4 w-80 ${
+                  darkMode
+                    ? 'bg-slate-800 border-slate-600'
+                    : 'bg-white border-gray-200'
                 }`}>
-                  <span className={formData.expected_close_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
-                    {formData.expected_close_date
-                      ? new Date(formData.expected_close_date + 'T00:00:00').toLocaleDateString('id-ID', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : "dd/mm/yyyy"
-                    }
-                  </span>
+                  {/* Header - Month/Year Navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      type="button"
+                      onClick={() => changeMonth(-1)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        darkMode
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <ChevronDown className="w-5 h-5 rotate-90" />
+                    </button>
+
+                    <h3 className={`font-semibold ${
+                      darkMode ? 'text-white' : 'text-slate-900'
+                    }`}>
+                      {formatMonthYear(calendarDate)}
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => changeMonth(1)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        darkMode
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <ChevronDown className="w-5 h-5 -rotate-90" />
+                    </button>
+                  </div>
+
+                  {/* Days of Week - MULTI LANGUAGE */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {(language === 'id'
+                      ? ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+                      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                    ).map((day) => (
+                      <div
+                        key={day}
+                        className={`text-center text-xs font-semibold py-2 ${
+                          darkMode ? 'text-slate-400' : 'text-gray-600'
+                        }`}
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {getDaysInMonth(calendarDate).map((day, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleDateSelect(day)}
+                        disabled={!day}
+                        className={`
+                          aspect-square rounded-lg text-sm font-medium transition-all
+                          ${!day ? 'invisible' : ''}
+                          ${isToday(day) && !isSelected(day)
+                            ? (darkMode
+                              ? 'bg-blue-600/20 text-blue-400 border-2 border-blue-600/50'
+                              : 'bg-blue-100 text-blue-700 border-2 border-blue-300')
+                            : ''
+                          }
+                          ${isSelected(day)
+                            ? (darkMode
+                              ? 'bg-blue-600 text-white shadow-lg scale-105'
+                              : 'bg-blue-600 text-white shadow-lg scale-105')
+                            : ''
+                          }
+                          ${!isToday(day) && !isSelected(day)
+                            ? (darkMode
+                              ? 'text-slate-300 hover:bg-slate-700 hover:scale-105'
+                              : 'text-gray-700 hover:bg-gray-100 hover:scale-105')
+                            : ''
+                          }
+                        `}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Footer Buttons - MULTI LANGUAGE */}
+                  <div className={`flex gap-2 mt-4 pt-4 border-t ${
+                    darkMode ? 'border-slate-700' : 'border-gray-200'
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date()
+                        const year = today.getFullYear()
+                        const month = String(today.getMonth() + 1).padStart(2, '0')
+                        const day = String(today.getDate()).padStart(2, '0')
+                        setFormData({ ...formData, expected_close_date: `${year}-${month}-${day}` })
+                        setShowCalendar(false)
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                        darkMode
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Hari Ini' : 'Today'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, expected_close_date: '' })
+                        setShowCalendar(false)
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                        darkMode
+                          ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Hapus' : 'Clear'}
+                    </button>
+                  </div>
                 </div>
-
-              </div>
+              )}
             </div>
-
-
-
 
             {/* Customer Select */}
             <div className="relative">
@@ -715,36 +953,61 @@ export default function DealsPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* DEAL NAME - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.dealNameHeader}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.dealNameHeader}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* STAGE - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.stage}
+                    <button
+                      onClick={() => handleSort('stage')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.stage}
+                      {getSortIcon('stage')}
+                    </button>
                   </th>
+
+                  {/* VALUE - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.value}
                   </th>
+
+                  {/* CUSTOMER - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.customerHeader}
                   </th>
+
+                  {/* COMPANY - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.companyHeader}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CLOSE DATE - NO SORT, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.closeDate}
                   </th>
+
+                  {/* ACTIONS - NO SORT */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

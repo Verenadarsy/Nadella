@@ -5,7 +5,8 @@ import SectionLoader from '../components/sectionloader'
 import {
   Megaphone, Edit2, Trash2, X, Save, Plus,
   Calendar, TrendingUp, Mail, Smartphone, Radio,
-  Banknote, ChevronDown, Activity, Search
+  Banknote, ChevronDown, Activity, Search,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
@@ -28,7 +29,14 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredCampaigns, setFilteredCampaigns] = useState([])
+ const [sortBy, setSortBy] = useState(null) // null, 'name', 'channel', atau 'budget'
+  const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calendarDate, setCalendarDate] = useState(new Date())
+  const [selectingStart, setSelectingStart] = useState(true) // true = pilih start, false = pilih end
+  const [tempStartDate, setTempStartDate] = useState(null) // temporary storage
+
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -65,18 +73,41 @@ export default function CampaignsPage() {
     }
   }
 
-  // Filter campaigns berdasarkan search query
+
+  // Filter dan Sort campaigns
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCampaigns(campaigns)
-    } else {
-      const filtered = campaigns.filter((camp) =>
+    let result = [...campaigns]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((camp) =>
         camp.campaign_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         camp.channel.toLowerCase().includes(searchQuery.toLowerCase())
       )
-      setFilteredCampaigns(filtered)
     }
-  }, [searchQuery, campaigns])
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = a.campaign_name.localeCompare(b.campaign_name)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'channel') {
+      // Urutan channel: email -> ads -> sms
+      const channelOrder = { email: 1, ads: 2, sms: 3 }
+      result.sort((a, b) => {
+        const compare = (channelOrder[a.channel] || 999) - (channelOrder[b.channel] || 999)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'budget') {
+      result.sort((a, b) => {
+        const compare = Number(a.budget) - Number(b.budget)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredCampaigns(result)
+  }, [searchQuery, campaigns, sortBy, sortDirection])
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -219,6 +250,159 @@ export default function CampaignsPage() {
     { value: 'sms', label: texts.sms, icon: <Smartphone className="w-4 h-4" /> }
   ]
 
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
+  }
+
+  // Helper untuk calendar
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+
+    const days = []
+
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null)
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day)
+    }
+
+    return days
+  }
+
+  const formatMonthYear = (date) => {
+    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  const isToday = (day) => {
+    if (!day) return false
+    const today = new Date()
+    return (
+      day === today.getDate() &&
+      calendarDate.getMonth() === today.getMonth() &&
+      calendarDate.getFullYear() === today.getFullYear()
+    )
+  }
+
+  const changeMonth = (offset) => {
+    const newDate = new Date(calendarDate)
+    newDate.setMonth(newDate.getMonth() + offset)
+    setCalendarDate(newDate)
+  }
+
+  const handleStartDateSelect = (day) => {
+    if (!day) return
+    const year = startCalendarDate.getFullYear()
+    const month = String(startCalendarDate.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    setFormData({ ...formData, start_date: `${year}-${month}-${dayStr}` })
+    setShowStartCalendar(false)
+  }
+
+  const handleEndDateSelect = (day) => {
+    if (!day) return
+    const year = endCalendarDate.getFullYear()
+    const month = String(endCalendarDate.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    setFormData({ ...formData, end_date: `${year}-${month}-${dayStr}` })
+    setShowEndCalendar(false)
+  }
+
+  const changeStartMonth = (offset) => {
+    const newDate = new Date(startCalendarDate)
+    newDate.setMonth(newDate.getMonth() + offset)
+    setStartCalendarDate(newDate)
+  }
+
+  const changeEndMonth = (offset) => {
+    const newDate = new Date(endCalendarDate)
+    newDate.setMonth(newDate.getMonth() + offset)
+    setEndCalendarDate(newDate)
+  }
+
+  const isStartDateSelected = (day) => {
+    if (!day || !formData.start_date) return false
+    const selected = new Date(formData.start_date + 'T00:00:00')
+    return (
+      day === selected.getDate() &&
+      calendarDate.getMonth() === selected.getMonth() &&
+      calendarDate.getFullYear() === selected.getFullYear()
+    )
+  }
+
+  const isEndDateSelected = (day) => {
+    if (!day || !formData.end_date) return false
+    const selected = new Date(formData.end_date + 'T00:00:00')
+    return (
+      day === selected.getDate() &&
+      calendarDate.getMonth() === selected.getMonth() &&
+      calendarDate.getFullYear() === selected.getFullYear()
+    )
+  }
+
+  const isInRange = (day) => {
+    if (!day || !formData.start_date || !formData.end_date) return false
+    const currentDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day)
+    const start = new Date(formData.start_date + 'T00:00:00')
+    const end = new Date(formData.end_date + 'T00:00:00')
+    return currentDate > start && currentDate < end
+  }
+
+  const handleDateSelect = (day) => {
+    if (!day) return
+
+    const year = calendarDate.getFullYear()
+    const month = String(calendarDate.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    const selectedDate = `${year}-${month}-${dayStr}`
+
+    if (selectingStart) {
+      // Pilih start date
+      setFormData({ ...formData, start_date: selectedDate, end_date: '' })
+      setTempStartDate(selectedDate)
+      setSelectingStart(false) // Next pilih end date
+    } else {
+      // Pilih end date
+      const startDate = new Date(tempStartDate + 'T00:00:00')
+      const endDate = new Date(selectedDate + 'T00:00:00')
+
+      if (endDate < startDate) {
+        // Kalau end date lebih kecil, swap
+        setFormData({ ...formData, start_date: selectedDate, end_date: tempStartDate })
+      } else {
+        setFormData({ ...formData, end_date: selectedDate })
+      }
+
+      setShowCalendar(false)
+      setSelectingStart(true) // Reset untuk next time
+    }
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* FORM */}
@@ -331,96 +515,208 @@ export default function CampaignsPage() {
               )}
             </div>
 
-            {/* Start Date */}
-            <div>
+            {/* Date Range Picker */}
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
-                {texts.startDate}
+                {texts.campaignPeriod || 'Campaign Period'}
               </label>
 
-              <div
-                className="relative cursor-pointer"
-                onClick={() => document.getElementById("startDateInput").showPicker()}
-              >
-                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
-                  darkMode ? "text-slate-500" : "text-slate-400"
-                }`} />
-
-                <input
-                  id="startDateInput"
-                  type="date"
-                  name="start_date"
-                  value={formData.start_date}
-                  onChange={handleChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-
-                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCalendar(!showCalendar)
+                  setSelectingStart(true)
+                  if (!formData.start_date) {
+                    setCalendarDate(new Date())
+                  } else {
+                    setCalendarDate(new Date(formData.start_date + 'T00:00:00'))
+                  }
+                }}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-colors ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
-                }`}>
-                  <span className={formData.start_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
-                    {formData.start_date
-                      ? new Date(formData.start_date + 'T00:00:00').toLocaleDateString('id-ID', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : "dd/mm/yyyy"
-                    }
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* End Date */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? "text-slate-300" : "text-slate-700"
-              }`}>
-                {texts.endDate}
-              </label>
-
-              <div
-                className="relative cursor-pointer"
-                onClick={() => document.getElementById("endDateInput").showPicker()}
+                    ? "bg-slate-700 border-slate-600 text-white hover:border-blue-500"
+                    : "bg-white border-gray-200 text-slate-900 hover:border-blue-600"
+                }`}
               >
-                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
-                  darkMode ? "text-slate-500" : "text-slate-400"
-                }`} />
+                <Calendar className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                <span className={(!formData.start_date && !formData.end_date) ? (darkMode ? "text-slate-500" : "text-slate-400") : ""}>
+                  {formData.start_date && formData.end_date
+                    ? `${new Date(formData.start_date + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      })} - ${new Date(formData.end_date + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      })}`
+                    : formData.start_date
+                    ? `${new Date(formData.start_date + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      })} - ${language === 'id' ? 'Pilih tanggal akhir' : 'Select end date'}`
+                    : (language === 'id' ? 'Pilih periode campaign' : 'Select campaign period')
+                  }
+                </span>
+              </button>
 
-                <input
-                  id="endDateInput"
-                  type="date"
-                  name="end_date"
-                  value={formData.end_date}
-                  onChange={handleChange}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-
-                <div className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+              {/* Calendar Popup - COPY EXACT DARI DEALS.JSX */}
+              {showCalendar && (
+                <div className={`absolute mt-2 z-50 rounded-xl shadow-2xl border-2 p-4 w-80 ${
                   darkMode
-                    ? "bg-slate-700 border-slate-600 text-white"
-                    : "bg-white border-gray-200 text-slate-900"
+                    ? 'bg-slate-800 border-slate-600'
+                    : 'bg-white border-gray-200'
                 }`}>
-                  <span className={formData.end_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
-                    {formData.end_date
-                      ? new Date(formData.end_date + 'T00:00:00').toLocaleDateString('id-ID', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : "dd/mm/yyyy"
+                  {/* Info text untuk user */}
+                  <div className={`text-xs mb-3 text-center ${
+                    darkMode ? 'text-slate-400' : 'text-gray-600'
+                  }`}>
+                    {selectingStart
+                      ? (language === 'id' ? 'Pilih tanggal mulai' : 'Select start date')
+                      : (language === 'id' ? 'Pilih tanggal selesai' : 'Select end date')
                     }
-                  </span>
+                  </div>
+
+                  {/* Header - Month/Year Navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      type="button"
+                      onClick={() => changeMonth(-1)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        darkMode
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <ChevronDown className="w-5 h-5 rotate-90" />
+                    </button>
+
+                    <h3 className={`font-semibold ${
+                      darkMode ? 'text-white' : 'text-slate-900'
+                    }`}>
+                      {formatMonthYear(calendarDate)}
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => changeMonth(1)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        darkMode
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <ChevronDown className="w-5 h-5 -rotate-90" />
+                    </button>
+                  </div>
+
+                  {/* Days of Week */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {(language === 'id'
+                      ? ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+                      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                    ).map((day) => (
+                      <div
+                        key={day}
+                        className={`text-center text-xs font-semibold py-2 ${
+                          darkMode ? 'text-slate-400' : 'text-gray-600'
+                        }`}
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {getDaysInMonth(calendarDate).map((day, index) => {
+                      const isStart = isStartDateSelected(day)
+                      const isEnd = isEndDateSelected(day)
+                      const inRange = isInRange(day)
+
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleDateSelect(day)}
+                          disabled={!day}
+                          className={`
+                            aspect-square rounded-lg text-sm font-medium transition-all
+                            ${!day ? 'invisible' : ''}
+                            ${isStart || isEnd
+                              ? (darkMode
+                                ? 'bg-blue-600 text-white shadow-lg scale-105 z-10'
+                                : 'bg-blue-600 text-white shadow-lg scale-105 z-10')
+                              : ''
+                            }
+                            ${inRange && !isStart && !isEnd
+                              ? (darkMode
+                                ? 'bg-blue-600/30 text-blue-300'
+                                : 'bg-blue-100 text-blue-700')
+                              : ''
+                            }
+                            ${isToday(day) && !isStart && !isEnd && !inRange
+                              ? (darkMode
+                                ? 'bg-blue-600/20 text-blue-400 border-2 border-blue-600/50'
+                                : 'bg-blue-100 text-blue-700 border-2 border-blue-300')
+                              : ''
+                            }
+                            ${!isToday(day) && !isStart && !isEnd && !inRange
+                              ? (darkMode
+                                ? 'text-slate-300 hover:bg-slate-700 hover:scale-105'
+                                : 'text-gray-700 hover:bg-gray-100 hover:scale-105')
+                              : ''
+                            }
+                          `}
+                        >
+                          {day}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Footer Buttons */}
+                  <div className={`flex gap-2 mt-4 pt-4 border-t ${
+                    darkMode ? 'border-slate-700' : 'border-gray-200'
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, start_date: '', end_date: '' })
+                        setTempStartDate(null)
+                        setSelectingStart(true)
+                        setShowCalendar(false)
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                        darkMode
+                          ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Hapus' : 'Clear'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowCalendar(false)}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                        darkMode
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Tutup' : 'Close'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Budget */}
-            <div className="md:col-span-2">
+            <div className="relative">
               <label className={`block text-sm font-medium mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
@@ -549,26 +845,53 @@ export default function CampaignsPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* CAMPAIGN NAME - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.campaignNameHeader}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.campaignNameHeader}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* CHANNEL - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.channelHeader}
+                    <button
+                      onClick={() => handleSort('channel')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.channelHeader}
+                      {getSortIcon('channel')}
+                    </button>
                   </th>
+
+                  {/* PERIOD - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.period}
                   </th>
+
+                  {/* BUDGET - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.budgetHeader}
+                    <button
+                      onClick={() => handleSort('budget')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.budgetHeader}
+                      {getSortIcon('budget')}
+                    </button>
                   </th>
+
+                  {/* ACTIONS - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
@@ -608,7 +931,7 @@ export default function CampaignsPage() {
                             month: 'short',
                             year: 'numeric'
                           })}
-                          {' → '}
+                          {' - '}
                           {new Date(campaign.end_date).toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',

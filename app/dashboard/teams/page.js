@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import {
   UsersRound, Edit2, Trash2, X, Save, Plus,
   User, Calendar, UserCog, ChevronDown, Clock,
-  Search
+  Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
@@ -26,6 +26,8 @@ export default function TeamsPage() {
   const [managerOpen, setManagerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("");
   const [managerSearch, setManagerSearch] = useState("");
+  const [sortBy, setSortBy] = useState(null) // null, 'name', atau 'manager'
+  const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
@@ -63,17 +65,35 @@ export default function TeamsPage() {
   // Filter teams berdasarkan search query
   const [filteredTeams, setFilteredTeams] = useState([]);
 
+  // Filter dan Sort teams
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredTeams(teams);
-    } else {
-      const filtered = teams.filter((team) =>
+    let result = [...teams]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((team) =>
         team.team_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         getManagerName(team.manager_id)?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredTeams(filtered);
+      )
     }
-  }, [searchQuery, teams]);
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = a.team_name.localeCompare(b.team_name)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'manager') {
+      result.sort((a, b) => {
+        const nameA = getManagerName(a.manager_id) || 'zzz' // put empty at end
+        const nameB = getManagerName(b.manager_id) || 'zzz'
+        const compare = nameA.localeCompare(nameB)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredTeams(result)
+  }, [searchQuery, teams, sortBy, sortDirection])
 
   // Filter users berdasarkan manager search
   const filteredUsers = users.filter((user) =>
@@ -243,6 +263,26 @@ export default function TeamsPage() {
   const getManagerName = (id) => {
     const manager = users.find((u) => u.user_id === id)
     return manager ? (manager.name || manager.username) : null
+  }
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
   }
 
   return (
@@ -520,21 +560,40 @@ export default function TeamsPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* TEAM NAME - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.teamNameHeader}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.teamNameHeader}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* MANAGER - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.managerHeader}
+                    <button
+                      onClick={() => handleSort('manager')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.managerHeader}
+                      {getSortIcon('manager')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CREATED AT - NO SORT, UPPERCASE, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
+
+                  {/* ACTIONS - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

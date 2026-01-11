@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   FileText, Edit2, Trash2, X, Save, Plus,
-  Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown, Search
+  Banknote, Calendar, User, Clock, AlertCircle, CheckCircle, ChevronDown, Search,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -28,6 +29,8 @@ export default function InvoicesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredInvoices, setFilteredInvoices] = useState([])
   const [customerSearch, setCustomerSearch] = useState("")
+  const [sortBy, setSortBy] = useState(null) // null, 'customer', atau 'status'
+  const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState('')
 
   useEffect(() => {
@@ -62,12 +65,13 @@ export default function InvoicesPage() {
     }
   }, [])
 
-  // Filter invoices berdasarkan search query
+  // Filter dan Sort invoices
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredInvoices(invoices)
-    } else {
-      const filtered = invoices.filter((invoice) => {
+    let result = [...invoices]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((invoice) => {
         const customerName = getCustomerName(invoice.customer_id).toLowerCase()
         const amount = invoice.amount?.toString() || ""
         const status = invoice.status?.toLowerCase() || ""
@@ -80,9 +84,25 @@ export default function InvoicesPage() {
           dueDate.includes(searchQuery)
         )
       })
-      setFilteredInvoices(filtered)
     }
-  }, [searchQuery, invoices])
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'customer') {
+      result.sort((a, b) => {
+        const compare = getCustomerName(a.customer_id).localeCompare(getCustomerName(b.customer_id))
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'status') {
+      // Urutan status: pending -> overdue -> paid
+      const statusOrder = { pending: 1, overdue: 2, paid: 3 }
+      result.sort((a, b) => {
+        const compare = (statusOrder[a.status] || 999) - (statusOrder[b.status] || 999)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredInvoices(result)
+  }, [searchQuery, invoices, sortBy, sortDirection])
 
   const fetchInvoices = async () => {
     try {
@@ -332,6 +352,26 @@ export default function InvoicesPage() {
     { value: 'paid', label: texts.paid, icon: <CheckCircle className="w-4 h-4" /> },
     { value: 'overdue', label: texts.overdue, icon: <AlertCircle className="w-4 h-4" /> }
   ]
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -687,32 +727,55 @@ export default function InvoicesPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  {/* CUSTOMER - CLICKABLE SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.customerHeader}
+                    <button
+                      onClick={() => handleSort('customer')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.customerHeader}
+                      {getSortIcon('customer')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* AMOUNT - NO SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.amountHeader}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* DUE DATE - NO SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.dueDateHeader}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* STATUS - CLICKABLE SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.statusHeader}
+                    <button
+                      onClick={() => handleSort('status')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.statusHeader}
+                      {getSortIcon('status')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CREATED AT - NO SORT, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* ACTIONS - NO SORT */}
+                  <th className={`px-6 py-3 text-center text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}

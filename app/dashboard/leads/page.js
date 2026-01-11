@@ -4,7 +4,8 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   UserPlus, Edit2, Trash2, X, Save, Plus,
-  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle, XCircle, Sparkles, Mail, Key, Search
+  User, TrendingUp, Clock, ChevronDown, Phone, CheckCircle,
+  XCircle, Sparkles, Mail, Key, Search,   ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -37,6 +38,9 @@ export default function LeadsPage() {
   // State untuk search
   const [customerSearch, setCustomerSearch] = useState("")
   const [tableSearch, setTableSearch] = useState("")
+
+  const [sortBy, setSortBy] = useState(null) // null, 'name', atau 'status'
+  const [sortDirection, setSortDirection] = useState('asc')
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -73,20 +77,37 @@ export default function LeadsPage() {
     }
   }, [])
 
-  // Filter leads berdasarkan table search
+  // Filter dan Sort leads
   useEffect(() => {
-    if (tableSearch.trim() === "") {
-      setFilteredLeads(leads);
-    } else {
-      const filtered = leads.filter((lead) =>
+    let result = [...leads];
+
+    // Filter berdasarkan table search
+    if (tableSearch.trim() !== "") {
+      result = result.filter((lead) =>
         lead.lead_name?.toLowerCase().includes(tableSearch.toLowerCase()) ||
         lead.source?.toLowerCase().includes(tableSearch.toLowerCase()) ||
         lead.lead_status?.toLowerCase().includes(tableSearch.toLowerCase()) ||
         customers.find(c => c.customer_id === lead.customer_id)?.name?.toLowerCase().includes(tableSearch.toLowerCase())
       );
-      setFilteredLeads(filtered);
     }
-  }, [tableSearch, leads, customers]);
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = (a.lead_name || '').localeCompare(b.lead_name || '');
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    } else if (sortBy === 'status') {
+      // Urutan status: new -> contacted -> qualified -> disqualified
+      const statusOrder = { new: 1, contacted: 2, qualified: 3, disqualified: 4 };
+      result.sort((a, b) => {
+        const compare = (statusOrder[a.lead_status] || 999) - (statusOrder[b.lead_status] || 999);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    }
+
+    setFilteredLeads(result);
+  }, [tableSearch, leads, customers, sortBy, sortDirection]);
 
   async function fetchLeads() {
     try {
@@ -329,6 +350,26 @@ export default function LeadsPage() {
 
   // Get selected customer name
   const selectedCustomerName = customers.find(c => c.customer_id === form.customer_id)?.name || (texts.noCustomerLinked)
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />;
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -680,31 +721,54 @@ export default function LeadsPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* LEAD NAME - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.leadNameHeader || "Lead Name"}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.leadNameHeader || "Lead Name"}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* SOURCE - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.sourceHeader}
                   </th>
+
+                  {/* STATUS - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.statusHeader}
+                    <button
+                      onClick={() => handleSort('status')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.statusHeader}
+                      {getSortIcon('status')}
+                    </button>
                   </th>
+
+                  {/* LINKED CUSTOMER - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.linkedCustomerHeader || "Linked Customer"}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CREATED AT - NO SORT, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
+
+                  {/* ACTIONS - NO SORT */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

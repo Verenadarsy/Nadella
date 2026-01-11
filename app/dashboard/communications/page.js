@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import {
   MessageSquare, Edit2, Trash2, X, Save, Plus,
   Mail, Phone, MessageCircle, Send, User, Clock, ChevronDown, FileText,
-  Search
+  Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -28,6 +28,8 @@ export default function CommunicationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [filteredCommunications, setFilteredCommunications] = useState([]);
+  const [sortBy, setSortBy] = useState(null); // null, 'customer', atau 'type'
+  const [sortDirection, setSortDirection] = useState('asc');
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -56,10 +58,11 @@ export default function CommunicationsPage() {
 
   // Filter communications berdasarkan search query
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCommunications(communications);
-    } else {
-      const filtered = communications.filter((comm) => {
+    let result = [...communications];
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((comm) => {
         const customerName = customers.find(c => c.customer_id === comm.customer_id)?.name || "";
         return (
           customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -67,9 +70,27 @@ export default function CommunicationsPage() {
           comm.content.toLowerCase().includes(searchQuery.toLowerCase())
         );
       });
-      setFilteredCommunications(filtered);
     }
-  }, [searchQuery, communications, customers]);
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'customer') {
+      result.sort((a, b) => {
+        const nameA = customers.find(c => c.customer_id === a.customer_id)?.name || '';
+        const nameB = customers.find(c => c.customer_id === b.customer_id)?.name || '';
+        const compare = nameA.localeCompare(nameB);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    } else if (sortBy === 'type') {
+      // Urutan type: email -> phone -> chat -> whatsapp
+      const typeOrder = { email: 1, phone: 2, chat: 3, whatsapp: 4 };
+      result.sort((a, b) => {
+        const compare = (typeOrder[a.type] || 999) - (typeOrder[b.type] || 999);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    }
+
+    setFilteredCommunications(result);
+  }, [searchQuery, communications, customers, sortBy, sortDirection]);
 
   async function fetchData() {
     try {
@@ -215,6 +236,26 @@ export default function CommunicationsPage() {
     { value: 'chat', label: texts.chat, icon: <MessageCircle className="w-4 h-4" /> },
     { value: 'whatsapp', label: texts.whatsapp, icon: <Send className="w-4 h-4" /> }
   ];
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />;
+  };
 
   // Filter customers berdasarkan search di dropdown
   const filteredCustomers = customers.filter((cust) =>
@@ -539,26 +580,47 @@ export default function CommunicationsPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* CUSTOMER - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.customerHeader}
+                    <button
+                      onClick={() => handleSort('customer')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.customerHeader}
+                      {getSortIcon('customer')}
+                    </button>
                   </th>
+
+                  {/* TYPE - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.type}
+                    <button
+                      onClick={() => handleSort('type')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.type}
+                      {getSortIcon('type')}
+                    </button>
                   </th>
+
+                  {/* CONTENT - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.contentHeader}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* TIMESTAMP - NO SORT, UPPERCASE, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.timestamp}
                   </th>
+
+                  {/* ACTIONS - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

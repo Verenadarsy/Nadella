@@ -5,7 +5,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Package, Edit2, Trash2, X, Save, Plus,
-  Banknote, FileText, Search
+  Banknote, FileText, Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -21,6 +21,8 @@ export default function ProductsCRUD() {
   const [editId, setEditId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState(null) // null, 'name', atau 'price'
+  const [sortDirection, setSortDirection] = useState('asc') // 'asc' atau 'desc'
   const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
@@ -61,19 +63,54 @@ export default function ProductsCRUD() {
     return () => observer.disconnect()
   }, [router])
 
-  // Filter products berdasarkan search query
+  // Filter products
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredProducts(products)
-    } else {
-      const filtered = products.filter((product) =>
+    let result = [...products]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((product) =>
         product.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.price?.toString().includes(searchQuery)
       )
-      setFilteredProducts(filtered)
     }
-  }, [searchQuery, products])
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = a.product_name.localeCompare(b.product_name)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'price') {
+      result.sort((a, b) => {
+        const compare = Number(a.price) - Number(b.price)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredProducts(result)
+  }, [searchQuery, products, sortBy, sortDirection])
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
+  }
 
   const fetchProducts = async () => {
     try {
@@ -326,7 +363,7 @@ export default function ProductsCRUD() {
               {texts.productsList} ({filteredProducts?.length || 0})
             </h2>
 
-            {/* Search Bar */}
+            {/* SEARCH BOX */}
             <div className="relative w-full sm:w-auto sm:min-w-[280px] sm:max-w-md">
               <input
                 type="text"
@@ -369,21 +406,40 @@ export default function ProductsCRUD() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* PRODUCT NAME - CLICKABLE */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.productNameHeader}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.productNameHeader}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* PRICE - CLICKABLE */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.priceHeader}
+                    <button
+                      onClick={() => handleSort('price')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.priceHeader}
+                      {getSortIcon('price')}
+                    </button>
                   </th>
+
+                  {/* DESCRIPTION - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.descriptionHeader}
                   </th>
+
+                  {/* ACTIONS - NO SORT */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider w-32 ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

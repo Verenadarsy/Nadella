@@ -5,7 +5,8 @@ import SectionLoader from '../components/sectionloader'
 import {
   Calendar, Clock, User, Edit2, Trash2,
   X, Save, Plus, Phone, Mail, Users,
-  MessageSquare, FileText, ChevronDown, Search
+  MessageSquare, FileText, ChevronDown, Search,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import { useLanguage } from '@/lib/languageContext'
@@ -43,6 +44,8 @@ export default function ActivitiesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredActivities, setFilteredActivities] = useState([])
   const [userSearchQuery, setUserSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState(null)
+  const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
@@ -67,17 +70,34 @@ export default function ActivitiesPage() {
   }, [])
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredActivities(activities)
-    } else {
-      const filtered = activities.filter((activity) =>
+    let result = [...activities]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((activity) =>
         activity.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         activity.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getCustomerName(activity.customer_id).toLowerCase().includes(searchQuery.toLowerCase())  // ✅ UBAH
+        getCustomerName(activity.customer_id).toLowerCase().includes(searchQuery.toLowerCase())
       )
-      setFilteredActivities(filtered)
     }
-  }, [searchQuery, activities])
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'type') {
+      // Urutan type: call -> meeting -> email -> follow-up
+      const typeOrder = { call: 1, meeting: 2, email: 3, 'follow-up': 4 }
+      result.sort((a, b) => {
+        const compare = (typeOrder[a.type] || 999) - (typeOrder[b.type] || 999)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    } else if (sortBy === 'date') {
+      result.sort((a, b) => {
+        const compare = new Date(a.date) - new Date(b.date)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredActivities(result)
+  }, [searchQuery, activities, sortBy, sortDirection])
 
   const fetchActivities = async () => {
     try {
@@ -227,6 +247,26 @@ export default function ActivitiesPage() {
     { value: 'email', label: texts.email, icon: <Mail className="w-4 h-4" /> },
     { value: 'follow-up', label: texts.followUp, icon: <MessageSquare className="w-4 h-4" /> }
   ]
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -522,26 +562,47 @@ export default function ActivitiesPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* TYPE - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.type}
+                    <button
+                      onClick={() => handleSort('type')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.type}
+                      {getSortIcon('type')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
-                    darkMode ? 'text-slate-300' : 'text-gray-600'
-                  }`}>
-                    {texts.dateTime}
-                  </th>
+
+                  {/* ASSIGNED TO - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.assignedTo}
                   </th>
+
+                  {/* DATE TIME - CLICKABLE SORT, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                    darkMode ? 'text-slate-300' : 'text-gray-600'
+                  }`}>
+                    <button
+                      onClick={() => handleSort('date')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.dateTime}
+                      {getSortIcon('date')}
+                    </button>
+                  </th>
+
+                  {/* NOTES - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Notes
+                    {texts.notes}
                   </th>
+
+                  {/* ACTIONS - NO SORT */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
@@ -550,10 +611,11 @@ export default function ActivitiesPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? 'divide-slate-700' : 'divide-gray-200'}`}>
-                {activities.map((activity) => (
+                {filteredActivities.map((activity) => (
                   <tr key={activity.activity_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
+                    {/* TYPE */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
                         getActivityColor(activity.type)
@@ -562,6 +624,18 @@ export default function ActivitiesPage() {
                         <span className="capitalize">{activity.type}</span>
                       </div>
                     </td>
+
+                    {/* ASSIGNED TO */}
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      darkMode ? 'text-slate-300' : 'text-gray-700'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {getCustomerName(activity.customer_id)}
+                      </div>
+                    </td>
+
+                    {/* DATE TIME */}
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
@@ -577,14 +651,8 @@ export default function ActivitiesPage() {
                         })}
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      darkMode ? 'text-slate-300' : 'text-gray-700'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        {getCustomerName(activity.customer_id)}
-                      </div>
-                    </td>
+
+                    {/* NOTES */}
                     <td className={`px-6 py-4 text-sm ${
                       darkMode ? 'text-slate-400' : 'text-gray-600'
                     }`}>
@@ -592,6 +660,8 @@ export default function ActivitiesPage() {
                         {activity.notes || '-'}
                       </div>
                     </td>
+
+                    {/* ACTIONS */}
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button

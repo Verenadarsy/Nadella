@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import FloatingChat from "../floatingchat"
 import {
   Building2, Edit2, Trash2, X, Save, Plus,
-  Globe, MapPin, Briefcase, Calendar, Search
+  Globe, MapPin, Briefcase, Calendar, Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
@@ -25,6 +25,8 @@ export default function CompaniesPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState(null)
+  const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
@@ -48,20 +50,30 @@ export default function CompaniesPage() {
     return () => observer.disconnect()
   }, [])
 
-  // Filter companies berdasarkan search query
+  // Filter dan Sort companies
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCompanies(companies)
-    } else {
-      const filtered = companies.filter((company) =>
+    let result = [...companies]
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((company) =>
         company.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         company.website?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         company.address?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-      setFilteredCompanies(filtered)
     }
-  }, [searchQuery, companies])
+
+    // Sort berdasarkan nama company
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = a.company_name.localeCompare(b.company_name)
+        return sortDirection === 'asc' ? compare : -compare
+      })
+    }
+
+    setFilteredCompanies(result)
+  }, [searchQuery, companies, sortBy, sortDirection])
 
   // Fetch all companies
   const fetchCompanies = async () => {
@@ -181,6 +193,26 @@ export default function CompaniesPage() {
   const handleCancel = () => {
     setForm({ company_id: '', company_name: '', industry: '', website: '', address: '' })
     setIsEditing(false)
+  }
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />
   }
 
   return (
@@ -413,31 +445,48 @@ export default function CompaniesPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* COMPANY NAME - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.companyNameHeader}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.companyNameHeader}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* INDUSTRY - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.industryHeader}
                   </th>
+
+                  {/* WEBSITE - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.websiteHeader}
                   </th>
+
+                  {/* ADDRESS - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.addressHeader}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CREATED AT - NO SORT */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
+
+                  {/* ACTIONS - NO SORT */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

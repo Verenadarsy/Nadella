@@ -4,7 +4,7 @@ import { showAlert } from '@/lib/sweetalert';
 import {
   Ticket, Edit2, Trash2, X, Save, Plus,
   User, Clock, AlertTriangle, CheckCircle, Circle, Loader, ChevronDown, FileText, Target, Activity,
-  Flag, TrendingUp, Zap, ArrowRight, Search
+  Flag, TrendingUp, Zap, ArrowRight, Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react'
 import FloatingChat from "../floatingchat"
 import SectionLoader from '../components/sectionloader'
@@ -50,6 +50,8 @@ export default function TicketsPage() {
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [assignedSearch, setAssignedSearch] = useState("");
+  const [sortBy, setSortBy] = useState(null); // null, 'customer', 'priority', atau 'status'
+  const [sortDirection, setSortDirection] = useState('asc');
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
@@ -88,29 +90,53 @@ export default function TicketsPage() {
     }
   }, [])
 
-  // Filter tickets berdasarkan search query
-    useEffect(() => {
-      if (searchQuery.trim() === "") {
-        setFilteredTickets(tickets);
-      } else {
-        const filtered = tickets.filter((ticket) => {
-          const customerName = getCustomerName(ticket.customer_id).toLowerCase();
-          const assignedName = getUserName(ticket.assigned_to).toLowerCase();
-          const issueType = ticket.issue_type?.toLowerCase() || "";
-          const status = ticket.status?.toLowerCase() || "";
-          const priority = ticket.priority?.toLowerCase() || "";
+  // Filter dan Sort tickets
+  useEffect(() => {
+    let result = [...tickets];
 
-          return (
-            customerName.includes(searchQuery.toLowerCase()) ||
-            assignedName.includes(searchQuery.toLowerCase()) ||
-            issueType.includes(searchQuery.toLowerCase()) ||
-            status.includes(searchQuery.toLowerCase()) ||
-            priority.includes(searchQuery.toLowerCase())
-          );
-        });
-        setFilteredTickets(filtered);
-      }
-    }, [searchQuery, tickets]);
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((ticket) => {
+        const customerName = getCustomerName(ticket.customer_id).toLowerCase();
+        const assignedName = getUserName(ticket.assigned_to).toLowerCase();
+        const issueType = ticket.issue_type?.toLowerCase() || "";
+        const status = ticket.status?.toLowerCase() || "";
+        const priority = ticket.priority?.toLowerCase() || "";
+
+        return (
+          customerName.includes(searchQuery.toLowerCase()) ||
+          assignedName.includes(searchQuery.toLowerCase()) ||
+          issueType.includes(searchQuery.toLowerCase()) ||
+          status.includes(searchQuery.toLowerCase()) ||
+          priority.includes(searchQuery.toLowerCase())
+        );
+      });
+    }
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'customer') {
+      result.sort((a, b) => {
+        const compare = getCustomerName(a.customer_id).localeCompare(getCustomerName(b.customer_id));
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    } else if (sortBy === 'priority') {
+      // Urutan priority: low -> medium -> high -> urgent
+      const priorityOrder = { low: 1, medium: 2, high: 3, urgent: 4 };
+      result.sort((a, b) => {
+        const compare = (priorityOrder[a.priority] || 999) - (priorityOrder[b.priority] || 999);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    } else if (sortBy === 'status') {
+      // Urutan status: open -> in progress -> resolved -> closed
+      const statusOrder = { open: 1, 'in progress': 2, resolved: 3, closed: 4 };
+      result.sort((a, b) => {
+        const compare = (statusOrder[a.status] || 999) - (statusOrder[b.status] || 999);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    }
+
+    setFilteredTickets(result);
+  }, [searchQuery, tickets, sortBy, sortDirection]);
 
   const fetchTickets = async () => {
     try {
@@ -127,30 +153,25 @@ export default function TicketsPage() {
     }
   }
 
-  // Filter tickets berdasarkan search query
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredTickets(tickets);
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      const filtered = tickets.filter((ticket) => {
-        const customerName = getCustomerName(ticket.customer_id).toLowerCase();
-        const assignedName = getUserName(ticket.assigned_to).toLowerCase();
-        const issueType = ticket.issue_type?.toLowerCase() || "";
-        const status = ticket.status?.toLowerCase() || "";
-        const priority = ticket.priority?.toLowerCase() || "";
-
-        return (
-          customerName.includes(searchQuery.toLowerCase()) ||
-          assignedName.includes(searchQuery.toLowerCase()) ||
-          issueType.includes(searchQuery.toLowerCase()) ||
-          status.includes(searchQuery.toLowerCase()) ||
-          priority.includes(searchQuery.toLowerCase())
-        );
-      });
-      setFilteredTickets(filtered);
+      // Set kolom baru dengan asc
+      setSortBy(column);
+      setSortDirection('asc');
     }
-  }, [searchQuery, tickets]);
+  };
 
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />;
+  };
 
   const fetchUsers = async () => {
     try {
@@ -952,36 +973,67 @@ export default function TicketsPage() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* CUSTOMER - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.customerHeader}
+                    <button
+                      onClick={() => handleSort('customer')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.customerHeader}
+                      {getSortIcon('customer')}
+                    </button>
                   </th>
+
+                  {/* ISSUE - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.issue}
                   </th>
+
+                  {/* PRIORITY - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.priorityHeader}
+                    <button
+                      onClick={() => handleSort('priority')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.priorityHeader}
+                      {getSortIcon('priority')}
+                    </button>
                   </th>
+
+                  {/* STATUS - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.statusHeader}
+                    <button
+                      onClick={() => handleSort('status')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.statusHeader}
+                      {getSortIcon('status')}
+                    </button>
                   </th>
+
+                  {/* ASSIGNED TO - NO SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.assignedTo}
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CREATED AT - NO SORT, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
+
+                  {/* ACTIONS - NO SORT */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>

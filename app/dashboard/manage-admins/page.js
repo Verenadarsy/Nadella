@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { showAlert } from '@/lib/sweetalert';
 import {
   ShieldCheck, Edit2, Trash2, X, Save, Plus,
-  User, Mail, Lock, Calendar, UserCog, Key, Users, ChevronDown, Shield, Search
+  User, Mail, Lock, Calendar, UserCog, Key, Users,
+  ChevronDown, Shield, Search, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff
 } from 'lucide-react'
 import { useLanguage } from '@/lib/languageContext'
 
@@ -24,6 +25,9 @@ export default function ManageUsers() {
   const [roleOpen, setRoleOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [sortBy, setSortBy] = useState(null); // null, 'name', atau 'role'
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' atau 'desc'
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -49,19 +53,56 @@ export default function ManageUsers() {
     }
   }, [roleOpen])
 
-  // Filter users berdasarkan search query
+  // Filter dan Sort users
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredUsers(users);
-    } else {
-      const filtered = users.filter((user) =>
+    let result = [...users];
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim() !== "") {
+      result = result.filter((user) =>
         user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.role.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredUsers(filtered);
     }
-  }, [searchQuery, users]);
+
+    // Sort berdasarkan kolom yang dipilih
+    if (sortBy === 'name') {
+      result.sort((a, b) => {
+        const compare = a.name.localeCompare(b.name);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    } else if (sortBy === 'role') {
+      // Urutan role: client -> admin
+      const roleOrder = { client: 1, admin: 2 };
+      result.sort((a, b) => {
+        const compare = (roleOrder[a.role] || 999) - (roleOrder[b.role] || 999);
+        return sortDirection === 'asc' ? compare : -compare;
+      });
+    }
+
+    setFilteredUsers(result);
+  }, [searchQuery, users, sortBy, sortDirection]);
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle direction kalau kolom sama
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set kolom baru dengan asc
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-slate-400" />;
+    }
+    return sortDirection === 'asc'
+      ? <ArrowUp className="w-4 h-4" />
+      : <ArrowDown className="w-4 h-4" />;
+  };
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -396,14 +437,14 @@ export default function ManageUsers() {
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password_plain"
                   placeholder={editId ? "Leave blank to keep current" : "Enter password"}
                   value={form.password_plain}
                   onChange={handleChange}
                   autoComplete="new-password"
                   disabled={generatePassword}
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  className={`w-full pl-11 pr-11 py-2.5 rounded-lg border-2 transition-colors ${
                     generatePassword ? 'opacity-50 cursor-not-allowed' : ''
                   } ${
                     darkMode
@@ -411,6 +452,20 @@ export default function ManageUsers() {
                       : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                   } outline-none`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={generatePassword}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+                    generatePassword ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100'
+                  } transition-opacity`}
+                >
+                  {showPassword ? (
+                    <EyeOff className={`w-5 h-5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+                  ) : (
+                    <Eye className={`w-5 h-5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -543,26 +598,47 @@ export default function ManageUsers() {
             <table className="w-full">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
+                  {/* NAME - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    {texts.name}
+                    <button
+                      onClick={() => handleSort('name')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      {texts.name}
+                      {getSortIcon('name')}
+                    </button>
                   </th>
+
+                  {/* EMAIL - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.email}
                   </th>
+
+                  {/* ROLE - CLICKABLE SORT */}
                   <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
-                    Role
+                    <button
+                      onClick={() => handleSort('role')}
+                      className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
+                    >
+                      Role
+                      {getSortIcon('role')}
+                    </button>
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+
+                  {/* CREATED AT - NO SORT, UPPERCASE, WHITESPACE NOWRAP */}
+                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
+
+                  {/* ACTIONS - NO SORT, UPPERCASE */}
                   <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
