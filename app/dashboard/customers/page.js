@@ -268,38 +268,38 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className={`min-h-screen p-8 transition-colors ${
+    <div className={`min-h-screen p-4 sm:p-6 lg:p-8 transition-colors ${
       darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
     }`}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
 
         {/* FORM */}
         {(userRole === 'superadmin' || (userRole === 'admin' && editing)) && (
-          <div className={`rounded-xl shadow-lg p-8 mb-8 transition-colors ${
+          <div className={`rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 transition-colors ${
             darkMode ? 'bg-gray-800' : 'bg-white'
           }`}>
-            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${
+            <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 ${
               darkMode ? 'text-white' : 'text-gray-900'
             }`}>
               {editing ? (
                 <>
-                  <Edit2 className="w-7 h-7" />
+                  <Edit2 className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
                   {texts.editCustomer}
                 </>
               ) : (
                 <>
-                  <Plus className="w-7 h-7" />
+                  <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
                   {texts.addNewCustomer}
                 </>
               )}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {/* Customer Name */}
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-2 ${
+                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                       darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
                   >
@@ -308,7 +308,7 @@ export default function CustomersPage() {
 
                   <div className="relative">
                     <User
-                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                      className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                         darkMode ? "text-slate-500" : "text-slate-400"
                       }`}
                     />
@@ -321,7 +321,7 @@ export default function CustomersPage() {
                       onChange={handleChange}
                       required
                       disabled={userRole === 'admin'}
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                      className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                         userRole === 'admin'
                           ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
                           : (darkMode
@@ -335,7 +335,7 @@ export default function CustomersPage() {
                 {/* Email */}
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-2 ${
+                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                       darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
                   >
@@ -344,7 +344,7 @@ export default function CustomersPage() {
 
                   <div className="relative">
                     <Mail
-                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                      className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                         darkMode ? "text-slate-500" : "text-slate-400"
                       }`}
                     />
@@ -356,7 +356,7 @@ export default function CustomersPage() {
                       value={formData.email}
                       onChange={handleChange}
                       disabled={userRole === 'admin'}
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                      className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                         userRole === 'admin'
                           ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
                           : (darkMode
@@ -370,7 +370,7 @@ export default function CustomersPage() {
                 {/* Phone */}
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-2 ${
+                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                       darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
                   >
@@ -379,7 +379,7 @@ export default function CustomersPage() {
 
                   <div className="relative">
                     <Phone
-                      className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                      className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                         darkMode ? "text-slate-500" : "text-slate-400"
                       }`}
                     />
@@ -391,7 +391,7 @@ export default function CustomersPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       disabled={userRole === 'admin'}
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                      className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                         userRole === 'admin'
                           ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
                           : (darkMode
@@ -404,7 +404,11 @@ export default function CustomersPage() {
 
                 {/* PIC dengan Dropdown Custom */}
                 <div className="relative pic-dropdown-container">
-                  <label className={`block text-sm font-medium mb-2 ${ darkMode ? 'text-slate-300' : 'text-slate-700' }`}>
+                  <label
+                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
+                      darkMode ? "text-slate-300" : "text-slate-700"
+                    }`}
+                  >
                     {texts.pic || 'PIC (Person In Charge)'}
                   </label>
 
@@ -412,13 +416,13 @@ export default function CustomersPage() {
                   <button
                     type="button"
                     onClick={() => setIsPicDropdownOpen(!isPicDropdownOpen)}
-                    className={`w-full px-4 py-2.5 rounded-lg border-2 transition-colors outline-none text-left flex items-center justify-between ${
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none text-left flex items-center justify-between ${
                       darkMode
                         ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500'
                         : 'bg-white border-gray-200 text-slate-900 focus:border-blue-600'
                     }`}
                   >
-                    <span className={!formData.pic_id ? (darkMode ? 'text-slate-500' : 'text-slate-400') : ''}>
+                    <span className={`${!formData.pic_id ? (darkMode ? 'text-slate-500' : 'text-slate-400') : ''} truncate`}>
                       {selectedPicName}
                     </span>
                     <svg className={`w-5 h-5 transition-transform ${isPicDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -439,14 +443,14 @@ export default function CustomersPage() {
                             value={picSearch}
                             onChange={(e) => setPicSearch(e.target.value)}
                             placeholder={texts.searchPIC}
-                            className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                            className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                               darkMode
                                 ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
                                 : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           />
-                          <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                          <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 ${
                             darkMode ? 'text-slate-400' : 'text-slate-400'
                           }`} />
                         </div>
@@ -509,10 +513,10 @@ export default function CustomersPage() {
               {/* Address - Full Width */}
               <div>
                 <label
-                  className={`block text-sm font-medium mb-2 ${
-                    darkMode ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
+                    className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
+                      darkMode ? "text-slate-300" : "text-slate-700"
+                    }`}
+                  >
                   {texts.address}
                 </label>
 
@@ -530,7 +534,7 @@ export default function CustomersPage() {
                     onChange={handleChange}
                     rows={3}
                     disabled={userRole === 'admin'}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none resize-none ${
+                    className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none resize-none ${
                       userRole === 'admin'
                         ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
                         : (darkMode
@@ -542,10 +546,10 @@ export default function CustomersPage() {
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   type="submit"
-                  className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-sm sm:text-base rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                     editing
                       ? 'bg-green-600 hover:bg-green-700'
                       : 'bg-blue-600 hover:bg-blue-700'
@@ -553,12 +557,12 @@ export default function CustomersPage() {
                 >
                   {editing ? (
                     <>
-                      <Save className="w-5 h-5" />
+                      <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                       {texts.updateCustomer}
                     </>
                   ) : (
                     <>
-                      <Plus className="w-5 h-5" />
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                       {texts.addCustomer}
                     </>
                   )}
@@ -568,13 +572,13 @@ export default function CustomersPage() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                    className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
                       darkMode
                         ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
                     {texts.cancel}
                   </button>
                 )}
@@ -584,14 +588,14 @@ export default function CustomersPage() {
         )}
 
         {/* CUSTOMERS LIST */}
-        <div className={`rounded-xl shadow-lg p-8 transition-colors ${
+        <div className={`rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 transition-colors ${
           darkMode ? 'bg-gray-800' : 'bg-white'
         }`}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className={`text-2xl font-bold flex items-center gap-3 ${
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold flex items-center gap-2 sm:gap-3 ${
               darkMode ? 'text-white' : 'text-gray-900'
             }`}>
-              <Users className="w-7 h-7" />
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
               {texts.customersList} ({filteredCustomers.length})
             </h2>
 
@@ -602,13 +606,13 @@ export default function CustomersPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={texts.searchCustomers}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                className={`w-full pl-9 pr-3 sm:pl-10 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
                   darkMode
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                 }`}
               />
-              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 ${
                 darkMode ? 'text-gray-400' : 'text-gray-500'
               }`} />
             </div>
@@ -617,28 +621,28 @@ export default function CustomersPage() {
           {loading ? (
             <SectionLoader />
           ) : filteredCustomers.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className={`w-16 h-16 mx-auto mb-4 ${
+            <div className="text-center py-8 sm:py-12">
+              <Users className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 ${
                 darkMode ? 'text-gray-600' : 'text-gray-400'
               }`} />
-              <p className={`text-lg ${
+              <p className={`text-base sm:text-lg ${
                 darkMode ? 'text-gray-400' : 'text-gray-500'
               }`}>
                 {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noCustomersYet}
               </p>
-              <p className={`text-sm mt-2 ${
+              <p className={`text-xs sm:text-sm mt-2 ${
                 darkMode ? 'text-gray-500' : 'text-gray-400'
               }`}>
                 {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirst}
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full min-w-[900px]">
                 <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                   <tr>
                     {/* CUSTOMER NAME - CLICKABLE SORT */}
-                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    <th className={`px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                       darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       <button
@@ -651,46 +655,46 @@ export default function CustomersPage() {
                     </th>
 
                     {/* EMAIL - NO SORT */}
-                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    <th className={`px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                       darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.emailHeader}
                     </th>
 
                     {/* PHONE - NO SORT */}
-                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    <th className={`px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                       darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.phoneHeader}
                     </th>
 
                     {/* ADDRESS - NO SORT */}
-                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    <th className={`px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                       darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.addressHeader}
                     </th>
 
                     {/* PIC - NO SORT */}
-                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                    <th className={`px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                       darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.pic || 'PIC'}
                     </th>
 
                     {/* CREATED AT - NO SORT, WHITESPACE NOWRAP */}
-                    <th className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                    <th className={`px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                       darkMode ? 'text-slate-300' : 'text-gray-600'
                     }`}>
                       {texts.createdAt}
                     </th>
 
                     {/* ACTIONS - NO SORT */}
-                    <th className={`px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider w-32 ${
-                      darkMode ? 'text-slate-300' : 'text-gray-600'
-                    }`}>
-                      {texts.actions}
-                    </th>
+                  <th className={`px-3 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold uppercase tracking-wider w-28 sm:w-32 ${
+                    darkMode ? 'text-slate-300' : 'text-gray-600'
+                  }`}>
+                    {texts.actions}
+                  </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -703,7 +707,7 @@ export default function CustomersPage() {
                           : 'border-gray-200 hover:bg-gray-50'
                       }`}
                     >
-                      <td className={`px-4 py-3 ${
+                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
                         darkMode ? 'text-gray-200' : 'text-gray-900'
                       }`}>
                         <div className="flex items-center gap-2">
@@ -711,17 +715,17 @@ export default function CustomersPage() {
                           <span className="font-medium">{cust.name}</span>
                         </div>
                       </td>
-                      <td className={`px-4 py-3 ${
+                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
                         darkMode ? 'text-gray-300' : 'text-gray-600'
                       }`}>
                         {cust.email}
                       </td>
-                      <td className={`px-4 py-3 ${
+                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
                         darkMode ? 'text-gray-300' : 'text-gray-600'
                       }`}>
                         {cust.phone || '-'}
                       </td>
-                      <td className={`px-4 py-3 ${
+                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
                         darkMode ? 'text-gray-300' : 'text-gray-600'
                       }`}>
                         {cust.address ? (
@@ -735,12 +739,12 @@ export default function CustomersPage() {
                           '-'
                         )}
                       </td>
-                      <td className={`px-4 py-3 ${
+                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
                         darkMode ? 'text-gray-300' : 'text-gray-600'
                       }`}>
                         {cust.pic_name || '-'}
                       </td>
-                      <td className={`px-4 py-3 text-sm ${
+                      <td className={`px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
                         darkMode ? 'text-gray-400' : 'text-gray-500'
                       }`}>
                         {new Date(cust.created_at).toLocaleDateString('id-ID', {
@@ -749,32 +753,32 @@ export default function CustomersPage() {
                           year: 'numeric'
                         })}
                       </td>
-                      <td className="px-4 py-3 w-32">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 w-28 sm:w-32">
+                        <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                           <button
                             onClick={() => handleEdit(cust)}
-                            className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                            className={`p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0 ${
                               darkMode
                                 ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                                 : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                             }`}
                             title="Edit"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
 
                           {/* Tombol Delete hanya untuk superadmin */}
                           {userRole === 'superadmin' && (
                             <button
                               onClick={() => handleDelete(cust.customer_id)}
-                              className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                              className={`p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0 ${
                                 darkMode
                                   ? 'bg-red-600 hover:bg-red-700 text-white'
                                   : 'bg-red-500 hover:bg-red-600 text-white'
                               }`}
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           )}
                         </div>

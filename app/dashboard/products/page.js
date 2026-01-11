@@ -253,13 +253,13 @@ export default function ProductsCRUD() {
 
             {/* Price */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.price}
               </label>
               <div className="relative">
-                <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                <Banknote className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input
@@ -269,7 +269,7 @@ export default function ProductsCRUD() {
                   value={form.price}
                   onChange={handleChange}
                   required
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                     darkMode
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
                       : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
@@ -280,13 +280,13 @@ export default function ProductsCRUD() {
 
             {/* Description */}
             <div className="md:col-span-2">
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.description}
               </label>
               <div className="relative">
-                <FileText className={`absolute left-3 top-3 w-5 h-5 ${
+                <FileText className={`absolute left-2.5 sm:left-3 top-3 w-4 h-4 sm:w-5 sm:h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <textarea
@@ -420,7 +420,7 @@ export default function ProductsCRUD() {
                   </th>
 
                   {/* PRICE - CLICKABLE */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -433,14 +433,13 @@ export default function ProductsCRUD() {
                   </th>
 
                   {/* DESCRIPTION - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.descriptionHeader}
                   </th>
-
                   {/* ACTIONS - NO SORT */}
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider w-32 ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold uppercase tracking-wider w-28 sm:w-32 ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
@@ -460,8 +459,8 @@ export default function ProductsCRUD() {
                         <span className="font-medium">{product.product_name}</span>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                      darkMode ? 'text-slate-300' : 'text-gray-700'
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${
+                      darkMode ? 'text-slate-300' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">
@@ -469,8 +468,8 @@ export default function ProductsCRUD() {
                         </span>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 text-sm ${
-                      darkMode ? 'text-slate-400' : 'text-gray-600'
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${
+                      darkMode ? 'text-slate-300' : 'text-gray-900'
                     }`}>
                       <div className="max-w-xs truncate">
                         {product.description || '-'}
@@ -489,7 +488,6 @@ export default function ProductsCRUD() {
                         >
                           <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
-
                         {userRole === 'superadmin' && (
                           <button
                             onClick={() => handleDelete(product.product_id)}
