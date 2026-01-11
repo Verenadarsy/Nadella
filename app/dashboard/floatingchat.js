@@ -130,7 +130,7 @@ export default function FloatingChat() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl">👋</span>
                 <p className="font-semibold">
-                  Halo! Aku <span className="text-blue-500 dark:text-blue-300">Nadella</span> siap membantu Anda hari ini! <span className="text-xl">🚀</span>
+                  Halo! Aku <span className="text-blue-500 dark:text-blue-300">Nadella</span> ada yang bisa aku bantu hari ini? <span className="text-xl">🚀</span>
                 </p>
               </div>
 
@@ -144,6 +144,7 @@ export default function FloatingChat() {
                       <li>Buat laporan PDF dengan filter tanggal</li>
                       <li>Analisis data penjualan dan aktivitas tim</li>
                       <li>Jawab pertanyaan berdasarkan database CRM</li>
+                      <li>Pastikan tidak typo ya :D </li>
                     </ul>
                   </div>
                 </div>
@@ -156,13 +157,13 @@ export default function FloatingChat() {
                     <p className="font-semibold mb-1">Contoh permintaan:</p>
                     <div className="space-y-1.5 text-sm">
                       <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        "rekap penjualan bulan ini"
+                        rekap customer bulan ini
                       </div>
                       <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        "cari customer bernama Budi"
+                        cari customer bernama Budi
                       </div>
                       <div className={`px-3 py-1.5 rounded ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        "buat laporan invoice Desember 2025"
+                        buat laporan deal Desember 2025
                       </div>
                     </div>
                   </div>
