@@ -269,13 +269,13 @@ export default function CompaniesPage() {
 
               {/* Industry */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${
+                <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
                   {texts.industry}
                 </label>
                 <div className="relative">
-                  <Briefcase className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  <Briefcase className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                     darkMode ? 'text-slate-500' : 'text-slate-400'
                   }`} />
                   <input
@@ -284,7 +284,7 @@ export default function CompaniesPage() {
                     placeholder={texts.industryPlaceholder}
                     value={form.industry}
                     onChange={handleChange}
-                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                       darkMode
                         ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                         : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -295,13 +295,13 @@ export default function CompaniesPage() {
 
               {/* Website */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${
+                <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
                   {texts.website}
                 </label>
                 <div className="relative">
-                  <Globe className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  <Globe className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                     darkMode ? 'text-slate-500' : 'text-slate-400'
                   }`} />
                   <input
@@ -310,7 +310,7 @@ export default function CompaniesPage() {
                     placeholder={texts.websitePlaceholder}
                     value={form.website}
                     onChange={handleChange}
-                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                       darkMode
                         ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                         : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -321,13 +321,13 @@ export default function CompaniesPage() {
 
               {/* Address */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${
+                <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
                   {texts.address}
                 </label>
                 <div className="relative">
-                  <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  <MapPin className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                     darkMode ? 'text-slate-500' : 'text-slate-400'
                   }`} />
                   <input
@@ -336,7 +336,7 @@ export default function CompaniesPage() {
                     placeholder={texts.addressPlaceholder}
                     value={form.address}
                     onChange={handleChange}
-                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                       darkMode
                         ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                         : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -459,35 +459,35 @@ export default function CompaniesPage() {
                   </th>
 
                   {/* INDUSTRY - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.industryHeader}
                   </th>
 
                   {/* WEBSITE - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.websiteHeader}
                   </th>
 
                   {/* ADDRESS - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.addressHeader}
                   </th>
 
                   {/* CREATED AT - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
 
                   {/* ACTIONS - NO SORT */}
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
@@ -512,7 +512,7 @@ export default function CompaniesPage() {
                     }`}>
                       {c.industry || '-'}
                     </td>
-                    <td className={`px-6 py-4 text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       {c.website ? (
@@ -528,7 +528,7 @@ export default function CompaniesPage() {
                         <span className={darkMode ? 'text-slate-500' : 'text-gray-400'}>-</span>
                       )}
                     </td>
-                    <td className={`px-6 py-4 text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       {c.address ? (
@@ -551,30 +551,30 @@ export default function CompaniesPage() {
                         year: 'numeric'
                       })}
                     </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                         {userRole === 'superadmin' ? (
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleEdit(c)}
-                              className={`p-2 rounded-lg transition-colors ${
+                              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                                 darkMode
                                   ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                                   : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                               }`}
                               title="Edit"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(c.company_id)}
-                              className={`p-2 rounded-lg transition-colors ${
+                              className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                                 darkMode
                                   ? 'bg-red-600 hover:bg-red-700 text-white'
                                   : 'bg-red-500 hover:bg-red-600 text-white'
                               }`}
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           </div>
                         ) : (

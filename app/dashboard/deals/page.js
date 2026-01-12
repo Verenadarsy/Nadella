@@ -362,22 +362,22 @@ export default function DealsPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* FORM */}
-      <div className={`rounded-xl p-6 mb-6 shadow-lg ${
+      <div className={`rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
-        <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+        <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${
           darkMode ? 'text-white' : 'text-slate-900'
         }`}>
           {isEditing ? (
             <>
-              <Edit2 className="w-5 h-5" />
+              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
               {texts.editDeal}
             </>
           ) : (
             <>
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               {texts.addNewDeal}
             </>
           )}
@@ -387,12 +387,12 @@ export default function DealsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Deal Name */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+            <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
               {texts.dealName}
             </label>
 
             <div className="relative">
-              <Handshake className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? "text-slate-500" : "text-slate-500"}`} />
+              <Handshake className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${darkMode ? "text-slate-500" : "text-slate-500"}`} />
 
               <input
                 type="text"
@@ -401,7 +401,7 @@ export default function DealsPage() {
                 value={formData.deal_name}
                 onChange={handleChange}
                 required
-                className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                     : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -413,7 +413,7 @@ export default function DealsPage() {
             {/* Deal Stage */}
             <div className="relative">
               <label
-                className={`block text-sm font-medium mb-2 ${
+                className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
@@ -424,7 +424,7 @@ export default function DealsPage() {
               <button
                 type="button"
                 onClick={() => setStageOpen(!stageOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-slate-50 border-gray-200 text-slate-900"
@@ -435,12 +435,12 @@ export default function DealsPage() {
                     formData.deal_stage ? "opacity-90" : "opacity-60"
                   }`}
                 >
-                  <TrendingUp size={16} className="opacity-60" />
+                  <TrendingUp className="w-4 h-4 opacity-60" />
                   {formData.deal_stage ? (
                     <span className="capitalize">{texts[formData.deal_stage]}</span>
                   ) : texts.selectStage}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
               </button>
 
               {/* Dropdown */}
@@ -474,12 +474,12 @@ export default function DealsPage() {
 
             {/* Deal Value */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                 {texts.dealValue} (Rp)
               </label>
 
               <div className="relative">
-                <Banknote className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? "text-slate-500" : "text-slate-500"}`} />
+                <Banknote className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${darkMode ? "text-slate-500" : "text-slate-500"}`} />
 
                 <input
                   type="number"
@@ -487,7 +487,7 @@ export default function DealsPage() {
                   placeholder={texts.dealValuePlaceholder}
                   value={formData.deal_value}
                   onChange={handleChange}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg border-2 transition-colors outline-none ${
+                  className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                     darkMode
                       ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                       : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -498,9 +498,7 @@ export default function DealsPage() {
 
             {/* Expected Close Date */}
             <div className="relative">
-              <label className={`block text-sm font-medium mb-2 ${
-                darkMode ? "text-slate-300" : "text-slate-700"
-              }`}>
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
                 {texts.expectedCloseDate}
               </label>
 
@@ -515,13 +513,13 @@ export default function DealsPage() {
                     setCalendarDate(new Date(formData.expected_close_date + 'T00:00:00'))
                   }
                 }}
-                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white hover:border-blue-500"
                     : "bg-white border-gray-200 text-slate-900 hover:border-blue-600"
                 }`}
               >
-                <Calendar className={`w-4 h-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                <Calendar className={`w-4 h-4 sm:w-5 sm:h-5 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
                 <span className={formData.expected_close_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
                   {formData.expected_close_date
                     ? new Date(formData.expected_close_date + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
@@ -671,8 +669,7 @@ export default function DealsPage() {
 
             {/* Customer Select */}
             <div className="relative">
-              <label
-                className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
@@ -683,7 +680,7 @@ export default function DealsPage() {
               <button
                 type="button"
                 onClick={() => setCustomerOpen(!customerOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-slate-50 border-gray-200 text-slate-900"
@@ -694,12 +691,12 @@ export default function DealsPage() {
                     formData.customer_id ? "opacity-90" : "opacity-60"
                   }`}
                 >
-                  <User size={16} className="opacity-60" />
+                  <User className="w-4 h-4 opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
                     : texts.selectCustomer}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
               </button>
 
               {/* Dropdown */}
@@ -719,15 +716,14 @@ export default function DealsPage() {
                         value={customerSearchQuery}
                         onChange={(e) => setCustomerSearchQuery(e.target.value)}
                         placeholder={texts.searchCustomer}
-                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                        className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
                             : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Search
-                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                      <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none ${
                           darkMode ? 'text-slate-400' : 'text-slate-400'
                         }`}
                       />
@@ -763,8 +759,7 @@ export default function DealsPage() {
 
             {/* Company */}
             <div className="relative">
-              <label
-                className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? "text-slate-300" : "text-slate-700"
                 }`}
               >
@@ -775,7 +770,7 @@ export default function DealsPage() {
               <button
                 type="button"
                 onClick={() => setCompanyOpen(!companyOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-slate-50 border-gray-200 text-slate-900"
@@ -786,13 +781,13 @@ export default function DealsPage() {
                     formData.company_id ? "opacity-90" : "opacity-60"
                   }`}
                 >
-                  <Building2 size={16} className="opacity-60" />
+                  <Building2 className="w-4 h-4 opacity-60" />
                   {formData.company_id
                     ? companies.find((c) => c.company_id === formData.company_id)
                         ?.company_name
                     : texts.selectCompany}
                 </span>
-                <ChevronDown size={18} className="opacity-60" />
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
               </button>
 
               {/* Dropdown */}
@@ -812,7 +807,7 @@ export default function DealsPage() {
                         value={companySearchQuery}
                         onChange={(e) => setCompanySearchQuery(e.target.value)}
                         placeholder={texts.searchCompany}
-                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                        className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
                             : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
@@ -820,7 +815,7 @@ export default function DealsPage() {
                         onClick={(e) => e.stopPropagation()}
                       />
                       <Search
-                        className={`absolute left-3 top-2.5 w-5 h-5 ${
+                        className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none ${
                           darkMode ? 'text-slate-400' : 'text-slate-400'
                         }`}
                       />
@@ -856,10 +851,10 @@ export default function DealsPage() {
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               type="submit"
-              className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-sm sm:text-base rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-blue-600 hover:bg-blue-700'
@@ -867,12 +862,12 @@ export default function DealsPage() {
             >
               {isEditing ? (
                 <>
-                  <Save className="w-5 h-5" />
+                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                   {texts.updateDeal}
                 </>
               ) : (
                 <>
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   {texts.addDeal}
                 </>
               )}
@@ -882,13 +877,13 @@ export default function DealsPage() {
               <button
                 type="button"
                 onClick={handleCancel}
-                className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
                     ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 {texts.cancel}
               </button>
             )}
@@ -897,14 +892,14 @@ export default function DealsPage() {
       </div>
 
       {/* DEALS LIST */}
-      <div className={`rounded-xl overflow-hidden shadow-lg ${
+      <div className={`rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
-        <div className={`px-6 py-4 border-b ${
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-lg font-semibold ${
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <h2 className={`text-base sm:text-lg font-semibold ${
               darkMode ? 'text-white' : 'text-slate-900'
             }`}>
               {texts.dealsList} ({filteredDeals.length})
@@ -917,13 +912,13 @@ export default function DealsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={texts.searchDeals}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                className={`w-full pl-9 pr-3 sm:pl-10 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
                     : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                 }`}
               />
-              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none ${
                 darkMode ? 'text-slate-400' : 'text-slate-400'
               }`} />
             </div>
@@ -934,27 +929,27 @@ export default function DealsPage() {
           <SectionLoader darkMode={darkMode} text={texts.loadingDeals} />
         ) : filteredDeals.length === 0 ? (
           <div className="p-12 text-center">
-            <Handshake className={`w-16 h-16 mx-auto mb-4 ${
+            <Handshake className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
             }`} />
-            <p className={`text-lg font-medium ${
+            <p className={`text-base sm:text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
               {texts.noDealsYet}
             </p>
-            <p className={`text-sm mt-1 ${
+            <p className={`text-xs sm:text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
               {texts.createFirst}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full min-w-[900px]">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
                   {/* DEAL NAME - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -967,7 +962,7 @@ export default function DealsPage() {
                   </th>
 
                   {/* STAGE - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -980,35 +975,35 @@ export default function DealsPage() {
                   </th>
 
                   {/* VALUE - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.value}
                   </th>
 
                   {/* CUSTOMER - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.customerHeader}
                   </th>
 
                   {/* COMPANY - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.companyHeader}
                   </th>
 
                   {/* CLOSE DATE - NO SORT, WHITESPACE NOWRAP */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.closeDate}
                   </th>
 
                   {/* ACTIONS - NO SORT */}
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
@@ -1020,23 +1015,23 @@ export default function DealsPage() {
                   <tr key={deal.deal_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
-                    <td className={`px-6 py-4 ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 ${
                       darkMode ? 'text-slate-300' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Handshake className="w-4 h-4" />
+                        <Handshake className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span className="font-medium">{deal.deal_name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
                         getStageColor(deal.deal_stage)
                       }`}>
-                        <TrendingUp className="w-4 h-4" />
+                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span className="capitalize">{texts[deal.deal_stage]}</span>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
@@ -1044,26 +1039,26 @@ export default function DealsPage() {
                           {deal.deal_value ? `Rp ${Number(deal.deal_value).toLocaleString('id-ID')}` : '-'}
                         </span>
                       </div>
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      </td>
+                      <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
                         {getCustomerName(deal.customer_id)}
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
                         {getCompanyName(deal.company_id)}
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {deal.expected_close_date ? new Date(deal.expected_close_date).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -1071,30 +1066,30 @@ export default function DealsPage() {
                         }) : '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(deal)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                             darkMode
                               ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                               : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                           }`}
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                         {userRole === 'superadmin' && (
                           <button
                             onClick={() => handleDelete(deal.deal_id)}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                               darkMode
                                 ? 'bg-red-600 hover:bg-red-700 text-white'
                                 : 'bg-red-500 hover:bg-red-600 text-white'
                             }`}
                             title="Delete"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
                         )}
                       </div>

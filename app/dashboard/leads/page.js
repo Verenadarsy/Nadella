@@ -372,38 +372,38 @@ export default function LeadsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* FORM */}
-      <div className={`rounded-xl p-6 mb-6 shadow-lg ${
+      <div className={`rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
-        <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+        <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${
           darkMode ? 'text-white' : 'text-slate-900'
         }`}>
           {editingId ? (
             <>
-              <Edit2 className="w-5 h-5" />
+              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
               {texts.editLead}
             </>
           ) : (
             <>
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               {texts.addNewLead}
             </>
           )}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {/* Lead Name Input */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.leadName || "Lead Name"}
               </label>
               <div className="relative">
-                <UserPlus className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                <UserPlus className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input
@@ -411,7 +411,7 @@ export default function LeadsPage() {
                   placeholder={texts.leadNamePlaceholder || "e.g., John Doe"}
                   value={form.lead_name}
                   onChange={(e) => setForm({ ...form, lead_name: e.target.value })}
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                     darkMode
                       ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                       : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -423,13 +423,13 @@ export default function LeadsPage() {
 
             {/* Source Input */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.source}
               </label>
               <div className="relative">
-                <TrendingUp className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                <TrendingUp className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                   darkMode ? 'text-slate-500' : 'text-slate-400'
                 }`} />
                 <input
@@ -437,7 +437,7 @@ export default function LeadsPage() {
                   placeholder={texts.sourcePlaceholder}
                   value={form.source}
                   onChange={(e) => setForm({ ...form, source: e.target.value })}
-                  className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                  className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                     darkMode
                       ? "bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500"
                       : "bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600"
@@ -449,7 +449,7 @@ export default function LeadsPage() {
 
             {/* Status Select */}
             <div className="relative status-dropdown-container">
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
                 {texts.leadStatus}
@@ -458,20 +458,21 @@ export default function LeadsPage() {
               <button
                 type="button"
                 onClick={() => setStatusOpen(!statusOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-white border-gray-200 text-slate-900"
                 }`}
               >
                 <span className="flex items-center gap-2 opacity-90">
-                  {form.lead_status === "new" && <Sparkles size={16} />}
-                  {form.lead_status === "contacted" && <Phone size={16} />}
-                  {form.lead_status === "qualified" && <CheckCircle size={16} />}
-                  {form.lead_status === "disqualified" && <XCircle size={16} />}
+                  {form.lead_status === "new" && <Sparkles className="w-4 h-4" />}
+                  {form.lead_status === "contacted" && <Phone className="w-4 h-4" />}
+                  {form.lead_status === "qualified" && <CheckCircle className="w-4 h-4" />}
+                  {form.lead_status === "disqualified" && <XCircle className="w-4 h-4" />}
                   {texts[form.lead_status]}
                 </span>
-                <ChevronDown size={18} className={`opacity-60 transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 opacity-60 transition-transform ${
+                  statusOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {statusOpen && (
@@ -481,10 +482,10 @@ export default function LeadsPage() {
                     : "bg-white border-gray-200 text-slate-900"
                 }`}>
                   {[
-                    { value: "new", label: texts.new, icon: <Sparkles size={16} /> },
-                    { value: "contacted", label: texts.contacted, icon: <Phone size={16} /> },
-                    { value: "qualified", label: texts.qualified, icon: <CheckCircle size={16} /> },
-                    { value: "disqualified", label: texts.disqualified, icon: <XCircle size={16} /> },
+                    { value: "new", label: texts.new, icon: <Sparkles className="w-4 h-4" /> },
+                    { value: "contacted", label: texts.contacted, icon: <Phone className="w-4 h-4" /> },
+                    { value: "qualified", label: texts.qualified, icon: <CheckCircle className="w-4 h-4" /> },
+                    { value: "disqualified", label: texts.disqualified, icon: <XCircle className="w-4 h-4" /> },
                   ].map((item) => (
                     <button
                       key={item.value}
@@ -509,7 +510,7 @@ export default function LeadsPage() {
 
             {/* Customer Select dengan Search */}
             <div className="relative customer-dropdown-container">
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}>
                 {texts.linkedCustomer} <span className="text-slate-400 text-xs">(Optional)</span>
@@ -518,7 +519,7 @@ export default function LeadsPage() {
               <button
                 type="button"
                 onClick={() => setCustomerOpen(!customerOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-white border-gray-200 text-slate-900"
@@ -530,7 +531,8 @@ export default function LeadsPage() {
                   <User size={16} className="opacity-60" />
                   {selectedCustomerName}
                 </span>
-                <ChevronDown size={18} className={`opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 opacity-60 transition-transform ${
+                    customerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {customerOpen && (
@@ -554,7 +556,7 @@ export default function LeadsPage() {
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                      <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 ${
                         darkMode ? 'text-slate-400' : 'text-slate-400'
                       }`} />
                     </div>
@@ -621,10 +623,10 @@ export default function LeadsPage() {
 
 
           {/* Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               type="submit"
-              className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-sm sm:text-base rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 editingId
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-blue-600 hover:bg-blue-700'
@@ -632,12 +634,12 @@ export default function LeadsPage() {
             >
               {editingId ? (
                 <>
-                  <Save className="w-5 h-5" />
+                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                   {texts.updateLead}
                 </>
               ) : (
                 <>
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   {texts.addLead}
                 </>
               )}
@@ -650,13 +652,13 @@ export default function LeadsPage() {
                   setEditingId(null)
                   setForm({ lead_name: "", customer_id: null, source: "", lead_status: "new" })
                 }}
-                className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
                     ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 {texts.cancel}
               </button>
             )}
@@ -665,14 +667,14 @@ export default function LeadsPage() {
       </div>
 
       {/* LEADS LIST */}
-      <div className={`rounded-xl overflow-hidden shadow-lg ${
+      <div className={`rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
-        <div className={`px-6 py-4 border-b ${
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <div className="flex items-center justify-between">
-            <h2 className={`text-lg font-semibold ${
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <h2 className={`text-base sm:text-lg font-semibold ${
               darkMode ? 'text-white' : 'text-slate-900'
             }`}>
               {texts.leadsList} ({filteredLeads.length})
@@ -685,13 +687,13 @@ export default function LeadsPage() {
                 value={tableSearch}
                 onChange={(e) => setTableSearch(e.target.value)}
                 placeholder={texts.searchLeads}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                className={`w-full pl-9 pr-3 sm:pl-10 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                 }`}
               />
-              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 ${
                 darkMode ? 'text-gray-400' : 'text-gray-500'
               }`} />
             </div>
@@ -702,27 +704,27 @@ export default function LeadsPage() {
           <SectionLoader darkMode={darkMode} text={texts.loadingLeads} />
         ) : filteredLeads.length === 0 ? (
           <div className="p-12 text-center">
-            <UserPlus className={`w-16 h-16 mx-auto mb-4 ${
+            <UserPlus className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
             }`} />
-            <p className={`text-lg font-medium ${
+            <p className={`text-base sm:text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
               {tableSearch ? (texts.noResults || 'No results found') : texts.noLeadsYet}
             </p>
-            <p className={`text-sm mt-1 ${
+            <p className={`text-xs sm:text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
               {tableSearch ? (texts.tryDifferentKeyword || 'Try different keyword') : texts.createFirst}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full min-w-[900px]">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
                   {/* LEAD NAME - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -735,14 +737,14 @@ export default function LeadsPage() {
                   </th>
 
                   {/* SOURCE - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.sourceHeader}
                   </th>
 
                   {/* STATUS - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -755,21 +757,21 @@ export default function LeadsPage() {
                   </th>
 
                   {/* LINKED CUSTOMER - NO SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.linkedCustomerHeader || "Linked Customer"}
                   </th>
 
                   {/* CREATED AT - NO SORT, WHITESPACE NOWRAP */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.createdAt}
                   </th>
 
                   {/* ACTIONS - NO SORT */}
-                  <th className={`px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
@@ -781,32 +783,32 @@ export default function LeadsPage() {
                   <tr key={lead.lead_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium ${
                       darkMode ? 'text-slate-200' : 'text-gray-900'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <UserPlus className="w-4 h-4" />
+                        <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4"/>
                         {lead.lead_name || texts.unnamed}
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       {lead.source}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
                         getStatusColor(lead.lead_status)
                       }`}>
                         <span className="capitalize">{texts[lead.lead_status]}</span>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       {lead.customer_id ? (
                         <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-green-500" />
+                          <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" />
                           {customers.find((c) => c.customer_id === lead.customer_id)?.name || texts.unknown}
                         </div>
                       ) : (
@@ -815,11 +817,11 @@ export default function LeadsPage() {
                         </span>
                       )}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {new Date(lead.created_at).toLocaleString('id-ID', {
                           year: 'numeric',
                           month: 'short',
@@ -829,12 +831,12 @@ export default function LeadsPage() {
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(lead)}
                           disabled={isLeadQualified(lead.lead_status)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                             isLeadQualified(lead.lead_status)
                               ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'  // TAMBAH - disabled state
                               : (darkMode
@@ -843,21 +845,21 @@ export default function LeadsPage() {
                           }`}
                           title={isLeadQualified(lead.lead_status) ? (texts.cannotEditQualifiedLead || 'Lead sudah qualified, tidak bisa diedit') : 'Edit'}  // TAMBAH TITLE CONDITIONAL
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
 
                         {/* Tombol Delete hanya untuk superadmin */}
                         {userRole === 'superadmin' && (
                           <button
                             onClick={() => handleDelete(lead.lead_id)}
-                            className={`p-2 rounded-lg transition-colors ${
+                            className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                               darkMode
                                 ? 'bg-red-600 hover:bg-red-700 text-white'
                                 : 'bg-red-500 hover:bg-red-600 text-white'
                             }`}
                             title="Delete"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
                         )}
                       </div>
@@ -880,7 +882,7 @@ export default function LeadsPage() {
             <div className={`flex items-center justify-between p-6 border-b ${
               darkMode ? 'border-slate-700' : 'border-gray-200'
             }`}>
-              <h2 className={`text-xl font-bold ${
+              <h2 className={`text-lg sm:text-xl font-bold ${
                 darkMode ? 'text-white' : 'text-slate-900'
               }`}>
                 Enter Customer Email
@@ -894,12 +896,12 @@ export default function LeadsPage() {
                   darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-gray-100 text-gray-500'
                 }`}
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
             {/* Body */}
-            <form onSubmit={handleEmailSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleEmailSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div className={`p-4 rounded-lg ${
                 darkMode ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-700'
               }`}>
@@ -910,13 +912,13 @@ export default function LeadsPage() {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${
+                <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                   darkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
                   Customer Email Address
                 </label>
                 <div className="relative">
-                  <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                  <Mail className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
                     darkMode ? 'text-slate-500' : 'text-slate-400'
                   }`} />
                   <input
@@ -925,7 +927,7 @@ export default function LeadsPage() {
                     value={emailForm.email}
                     onChange={(e) => setEmailForm({ ...emailForm, email: e.target.value })}
                     required
-                    className={`w-full pl-11 pr-4 py-2.5 rounded-lg border-2 transition-colors ${
+                    className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                       darkMode
                         ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-blue-500'
                         : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'

@@ -140,8 +140,8 @@ export default function ServicesPage() {
       return <ArrowUpDown className="w-4 h-4 text-slate-400" />
     }
     return sortDirection === 'asc'
-      ? <ArrowUp className="w-4 h-4" />
-      : <ArrowDown className="w-4 h-4" />
+      ? <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      : <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
   }
 
   const fetchServices = async () => {
@@ -330,20 +330,19 @@ export default function ServicesPage() {
 
   const getStatusIcon = (status) => {
     switch(status) {
-      case 'active': return <CheckCircle className="w-4 h-4" />
-      case 'inactive': return <Clock className="w-4 h-4" />
-      case 'terminated': return <XCircle className="w-4 h-4" />
-      default: return <Activity className="w-4 h-4" />
+      case 'active': return <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      case 'inactive': return <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      case 'terminated': return <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      default: return <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
     }
   }
 
   const getServiceTypeIcon = (type) => {
     switch(type) {
-      case 'sip_trunk': return <Phone className="w-4 h-4" />
-      case 'cctv': return <Video className="w-4 h-4" />
-      case 'gcp_aws': return <Cloud className="w-4 h-4" />
-      default: return <Wrench className="w-4 h-4" />
-    }
+      case 'sip_trunk': return <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      case 'cctv': return <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      case 'gcp_aws': return <Cloud className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      default: return <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4" />    }
   }
 
   const getServiceTypeColor = (type) => {
@@ -360,44 +359,44 @@ export default function ServicesPage() {
   }
 
   const serviceTypeOptions = [
-    { value: 'sip_trunk', label: texts.sipTrunk, icon: <Phone className="w-4 h-4" /> },
-    { value: 'cctv', label: texts.cctv, icon: <Video className="w-4 h-4" /> },
-    { value: 'gcp_aws', label: texts.cloudGcpAws, icon: <Cloud className="w-4 h-4" /> }
+    { value: 'sip_trunk', label: texts.sipTrunk, icon: <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+    { value: 'cctv', label: texts.cctv, icon: <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+    { value: 'gcp_aws', label: texts.cloudGcpAws, icon: <Cloud className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> }
   ]
 
   const statusOptions = [
-    { value: 'active', label: texts.active, icon: <CheckCircle className="w-4 h-4" /> },
-    { value: 'inactive', label: texts.inactive, icon: <Clock className="w-4 h-4" /> },
-    { value: 'terminated', label: texts.terminated, icon: <XCircle className="w-4 h-4" /> }
+    { value: 'active', label: texts.active, icon: <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+    { value: 'inactive', label: texts.inactive, icon: <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+    { value: 'terminated', label: texts.terminated, icon: <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> }
   ]
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* FORM */}
-      <div className={`rounded-xl p-6 mb-6 shadow-lg ${
+      <div className={`rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
-        <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
+        <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${
           darkMode ? 'text-white' : 'text-slate-900'
         }`}>
           {isEditing ? (
             <>
-              <Edit2 className="w-5 h-5" />
+              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
               {texts.editService}
             </>
           ) : (
             <>
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               {texts.addNewService}
             </>
           )}
         </h2>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             {/* Customer Dropdown */}
             <div className="relative dropdown-container">
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.customer}
@@ -406,7 +405,7 @@ export default function ServicesPage() {
               <button
                 type="button"
                 onClick={() => setCustomerOpen(!customerOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white focus:border-blue-500"
                     : "bg-slate-50 border-gray-200 text-slate-900 focus:border-blue-600"
@@ -415,12 +414,12 @@ export default function ServicesPage() {
                 <span className={`flex items-center gap-2 ${
                   formData.customer_id ? "" : "opacity-60"
                 }`}>
-                  <User size={16} className="opacity-60" />
+                  <User className="w-4 h-4 opacity-60" />
                   {formData.customer_id
                     ? customers.find((c) => c.customer_id === formData.customer_id)?.name
                     : texts.selectCustomer}
                 </span>
-                <ChevronDown size={18} className={`opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 opacity-60 transition-transform ${customerOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {customerOpen && (
@@ -437,14 +436,14 @@ export default function ServicesPage() {
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
                         placeholder={texts.searchCustomers}
-                        className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                        className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                           darkMode
                             ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
                             : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                         }`}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+                      <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none ${
                         darkMode ? 'text-slate-400' : 'text-slate-400'
                       }`} />
                     </div>
@@ -498,7 +497,7 @@ export default function ServicesPage() {
 
             {/* Service Type Dropdown */}
             <div className="relative dropdown-container">
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.serviceType}
@@ -507,7 +506,7 @@ export default function ServicesPage() {
               <button
                 type="button"
                 onClick={() => setServiceTypeOpen(!serviceTypeOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-slate-50 border-gray-200 text-slate-900"
@@ -523,12 +522,11 @@ export default function ServicesPage() {
                     </>
                   ) : (
                     <>
-                      <Wrench className="w-4 h-4" />
-                      {texts.selectServiceType}
+                      <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />                      {texts.selectServiceType}
                     </>
                   )}
                 </span>
-                <ChevronDown size={18} className={`opacity-60 transition-transform ${serviceTypeOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 opacity-60 transition-transform ${serviceTypeOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {serviceTypeOpen && (
@@ -559,7 +557,7 @@ export default function ServicesPage() {
 
             {/* Status Dropdown */}
             <div className="relative dropdown-container">
-              <label className={`block text-sm font-medium mb-2 ${
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 {texts.status}
@@ -568,7 +566,7 @@ export default function ServicesPage() {
               <button
                 type="button"
                 onClick={() => setStatusOpen(!statusOpen)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border-2 transition-colors ${
+                className={`w-full flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   darkMode
                     ? "bg-slate-700 border-slate-600 text-white"
                     : "bg-slate-50 border-gray-200 text-slate-900"
@@ -584,12 +582,12 @@ export default function ServicesPage() {
                     </>
                   ) : (
                     <>
-                      <Activity className="w-4 h-4" />
+                      <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
                       {texts.selectStatus}
                     </>
                   )}
                 </span>
-                <ChevronDown size={18} className={`opacity-60 transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 opacity-60 transition-transform ${statusOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {statusOpen && (
@@ -620,11 +618,11 @@ export default function ServicesPage() {
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               type="button"
               onClick={handleSubmit}
-              className={`flex-1 py-2.5 px-4 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-sm sm:text-base rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                 isEditing
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-blue-600 hover:bg-blue-700'
@@ -632,12 +630,12 @@ export default function ServicesPage() {
             >
               {isEditing ? (
                 <>
-                  <Save className="w-5 h-5" />
+                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                   {texts.updateService}
                 </>
               ) : (
                 <>
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   {texts.addService}
                 </>
               )}
@@ -650,13 +648,13 @@ export default function ServicesPage() {
                   setIsEditing(false)
                   setFormData({ service_id: '', customer_id: '', service_type: '', status: '' })
                 }}
-                className={`px-6 py-2.5 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg font-semibold transition-all flex items-center gap-2 ${
                   darkMode
                     ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 {texts.cancel}
               </button>
             )}
@@ -665,14 +663,14 @@ export default function ServicesPage() {
       </div>
 
       {/* SERVICES LIST */}
-      <div className={`rounded-xl overflow-hidden shadow-lg ${
+      <div className={`rounded-2xl overflow-hidden shadow-xl transition-all duration-300 ${
         darkMode ? 'bg-slate-800' : 'bg-white'
       }`}>
-        <div className={`px-6 py-4 border-b ${
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b ${
           darkMode ? 'border-slate-700' : 'border-gray-200'
         }`}>
-          <div className="flex items-center justify-between gap-4">
-            <h2 className={`text-lg font-semibold ${
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <h2 className={`text-base sm:text-lg font-semibold ${
               darkMode ? 'text-white' : 'text-slate-900'
             }`}>
               {texts.servicesList} ({filteredServices.length})
@@ -685,13 +683,13 @@ export default function ServicesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={texts.searchServices}
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 transition-colors outline-none ${
+                className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
                     : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                 }`}
               />
-              <Search className={`absolute left-3 top-2.5 w-5 h-5 ${
+              <Search className={`absolute left-2.5 sm:left-3 top-2 sm:top-2.5 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none ${
                 darkMode ? 'text-slate-400' : 'text-slate-400'
               }`} />
             </div>
@@ -702,27 +700,27 @@ export default function ServicesPage() {
           <SectionLoader darkMode={darkMode} text={texts.loadingServices} />
         ) : filteredServices.length === 0 ? (
           <div className="p-12 text-center">
-            <Wrench className={`w-16 h-16 mx-auto mb-4 ${
+            <Wrench className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 ${
               darkMode ? 'text-slate-600' : 'text-gray-300'
             }`} />
-            <p className={`text-lg font-medium ${
+            <p className={`text-base sm:text-lg font-medium ${
               darkMode ? 'text-slate-400' : 'text-gray-500'
             }`}>
               {searchQuery ? (texts.noResults || 'Tidak ada hasil yang ditemukan') : texts.noServicesYet}
             </p>
-            <p className={`text-sm mt-1 ${
+            <p className={`text-xs sm:text-sm mt-1 ${
               darkMode ? 'text-slate-500' : 'text-gray-400'
             }`}>
               {searchQuery ? (texts.tryDifferentKeyword || 'Coba kata kunci lain') : texts.createFirst}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full min-w-[900px]">
               <thead className={darkMode ? 'bg-slate-700/50' : 'bg-gray-50'}>
                 <tr>
                   {/* CUSTOMER - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -735,7 +733,7 @@ export default function ServicesPage() {
                   </th>
 
                   {/* SERVICE TYPE - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -748,7 +746,7 @@ export default function ServicesPage() {
                   </th>
 
                   {/* STATUS - CLICKABLE SORT */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     <button
@@ -761,14 +759,14 @@ export default function ServicesPage() {
                   </th>
 
                   {/* START DATE - NO SORT, WHITESPACE NOWRAP */}
-                  <th className={`px-6 py-3 text-left text-xs font-semibold tracking-wider whitespace-nowrap uppercase ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.startDate}
                   </th>
 
                   {/* ACTIONS - NO SORT */}
-                  <th className={`px-6 py-3 text-center text-xs font-semibold tracking-wider uppercase ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
@@ -780,15 +778,15 @@ export default function ServicesPage() {
                   <tr key={service.service_id} className={`transition-colors ${
                     darkMode ? 'hover:bg-slate-700/30' : 'hover:bg-gray-50'
                   }`}>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
+                        <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {getCustomerName(service.customer_id)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
                         getServiceTypeColor(service.service_type)
                       }`}>
@@ -800,7 +798,7 @@ export default function ServicesPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium text-sm ${
                         getStatusColor(service.status)
                       }`}>
@@ -808,11 +806,11 @@ export default function ServicesPage() {
                         <span className="capitalize">{texts[service.status]}</span>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                    <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${
                       darkMode ? 'text-slate-300' : 'text-gray-700'
                     }`}>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {new Date(service.start_date).toLocaleDateString('id-ID', {
                           year: 'numeric',
                           month: 'short',
@@ -820,29 +818,29 @@ export default function ServicesPage() {
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(service)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                             darkMode
                               ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                               : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                           }`}
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(service.service_id)}
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
                             darkMode
                               ? 'bg-red-600 hover:bg-red-700 text-white'
                               : 'bg-red-500 hover:bg-red-600 text-white'
                           }`}
                           title="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                       </div>
                     </td>
