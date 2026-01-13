@@ -1,7 +1,10 @@
 // ===== FloatingChat.js =====
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Bot } from "lucide-react";
+import {
+  Bot, X, Send, Sparkles, Search, FileText,
+  TrendingUp, Database, Calendar
+} from "lucide-react";
 
 export default function FloatingChat() {
   const [darkMode, setDarkMode] = useState(false);
@@ -103,7 +106,12 @@ export default function FloatingChat() {
             ${darkMode ? "bg-blue-800 text-white" : "bg-blue-600 text-white"}`}
           >
             <span className="font-semibold text-base sm:text-lg">Nadella AI Assistant</span>
-            <button onClick={() => setChatOpen(false)}>✖</button>
+            <button
+              onClick={() => setChatOpen(false)}
+              className="hover:bg-white/20 rounded-lg p-1.5 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* CHAT BODY */}
@@ -123,53 +131,110 @@ export default function FloatingChat() {
             `}</style>
 
             {messages.length === 0 && (
-              <div
-                className={`p-3 sm:p-4 rounded-lg max-w-[95%] sm:max-w-[85%] space-y-2 sm:space-y-3
-                ${darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"}`}
-              >
-              <div className="flex items-center gap-2">
-                <span className="text-xl sm:text-2xl">👋</span>
-                <p className="font-semibold text-sm sm:text-base">
-                  Halo! Aku <span className="text-blue-500 dark:text-blue-300">Nadella</span> ada yang bisa aku bantu hari ini? <span className="text-lg sm:text-xl">🚀</span>
-                </p>
-              </div>
-
-              <div className="space-y-1.5 sm:space-y-2">
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 text-sm sm:text-base">📌</span>
-                  <div>
-                    <p className="font-semibold mb-1 text-xs sm:text-sm">Apa yang bisa saya bantu:</p>
-                    <ul className="list-disc pl-4 sm:pl-5 space-y-1 text-xs sm:text-sm">
-                      <li>Cari data pelanggan, produk, atau transaksi</li>
-                      <li>Buat laporan PDF dengan filter tanggal</li>
-                      <li>Analisis data penjualan dan aktivitas tim</li>
-                      <li>Jawab pertanyaan berdasarkan database CRM</li>
-                      <li>Pastikan tidak typo ya :D </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 sm:space-y-2">
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 text-sm sm:text-base">💡</span>
-                  <div>
-                    <p className="font-semibold mb-1 text-xs sm:text-sm">Contoh permintaan:</p>
-                    <div className="space-y-1 sm:space-y-1.5 text-xs sm:text-sm">
-                      <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        rekap customer bulan ini
-                      </div>
-                      <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        cari customer bernama Budi
-                      </div>
-                      <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm ${darkMode ? 'bg-slate-600' : 'bg-gray-100'} font-mono`}>
-                        buat laporan deal Desember 2025
-                      </div>
+              <div className="space-y-3 sm:space-y-4">
+                {/* Header Welcome */}
+                <div
+                  className={`p-4 rounded-xl ${
+                    darkMode
+                      ? "bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-700/50"
+                      : "bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${
+                      darkMode ? "bg-blue-600/20" : "bg-blue-100"
+                    }`}>
+                      <Sparkles className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                        darkMode ? "text-blue-400" : "text-blue-600"
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className={`font-semibold text-sm sm:text-base mb-1 ${
+                        darkMode ? "text-white" : "text-slate-900"
+                      }`}>
+                        Halo! Aku <span className="text-blue-500 dark:text-blue-400">Nadella</span>
+                      </p>
+                      <p className={`text-xs sm:text-sm ${
+                        darkMode ? "text-slate-300" : "text-slate-700"
+                      }`}>
+                        Asisten AI CRM-mu. Ada yang bisa aku bantu hari ini?
+                      </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Capabilities Card */}
+                <div
+                  className={`p-3 sm:p-4 rounded-xl ${
+                    darkMode ? "bg-slate-700/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                    <Database className={`w-4 h-4 ${
+                      darkMode ? "text-blue-400" : "text-blue-600"
+                    }`} />
+                    <p className={`font-semibold text-xs sm:text-sm ${
+                      darkMode ? "text-white" : "text-slate-900"
+                    }`}>
+                      Yang bisa aku lakukan:
+                    </p>
+                  </div>
+                  <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                    {[
+                      { icon: Search, text: "Cari data pelanggan, produk, atau transaksi" },
+                      { icon: FileText, text: "Buat laporan PDF dengan filter tanggal" },
+                      { icon: TrendingUp, text: "Analisis data penjualan dan aktivitas tim" },
+                      { icon: Database, text: "Jawab pertanyaan berdasarkan database CRM" }
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <item.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0 ${
+                          darkMode ? "text-blue-400" : "text-blue-600"
+                        }`} />
+                        <span className={darkMode ? "text-slate-300" : "text-slate-700"}>
+                          {item.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Example Queries Card */}
+                <div
+                  className={`p-3 sm:p-4 rounded-xl ${
+                    darkMode ? "bg-slate-700/50" : "bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                    <Calendar className={`w-4 h-4 ${
+                      darkMode ? "text-purple-400" : "text-purple-600"
+                    }`} />
+                    <p className={`font-semibold text-xs sm:text-sm ${
+                      darkMode ? "text-white" : "text-slate-900"
+                    }`}>
+                      Contoh pertanyaan:
+                    </p>
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    {[
+                      "rekap customer bulan ini",
+                      "cari customer bernama Budi",
+                      "buat laporan deal Desember 2025"
+                    ].map((query, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setInput(query)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs sm:text-sm font-mono transition-colors ${
+                          darkMode
+                            ? "bg-slate-600 hover:bg-slate-500 text-slate-200"
+                            : "bg-white hover:bg-gray-100 text-slate-700 border border-gray-200"
+                        }`}
+                      >
+                        {query}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
             )}
 
             {messages.map((msg, i) => (
@@ -196,30 +261,51 @@ export default function FloatingChat() {
             ))}
 
             {loading && (
-              <div className="p-2 sm:p-3 rounded-xl max-w-[85%] sm:max-w-[80%] bg-slate-700 text-white w-fit animate-pulse text-sm sm:text-base">
-                Nadella is typing...
+              <div className={`p-2 sm:p-3 rounded-xl max-w-[85%] sm:max-w-[80%] w-fit flex items-center gap-2 ${
+                darkMode ? "bg-slate-700 text-white" : "bg-gray-200 text-slate-900"
+              }`}>
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <span className="text-sm sm:text-base">Nadella is typing...</span>
               </div>
             )}
           </div>
 
           {/* INPUT */}
-          <div className="p-2 sm:p-3 flex gap-2 border-t dark:border-slate-700">
+          <div className={`p-2 sm:p-3 flex gap-2 border-t ${
+            darkMode ? "border-slate-700 bg-slate-800" : "border-gray-200 bg-gray-50"
+          }`}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Ketik pesan..."
-              className={`flex-1 border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-sm sm:text-base
-                ${darkMode ? "bg-slate-800 text-white border-slate-600" : "bg-white text-slate-800"}`}
-              />
-            <button
-              onClick={sendMessage}
+              onKeyDown={(e) => e.key === "Enter" && !loading && sendMessage()}
+              placeholder="Ketik Pesan..."
               disabled={loading}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-white text-sm sm:text-base font-medium
-                ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
-            >
-              Send
-            </button>
+              className={`flex-1 border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-sm sm:text-base outline-none transition-colors ${
+                loading
+                  ? "cursor-not-allowed opacity-50"
+                  : "focus:ring-2 focus:ring-blue-500"
+              } ${
+                darkMode
+                  ? "bg-slate-800 text-white border-slate-600 placeholder-slate-400"
+                  : "bg-white text-slate-800 border-gray-300 placeholder-slate-400"
+              }`}
+            />
+              <button
+                onClick={sendMessage}
+                disabled={loading}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-white text-sm sm:text-base font-medium transition-colors flex items-center gap-1.5 sm:gap-2 ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                <Send className="w-4 h-4" />
+                <span className="hidden sm:inline">Send</span>
+              </button>
           </div>
         </div>
       )}
