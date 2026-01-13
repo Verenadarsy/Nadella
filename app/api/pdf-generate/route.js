@@ -119,6 +119,21 @@ function getForeignKeyConfig(tableName) {
     ],
     'customers': [
       { fkField: 'pic_id', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'pic_name'}
+    ],
+    'services': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' }
+    ],
+    
+    'service_cctv': [
+      { fkField: 'service_id', refTable: 'services', idField: 'service_id', nameField: 'service_name', outputField: 'service_name' }
+    ],
+    
+    'service_sip_trunk': [
+      { fkField: 'service_id', refTable: 'services', idField: 'service_id', nameField: 'service_name', outputField: 'service_name' }
+    ],
+    
+    'service_cloud': [
+      { fkField: 'service_id', refTable: 'services', idField: 'service_id', nameField: 'service_name', outputField: 'service_name' }
     ]
   };
   
@@ -217,6 +232,58 @@ function formatTableData(enhancedRows, tableName) {
       'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
     }));
     formattedHeaders = ['No', 'Nomor Invoice', 'Pelanggan', 'Jumlah', 'Status', 'Tanggal Jatuh Tempo', 'Dibuat'];
+  }
+  else if (tableLower.includes('service')) {
+    // Format khusus untuk service tables
+    if (tableLower.includes('cctv')) {
+      formattedRows = enhancedRows.map((item, index) => ({
+        'No': index + 1,
+        'ID': item.id || '-',
+        'Service ID': item.service_id || '-',
+        'User Account': item.user_account || '-',
+        'Password': item.password || '-',
+        'Serial No': item.serial_no || '-',
+        'Encryption Code': item.encryption_code || '-',
+        'Mobile App User': item.user_mobile_app || '-',
+        'Mobile App Password': item.pwd_mobile_app || '-'
+      }));
+      formattedHeaders = ['No', 'ID', 'Service ID', 'User Account', 'Password', 'Serial No', 'Encryption Code', 'Mobile App User', 'Mobile App Password'];
+    }
+    else if (tableLower.includes('trunk') || tableLower.includes('sip')) {
+      formattedRows = enhancedRows.map((item, index) => ({
+        'No': index + 1,
+        'ID': item.id || '-',
+        'Service ID': item.service_id || '-',
+        'User ID Phone': item.user_id_phone || '-',
+        'Password': item.password || '-',
+        'SIP Server': item.sip_server || '-'
+      }));
+      formattedHeaders = ['No', 'ID', 'Service ID', 'User ID Phone', 'Password', 'SIP Server'];
+    }
+    else if (tableLower.includes('cloud')) {
+      formattedRows = enhancedRows.map((item, index) => ({
+        'No': index + 1,
+        'ID': item.id || '-',
+        'Service ID': item.service_id || '-',
+        'User Email': item.user_email || '-',
+        'Password': item.password || '-',
+        'Provider': item.provider || '-'
+      }));
+      formattedHeaders = ['No', 'ID', 'Service ID', 'User Email', 'Password', 'Provider'];
+    }
+    else {
+      // Default service formatting
+      formattedRows = enhancedRows.map((item, index) => ({
+        'No': index + 1,
+        'ID': item.id || item.service_id || '-',
+        'Tipe': item.service_type || '-',
+        'Pelanggan': item.customer_name || '-',
+        'Status': item.status || '-',
+        'Tanggal Aktif': item.start_date ? format(new Date(item.start_date), 'dd/MM/yyyy') : '-',
+        'Tanggal Pesanan': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
+      }));
+      formattedHeaders = ['No', 'ID', 'Tipe', 'Pelanggan', 'Status', 'Tanggal Aktif', 'Tanggal Pesanan'];
+    }
   }
   else if (tableLower.includes('deal')) {
     formattedRows = enhancedRows.map((item, index) => ({
@@ -806,7 +873,6 @@ export async function POST(req) {
 
     let preset;
     
-    // Cari di queries_preset
     const { data: presets } = await supabase
       .from("queries_preset")
       .select("intent, description, query, keywords")
@@ -862,6 +928,7 @@ export async function POST(req) {
       preset = presets[0];
       console.log(`📊 Found preset: ${preset.intent} - ${preset.description}`);
     }
+    
     
     // =======================================
     // PROCESS QUERY DENGAN PARAMETER

@@ -286,7 +286,22 @@ function detectPDFIntent(message) {
     'customer': 'customer_list', 'pelanggan': 'customer_list', 'klien': 'customer_list',
     
     // Deals
-    'deal': 'deals_list', 'penawaran': 'deals_list', 'kesepakatan': 'deals_list',
+    'deal': 'deals_list', 'penawaran': 'deals_list', 'kesepakatan': 'deals_list', 'deals closed won': 'deals_closed_won',
+  'deals won': 'deals_closed_won',
+  'deals menang': 'deals_closed_won',
+  'deals kalah': 'deals_closed_lost', 
+  'deals lost': 'deals_closed_lost',
+  'deal won': 'deals_closed_won',
+  'deal menang': 'deals_closed_won',
+  'deal kalah': 'deals_closed_lost', 
+  'deal lost': 'deals_closed_lost',
+  'closed lost': 'deals_closed_lost',
+  'deals prospect': 'deals_open',
+  'deals negotiation': 'deals_nego',
+  'deals negosiasi': 'deals_nego',
+  'deal prospek': 'deals_open',
+  'deals progress': 'deals_open',
+  'deal progress': 'deals_open',
     
     // Invoice
     'invoice': 'invoice_list', 'tagihan': 'invoice_unpaid', 'faktur': 'invoice_unpaid',
@@ -295,8 +310,9 @@ function detectPDFIntent(message) {
     'ticket': 'tickets_list', 'tiket': 'tickets_list', 'issue': 'tickets_list',
     
     // Services
-    'service': 'services_list', 'layanan': 'services_list', 'jasa': 'services_list',
-    
+    'service': 'rekap_services', 'layanan': 'rekap_services', 'jasa': 'rekap_services', 'service cctv': 'service_cctv', 'cctv': 'service_cctv', 'service trunk': 'service_trunk', 'sip trunk': 'service_trunk', 'service cloud': 'service_cloud', 'cloud service': 'service_cloud',
+    'layanan cctv': 'service_cctv', 'servis cctv': 'service_cctv', 'layanan trunk': 'service_trunk', 'servis trunk': 'service_trunk', 'sip trunk': 'service_trunk', 'service cloud': 'service_cloud', 'layanan cloud': 'service_cloud',
+    'servis cloud': 'service_cloud', 'servis': 'rekap_services',
     // Campaigns
     'campaign': 'campaign_list', 'kampanye': 'campaign_list', 'promosi': 'campaign_list',
     
@@ -383,6 +399,23 @@ function extractParameters(message) {
     }
   }
   
+  const dealStages = ['prospect', 'negotiation', 'closed won', 'closed lost'];
+  for (const stage of dealStages) {
+    if (message.toLowerCase().includes(stage)) {
+      params.stage = stage;
+      break;
+    }
+  }
+  
+  // 3. Parse service type
+  const serviceTypes = ['cctv', 'trunk', 'cloud', 'sip'];
+  for (const service of serviceTypes) {
+    if (message.toLowerCase().includes(service)) {
+      params.serviceType = service;
+      break;
+    }
+  }
+
   return params;
 }
 
