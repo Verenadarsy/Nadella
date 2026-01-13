@@ -5,13 +5,11 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
-// Helper: Parse dan apply date filter ke query
 function applyDateFilterToQuery(baseQuery, dateFilter) {
   if (!dateFilter || !baseQuery) return baseQuery;
   
   console.log(`📅 Applying date filter: ${dateFilter.display}`);
   
-  // Cari kolom tanggal yang tepat
   let dateColumn = dateFilter.column || 'created_at';
   if (!dateColumn && baseQuery.includes('tanggal_dibuat')) dateColumn = 'tanggal_dibuat';
   else if (!dateColumn && baseQuery.includes('tanggal')) dateColumn = 'tanggal';
@@ -19,16 +17,9 @@ function applyDateFilterToQuery(baseQuery, dateFilter) {
   
   console.log(`📍 Using date column: ${dateColumn}`);
   
-  // Hapus ORDER BY clause sementara untuk memudahkan
   let queryWithoutOrder = baseQuery.replace(/ORDER BY.*$/i, '').trim();
-  
-  // Hapus WHERE clause yang ada (jika ada)
   queryWithoutOrder = queryWithoutOrder.replace(/WHERE\s+.+$/i, '').trim();
-  
-  // Hapus semicolon di akhir
   queryWithoutOrder = queryWithoutOrder.replace(/;\s*$/, '');
-  
-  // Tambahkan WHERE clause berdasarkan tipe filter
   let whereClause = '';
   
   switch(dateFilter.type) {
@@ -49,17 +40,13 @@ function applyDateFilterToQuery(baseQuery, dateFilter) {
   
   // Gabungkan query
   let finalQuery = queryWithoutOrder + whereClause;
-  
-  // Tambahkan ORDER BY kembali jika ada di original query
   const orderByMatch = baseQuery.match(/ORDER BY(.+)$/i);
   if (orderByMatch) {
     finalQuery += ` ORDER BY${orderByMatch[1]}`;
   } else {
-    // Default order by date column desc
     finalQuery += ` ORDER BY ${dateColumn} DESC`;
   }
   
-  // Hapus semicolon ganda dan pastikan hanya satu
   finalQuery = finalQuery.replace(/;\s*;/, ';').trim();
   if (!finalQuery.endsWith(';')) {
     finalQuery += ';';
@@ -69,7 +56,6 @@ function applyDateFilterToQuery(baseQuery, dateFilter) {
   return finalQuery;
 }
 
-// Helper: Format date untuk display di PDF
 function formatDateForDisplay(dateFilter) {
   if (!dateFilter) return '';
   
@@ -93,6 +79,260 @@ function formatDateForDisplay(dateFilter) {
     default:
       return dateFilter.display || '';
   }
+}
+
+// =======================================
+// HELPER FUNCTIONS FOR FOREIGN KEY RESOLUTION
+// =======================================
+
+async function resolveForeignKeysForTable(supabase, rows, tableName) {
+  if (!rows || rows.length === 0) return rows;
+  
+  const enhancedRows = [...rows];
+  const fkConfig = getForeignKeyConfig(tableName);
+  
+  for (const config of fkConfig) {
+    await resolveSingleForeignKey(supabase, enhancedRows, config);
+  }
+  return enhancedRows;
+}
+
+function getForeignKeyConfig(tableName) {
+  const tableLower = tableName.toLowerCase();
+  const configs = {
+    'invoices': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' }
+    ],
+    'deals': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' },
+      { fkField: 'company_id', refTable: 'companies', idField: 'company_id', nameField: 'company_name', outputField: 'company_name' }
+    ],
+    'tickets': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' },
+      { fkField: 'assigned_to', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'assigned_name' }
+    ],
+    'activities': [
+      { fkField: 'assigned_to', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'assigned_name'}
+    ],
+    'teams': [
+      { fkField: 'manager_id', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'manager_name'}
+    ],
+    'customers': [
+      { fkField: 'pic_id', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'pic_name'}
+    ]
+  };
+  
+  for (const [key, config] of Object.entries(configs)) {
+    if (tableLower.includes(key) || key.includes(tableLower)) {
+      return config;
+    }
+  }
+  
+  return [];
+}
+
+async function resolveSingleForeignKey(supabase, rows, config) {
+  const { fkField, refTable, nameField, outputField } = config;
+  
+  // 🔒 HARD MAP PRIMARY KEY (ANTI ERROR)
+  const primaryKeyMap = {
+    users: 'user_id',
+    customers: 'customer_id',
+    invoices: 'invoice_id',
+    deals: 'deal_id',
+    tickets: 'ticket_id',
+    companies: 'company_id',
+    teams: 'team_id',
+    products: 'product_id'
+  };
+
+  const primaryKey = primaryKeyMap[refTable];
+
+  if (!primaryKey) {
+    console.warn(`⚠️ Unknown primary key for table ${refTable}`);
+    return;
+  }
+
+  const uniqueIds = [...new Set(
+    rows.map(row => row[fkField]).filter(Boolean)
+  )];
+
+  if (uniqueIds.length === 0) return;
+
+  console.log(`🔍 Resolving FK ${fkField} → ${refTable}.${primaryKey}`);
+
+  const { data, error } = await supabase
+    .from(refTable)
+    .select(`${primaryKey}, ${nameField}`)
+    .in(primaryKey, uniqueIds);
+
+  if (error) {
+    console.error(`❌ Error fetching ${refTable}:`, error.message);
+    return;
+  }
+
+  const idToName = new Map();
+  data.forEach(item => {
+    idToName.set(
+      item[primaryKey],
+      item[nameField] || `ID: ${item[primaryKey]}`
+    );
+  });
+
+  rows.forEach(row => {
+    const id = row[fkField];
+    row[outputField] = idToName.get(id) || (id ? `ID: ${id}` : '-');
+  });
+}
+
+// Fungsi helper untuk formatting berdasarkan tabel
+function formatTableData(enhancedRows, tableName) {
+  let formattedRows = [];
+  let formattedHeaders = [];
+  
+  const tableLower = tableName.toLowerCase();
+  
+  // Format khusus berdasarkan nama tabel
+  if (tableLower.includes('ticket')) {
+    formattedRows = enhancedRows.map((item, index) => ({
+      'No': index + 1,
+      'ID': item.id || item.ticket_id || '-',
+      'Masalah': item.issue_type || item.issue || '-',
+      'Status': item.status || '-',
+      'Prioritas': item.priority || '-',
+      'Ditugaskan ke': item.assigned_name || '-',
+      'Pelanggan': item.customer_name || '-',
+      'Tanggal Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy HH:mm') : '-'
+    }));
+    formattedHeaders = ['No', 'ID', 'Masalah', 'Status', 'Prioritas', 'Ditugaskan ke', 'Pelanggan', 'Tanggal Dibuat'];
+  }
+  else if (tableLower.includes('invoice')) {
+    formattedRows = enhancedRows.map((item, index) => ({
+      'No': index + 1,
+      'Nomor Invoice': item.id || item.invoice_id || '-',
+      'Pelanggan': item.customer_name || '-',
+      'Jumlah': item.amount ? `Rp ${Number(item.amount).toLocaleString('id-ID')}` : '-',
+      'Status': item.status || '-',
+      'Tanggal Jatuh Tempo': item.due_date ? format(new Date(item.due_date), 'dd/MM/yyyy') : '-',
+      'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
+    }));
+    formattedHeaders = ['No', 'Nomor Invoice', 'Pelanggan', 'Jumlah', 'Status', 'Tanggal Jatuh Tempo', 'Dibuat'];
+  }
+  else if (tableLower.includes('deal')) {
+    formattedRows = enhancedRows.map((item, index) => ({
+      'No': index + 1,
+      'ID': item.id || item.deal_id || '-',
+      'Nama Deal': item.deal_name || item.name || '-',
+      'Pelanggan': item.customer_name || '-',
+      'Perusahaan': item.company_name || '-',
+      'Nilai': item.deal_value ? `Rp ${Number(item.deal_value).toLocaleString('id-ID')}` : '-',
+      'Tahapan': item.deal_stage || item.stage || '-',
+      'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-',
+      'Tanggal Tenggat': item.expected_close_date ? format(new Date(item.expected_close_date), 'dd/MM/yyyy') : '-'
+    }));
+    formattedHeaders = ['No', 'ID', 'Nama Deal', 'Pelanggan', 'Perusahaan', 'Nilai', 'Tahapan', 'Dibuat', 'Tanggal Tenggat'];
+  }
+  else if (tableLower.includes('team')) {
+    formattedRows = enhancedRows.map((item, index) => ({
+      'No': index + 1,
+      'ID': item.id || item.team_id || '-',
+      'Nama Tim': item.team_name || item.name || '-',
+      'Manager': item.manager_name || '-',
+      'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
+    }));
+    formattedHeaders = ['No', 'ID', 'Nama Tim', 'Manager', 'Dibuat'];
+  }
+  else if (tableLower.includes('customer') || tableLower.includes('pelanggan')) {
+    formattedRows = enhancedRows.map((item, index) => ({
+      'No': index + 1,
+      'ID': item.id || item.customer_id || '-',
+      'Nama': item.name || item.nama || '-',
+      'Email': item.email || '-',
+      'Telepon': item.phone || item.telepon || '-',
+      'Alamat': (item.address || item.alamat || '').substring(0, 50),
+      'PIC': item.pic_name || '-',
+      'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
+    }));
+    formattedHeaders = ['No', 'ID', 'Nama', 'Email', 'Telepon', 'Alamat', 'PIC', 'Dibuat'];
+  }
+  else if (tableLower.includes('product') || tableLower.includes('produk')) {
+    formattedRows = enhancedRows.map((item, index) => ({
+      'No': index + 1,
+      'ID': item.id || item.product_id || '-',
+      'Nama Produk': item.product_name || item.name || '-',
+      'Harga': item.price ? `Rp ${Number(item.price).toLocaleString('id-ID')}` : '-',
+      'Deskripsi': (item.description || item.deskripsi || '').substring(0, 50),
+      'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
+    }));
+    formattedHeaders = ['No', 'ID', 'Nama Produk', 'Harga', 'Deskripsi', 'Dibuat'];
+  }
+  else {
+    // Default formatting (jika tidak ada mapping khusus)
+    if (enhancedRows.length > 0) {
+      const sampleRow = enhancedRows[0];
+      const rawHeaders = Object.keys(sampleRow);
+      
+      // Filter out unwanted columns
+      const filteredHeaders = rawHeaders.filter(header => 
+        !['manager_id', 'customer_id', 'assigned_to', 'user_id', 'pic_id'].includes(header.toLowerCase())
+      );
+      
+      // Format headers
+      formattedHeaders = ['No', ...filteredHeaders.map(header => 
+        header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      )];
+      
+      // Format rows
+      formattedRows = enhancedRows.map((row, index) => {
+        const formattedRow = { 'No': index + 1 };
+        
+        filteredHeaders.forEach(header => {
+          const value = row[header];
+          let formattedValue = value;
+          
+          // Format dates
+          if (header.includes('date') || header.includes('created') || header.includes('timestamp')) {
+            if (value) {
+              try {
+                formattedValue = format(new Date(value), 'dd/MM/yyyy HH:mm');
+              } catch (e) {
+                formattedValue = value;
+              }
+            } else {
+              formattedValue = '-';
+            }
+          }
+          
+          // Format currency
+          if ((header.includes('amount') || header.includes('price') || header.includes('value')) && 
+              !isNaN(value) && value !== null && value !== '') {
+            formattedValue = `Rp ${Number(value).toLocaleString('id-ID')}`;
+          }
+          
+          // Format boolean
+          else if (typeof value === 'boolean') {
+            formattedValue = value ? 'Ya' : 'Tidak';
+          }
+          
+          // Handle null/undefined
+          else if (value === null || value === undefined || value === '') {
+            formattedValue = '-';
+          }
+          
+          // Potong teks panjang
+          else if (typeof value === 'string' && value.length > 100) {
+            formattedValue = value.substring(0, 100) + '...';
+          }
+          
+          formattedRow[formattedHeaders[filteredHeaders.indexOf(header) + 1]] = formattedValue || '-';
+        });
+        
+        return formattedRow;
+      });
+    }
+  }
+  
+  return { formattedRows, formattedHeaders };
 }
 
 export async function POST(req) {
@@ -194,78 +434,79 @@ export async function POST(req) {
           currentY += 7;
 
           // ============================================
-          // 4. QUERY LANGSUNG KE TABEL DENGAN DATE FILTER
+          // 4. QUERY LANGSUNG KE TABEL DENGAN DATE FILTER (REVISI AMAN)
           // ============================================
           let rows = [];
           let error = null;
 
           try {
-            // Buat base query
             let queryBuilder = supabase
               .from(table)
               .select("*");
-            
-            // ⭐⭐ PASANG FILTER TANGGAL JIKA ADA ⭐⭐
-            if (parameters && parameters.dateFilter) {
-              console.log(`📅 Applying date filter to ${table}:`, parameters.dateFilter);
-              
-              const dateFilter = parameters.dateFilter;
-              const dateColumn = dateFilter.column || 'created_at';
-              
-              // Berdasarkan tipe filter
-              switch(dateFilter.type) {
-                case 'today':
-                case 'yesterday':
-                case 'specific_date':
-                  queryBuilder = queryBuilder.eq(
-                    dateColumn,
-                    dateFilter.date || dateFilter.startDate
-                  );
+
+            // ⭐ DATE FILTER ⭐
+            if (parameters?.dateFilter) {
+              const { type, date, startDate, endDate, column } = parameters.dateFilter;
+              const dateColumn = column || "created_at";
+
+              switch (type) {
+                case "today":
+                case "yesterday":
+                case "specific_date":
+                  queryBuilder = queryBuilder.eq(dateColumn, date || startDate);
                   break;
-                  
-                case 'this_week':
-                case 'this_month':
-                case 'last_month':
-                case 'this_year':
-                case 'date_range':
+
+                case "this_week":
+                case "this_month":
+                case "last_month":
+                case "this_year":
+                case "date_range":
                   queryBuilder = queryBuilder
-                    .gte(dateColumn, dateFilter.startDate)
-                    .lte(dateColumn, dateFilter.endDate);
+                    .gte(dateColumn, startDate)
+                    .lte(dateColumn, endDate);
                   break;
-                  
-                // 'all_time' tidak perlu filter
               }
             }
-            
-            // Tambahkan limit dan order
+
             queryBuilder = queryBuilder.limit(100);
-            
-            // Coba order by created_at, jika gagal coba id
-            try {
-              const { data, error: orderError } = await queryBuilder.order("created_at", { ascending: false });
-              
-              if (orderError) {
-                // Fallback: order by id
-                const { data: altData, error: altError } = await queryBuilder.order("id", { ascending: false });
-                
-                if (altError) {
-                  // Fallback: tanpa order
-                  const { data: simpleData, error: simpleError } = await queryBuilder;
-                  if (simpleError) throw simpleError;
-                  rows = simpleData || [];
-                } else {
-                  rows = altData || [];
-                }
-              } else {
-                rows = data || [];
-              }
-            } catch (orderErr) {
-              // Final fallback: query tanpa order
-              const { data, error } = await queryBuilder;
-              if (!error) rows = data || [];
-              else throw error;
+
+            // ============================
+            // ORDER BY LOGIC (ANTI ERROR)
+            // ============================
+
+            // mapping primary key per tabel
+            const primaryKeyMap = {
+              customers: "customer_id",
+              invoices: "invoice_id",
+              deals: "deal_id",
+              tickets: "ticket_id",
+              products: "product_id",
+              users: "user_id",
+              teams: "team_id",
+              companies: "company_id"
+            };
+
+            const primaryKey = primaryKeyMap[table];
+
+            // 1️⃣ Coba order by created_at
+            let result = await queryBuilder.order("created_at", { ascending: false });
+
+            // 2️⃣ Jika gagal, coba primary key yang BENAR
+            if (result.error && primaryKey) {
+              console.warn(`⚠️ created_at gagal di ${table}, coba ${primaryKey}`);
+              result = await queryBuilder.order(primaryKey, { ascending: false });
             }
-            
+
+            // 3️⃣ Jika masih gagal, TANPA order (AMAN)
+            if (result.error) {
+              console.warn(`⚠️ Order gagal di ${table}, fetch tanpa order`);
+              const fallback = await queryBuilder;
+              if (fallback.error) throw fallback.error;
+              rows = fallback.data || [];
+            } else {
+              rows = result.data || [];
+            }
+
           } catch (fetchError) {
             error = fetchError;
             console.warn(`⚠️ Could not fetch table ${table}:`, fetchError.message);
@@ -292,129 +533,69 @@ export async function POST(req) {
 
           console.log(`✅ Table ${table}: ${rows.length} rows`);
           
+
+          let enhancedRows = rows;
+          if (['invoices','deals','tickets','activities','teams','customers'].some(t => table.toLowerCase().includes(t))) {
+            try {
+              enhancedRows = await resolveForeignKeysForTable(supabase, rows, table);
+              console.log(`🔗 Resolved foreign keys for ${table}`);
+            } catch (fkError) {
+              console.warn(`⚠️ Failed to resolve foreign keys for ${table}:`, fkError.message);
+              // Tetap gunakan rows asli jika gagal
+              enhancedRows = rows;
+            }
+          }
+
           processedTables++;
           totalRecords += rows.length;
 
           // ============================================
           // 6. FORMAT DATA UNTUK TABEL SPESIFIK
           // ============================================
-          let formattedRows = rows;
-          let formattedHeaders = rows.length > 0 ? Object.keys(rows[0]) : [];
-          
-          // Format khusus berdasarkan nama tabel
-          switch(table.toLowerCase()) {
-            case 'products':
-              formattedRows = rows.map(item => ({
-                'ID': item.id || item.product_id,
-                'Nama Produk': item.product_name || item.name,
-                'Harga': item.price ? `Rp ${Number(item.price).toLocaleString('id-ID')}` : '-',
-                'Deskripsi': (item.description || item.deskripsi || '').substring(0, 50),
-                'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
-              }));
-              formattedHeaders = ['ID', 'Nama Produk', 'Harga', 'Deskripsi', 'Dibuat'];
-              break;
-              
-            case 'customers':
-              formattedRows = rows.map(item => ({
-                'ID': item.id || item.customer_id,
-                'Nama': item.name || item.nama,
-                'Email': item.email || '-',
-                'Telepon': item.phone || item.telepon || '-',
-                'Status': item.status || '-',
-                'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
-              }));
-              formattedHeaders = ['ID', 'Nama', 'Email', 'Telepon', 'Status', 'Dibuat'];
-              break;
-              
-            case 'invoices':
-              formattedRows = rows.map(item => ({
-                'ID': item.id || item.invoice_id,
-                'Customer ID': item.customer_id || '-',
-                'Amount': item.amount ? `Rp ${Number(item.amount).toLocaleString('id-ID')}` : '-',
-                'Status': item.status || '-',
-                'Due Date': item.due_date ? format(new Date(item.due_date), 'dd/MM/yyyy') : '-',
-                'Created': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
-              }));
-              formattedHeaders = ['ID', 'Customer ID', 'Amount', 'Status', 'Due Date', 'Created'];
-              break;
-              
-            case 'deals':
-              formattedRows = rows.map(item => ({
-                'ID': item.id || item.deal_id,
-                'Deal Name': item.deal_name || item.name,
-                'Customer ID': item.customer_id || '-',
-                'Value': item.deal_value ? `Rp ${Number(item.deal_value).toLocaleString('id-ID')}` : '-',
-                'Stage': item.deal_stage || '-',
-                'Created': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
-              }));
-              formattedHeaders = ['ID', 'Deal Name', 'Customer ID', 'Value', 'Stage', 'Created'];
-              break;
-              
-            case 'tickets':
-              formattedRows = rows.map(item => ({
-                'ID': item.id || item.ticket_id,
-                'Issue': item.issue_type || item.issue || '-',
-                'Status': item.status || '-',
-                'Priority': item.priority || '-',
-                'Assigned To': item.assigned_to || '-',
-                'Created': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
-              }));
-              formattedHeaders = ['ID', 'Issue', 'Status', 'Priority', 'Assigned To', 'Created'];
-              break;
-              
-            default:
-              // Format default: ubah snake_case ke Title Case
-              if (rows.length > 0) {
-                const sampleRow = rows[0];
-                formattedHeaders = Object.keys(sampleRow).map(key => 
-                  key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                );
-                
-                formattedRows = rows.map(row => {
-                  const formatted = {};
-                  Object.keys(row).forEach((key, idx) => {
-                    const value = row[key];
-                    let formattedValue = value;
-                    
-                    // Format tanggal
-                    if (key.includes('date') || key.includes('created') || key.includes('timestamp')) {
-                      if (value) {
-                        try {
-                          formattedValue = format(new Date(value), 'dd/MM/yyyy');
-                        } catch (e) {
-                          formattedValue = value;
-                        }
-                      }
-                    }
-                    
-                    // Format currency
-                    if ((key.includes('amount') || key.includes('price') || key.includes('value')) && 
-                        !isNaN(value) && value !== '') {
-                      formattedValue = `Rp ${Number(value).toLocaleString('id-ID')}`;
-                    }
-                    
-                    formatted[formattedHeaders[idx]] = formattedValue;
-                  });
-                  return formatted;
-                });
-              }
-              break;
-          }
+          const { formattedRows, formattedHeaders } = formatTableData(enhancedRows, table);
 
+          console.log(`🔍 DEBUG: Table ${table}`);
+          console.log(`🔍 formattedHeaders:`, formattedHeaders);
+          console.log(`🔍 formattedRows[0] keys:`, Object.keys(formattedRows[0] || {}));
+          console.log(`🔍 formattedRows[0] values:`, formattedRows[0]);
+
+          // Cek apakah semua header ada di row
+          if (formattedRows.length > 0) {
+            const sampleRow = formattedRows[0];
+            formattedHeaders.forEach(header => {
+              if (!sampleRow.hasOwnProperty(header)) {
+                console.warn(`⚠️ Header "${header}" tidak ditemukan di row!`);
+              }
+            });
+          }
           // ============================================
           // 7. RENDER TABLE KE PDF
           // ============================================
           if (formattedRows.length > 0 && formattedHeaders.length > 0) {
-            const bodyData = formattedRows.map(row => 
-              formattedHeaders.map(header => row[header] || '-')
-            );
+            // PERBAIKAN: Gunakan headers yang telah diformat untuk mengambil data
+            const bodyData = formattedRows.map(row => {
+              return formattedHeaders.map(header => {
+                // Cek apakah row memiliki properti ini
+                if (row.hasOwnProperty(header)) {
+                  return row[header] || '-';
+                } else {
+                  // Jika tidak, coba cari dengan nama yang mirip (case insensitive)
+                  const foundKey = Object.keys(row).find(key => 
+                    key.toLowerCase() === header.toLowerCase()
+                  );
+                  return foundKey ? row[foundKey] || '-' : '-';
+                }
+              });
+            });
             
             // Column width logic
             const columnStyles = {};
             formattedHeaders.forEach((header, index) => {
               const h = header.toLowerCase();
               
-              if (h.includes('id')) columnStyles[index] = { cellWidth: 25 };
+              if (h === 'no') {columnStyles[index] = { cellWidth: 15, halign: 'center' };
+            }
+              else if (h.includes('id')) columnStyles[index] = { cellWidth: 25 };
               else if (h.includes('date') || h.includes('dibuat') || h.includes('created')) columnStyles[index] = { cellWidth: 25 };
               else if (h.includes('name') || h.includes('nama')) columnStyles[index] = { cellWidth: 40 };
               else if (h.includes('email')) columnStyles[index] = { cellWidth: 45 };
@@ -423,6 +604,7 @@ export async function POST(req) {
               else columnStyles[index] = { cellWidth: 30 };
             });
 
+            
             autoTable(doc, {
               startY: currentY,
               head: [formattedHeaders],
@@ -836,6 +1018,18 @@ export async function POST(req) {
       result = [];
     }
 
+    // ⭐⭐ TAMBAHKAN FOREIGN KEY RESOLUTION DI SINI ⭐⭐
+  let enhancedResult = result;
+  if (['invoices', 'deals', 'tickets', 'activities', 'teams']
+    .some(t => preset.intent.toLowerCase().includes(t) || preset.description.toLowerCase().includes(t))) {
+    try {
+      enhancedResult = await resolveForeignKeysForTable(supabase, result, preset.intent);
+      console.log(`🔗 Resolved foreign keys for preset: ${preset.intent}`);
+    } catch (fkError) {
+      console.warn(`⚠️ Failed to resolve foreign keys:`, fkError.message);
+    }
+  }
+
     // =======================================
     // GENERATE PDF
     // =======================================
@@ -872,52 +1066,63 @@ export async function POST(req) {
     }
 
     // =======================================
-    // SMART TABLE RENDERING DENGAN WIDTH FIX
+    // SMART TABLE RENDERING DENGAN FORMATTING YANG KONSISTEN
     // =======================================
     const startY = parameters && Object.keys(parameters).length > 0 ? 50 : 45;
-    
-    if (Array.isArray(result) && result.length > 0) {
-      const headers = Object.keys(result[0]);
-      const rows = result.map(row => Object.values(row));
+
+    if (Array.isArray(enhancedResult) && enhancedResult.length > 0) {
+      // ⭐⭐ GUNAKAN FUNGSI FORMATTING YANG SAMA DENGAN MODE REKAP
+      const { formattedRows, formattedHeaders } = formatTableData(enhancedResult, preset.intent);
       
-      // Auto column width logic dengan adjustment
+      console.log(`🔍 DEBUG MODE QUERY PRESET:`);
+      console.log(`🔍 Preset intent: ${preset.intent}`);
+      console.log(`🔍 Formatted headers:`, formattedHeaders);
+      console.log(`🔍 Formatted rows sample:`, formattedRows[0]);
+      
+      // Buat body data untuk PDF
+      const bodyData = formattedRows.map(row => 
+        formattedHeaders.map(header => row[header] || '-')
+      );
+      
+      // Column width logic
       const columnStyles = {};
       const pageWidth = doc.internal.pageSize.width;
       const margin = 14;
       const availableWidth = pageWidth - (2 * margin);
       let totalWidth = 0;
       
-      headers.forEach((header, index) => {
+      formattedHeaders.forEach((header, index) => {
         const h = header.toLowerCase();
         let cellWidth;
         
-        if (h.includes('id') || h === 'uuid') {
+        if (h === 'no') {
+          cellWidth = 15;
+        }
+        else if (h.includes('id') || h === 'uuid') {
           cellWidth = 25;
         } 
-        else if (h.includes('date') || h.includes('tanggal') || h.includes('created') || h.includes('timestamp')) {
-          cellWidth = 30;
+        else if (h.includes('tanggal') || h.includes('date') || h.includes('dibuat') || h.includes('created')) {
+          cellWidth = 35;
         }
-        else if (h.includes('name') || h.includes('nama')) {
+        else if (h.includes('nama') || h.includes('name')) {
           cellWidth = 40;
         }
         else if (h.includes('email')) {
-          cellWidth = 45;
+          cellWidth = 50;
         }
-        else if (h.includes('amount') || h.includes('harga') || h.includes('price') || h.includes('value')) {
+        else if (h.includes('harga') || h.includes('price') || h.includes('jumlah') || 
+                h.includes('amount') || h.includes('total') || h.includes('value')) {
+          cellWidth = 40;
+        }
+        else if (h.includes('telepon') || h.includes('phone')) {
           cellWidth = 35;
-          // Format currency jika angka
-          rows.forEach((row, rowIndex) => {
-            if (row[index] && !isNaN(row[index]) && row[index] !== null && row[index] !== '') {
-              rows[rowIndex][index] = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-              }).format(Number(row[index]));
-            }
-          });
         }
         else if (h.includes('status')) {
-          cellWidth = 20;
+          cellWidth = 25;
+        }
+        else if (h.includes('deskripsi') || h.includes('description') || 
+                h.includes('catatan') || h.includes('notes')) {
+          cellWidth = 60;
         }
         else {
           cellWidth = 30;
@@ -927,30 +1132,33 @@ export async function POST(req) {
         totalWidth += cellWidth;
       });
       
-      // Adjust jika total width melebihi available width
+      // Adjust width jika terlalu lebar
       if (totalWidth > availableWidth) {
         const ratio = availableWidth / totalWidth;
-        headers.forEach((_, index) => {
+        formattedHeaders.forEach((_, index) => {
           columnStyles[index].cellWidth *= ratio;
-          columnStyles[index].cellWidth = Math.max(columnStyles[index].cellWidth, 15);
+          columnStyles[index].cellWidth = Math.max(columnStyles[index].cellWidth, 20);
         });
       }
-
+      
+      // Generate table
       autoTable(doc, {
         startY: startY,
-        head: [headers],
-        body: rows,
+        head: [formattedHeaders],
+        body: bodyData,
         theme: "grid",
         styles: {
-          fontSize: result.length > 30 ? 7 : 8,
-          cellPadding: 2,
+          fontSize: enhancedResult.length > 30 ? 7 : 8,
+          cellPadding: 3,
           overflow: "linebreak",
           halign: "left",
+          valign: "middle"
         },
         headStyles: {
           fillColor: [52, 152, 219],
           textColor: 255,
-          fontStyle: 'bold'
+          fontStyle: 'bold',
+          halign: 'center'
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245]
@@ -963,7 +1171,7 @@ export async function POST(req) {
           doc.setFontSize(8);
           doc.setTextColor(128);
           doc.text(
-            `Halaman ${data.pageNumber} - Total Data: ${result.length}`,
+            `Halaman ${data.pageNumber} - Total Data: ${enhancedResult.length}`,
             data.settings.margin.left,
             doc.internal.pageSize.height - 10
           );

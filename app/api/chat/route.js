@@ -289,7 +289,7 @@ function detectPDFIntent(message) {
     'deal': 'deals_list', 'penawaran': 'deals_list', 'kesepakatan': 'deals_list',
     
     // Invoice
-    'invoice': 'invoice_unpaid', 'tagihan': 'invoice_unpaid', 'faktur': 'invoice_unpaid',
+    'invoice': 'invoice_list', 'tagihan': 'invoice_unpaid', 'faktur': 'invoice_unpaid',
     
     // Tickets
     'ticket': 'tickets_list', 'tiket': 'tickets_list', 'issue': 'tickets_list',
@@ -314,9 +314,6 @@ function detectPDFIntent(message) {
     
     // Teams
     'tim': 'teams_list', 'team': 'teams_list', 'anggota': 'teams_list',
-    
-    // UMUM
-    'data': 'product_list', 'list': 'product_list', 'daftar': 'product_list'
   };
   
   // Cari intent terbaik (prioritaskan yang lebih spesifik)

@@ -31,7 +31,8 @@
     "react-markdown": "^10.1.0",
     "recharts": "^3.4.1",
     "resend": "^6.5.2",
-    "sweetalert2": "^11.23.0"
+    "supabase": "^2.72.4",
+    "sweetalert2": "^11.26.17"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
