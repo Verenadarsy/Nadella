@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import SectionLoader from '../components/sectionloader'
 import { useLanguage } from '@/lib/languageContext'
+import FloatingChat from "../floatingchat"
 
 export default function InvoicesPage() {
   const { language, t } = useLanguage()
@@ -879,6 +880,7 @@ export default function InvoicesPage() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }

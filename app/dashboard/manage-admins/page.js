@@ -7,6 +7,7 @@ import {
   ChevronDown, Shield, Search, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff
 } from 'lucide-react'
 import { useLanguage } from '@/lib/languageContext'
+import FloatingChat from "../floatingchat"
 
 export default function ManageUsers() {
   const { language, t } = useLanguage()
@@ -722,6 +723,7 @@ export default function ManageUsers() {
           </div>
         )}
       </div>
+      <FloatingChat />
     </div>
   )
 }
