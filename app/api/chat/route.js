@@ -4,6 +4,7 @@ import { format, parse, startOfMonth, endOfMonth, startOfYear,
          endOfYear, startOfWeek, endOfWeek, subDays, subMonths, 
          subYears, isValid } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { getWIB } from "@/app/utils/getWIB";
 
 // ============================================
 // DATE PARSER UTILITY FUNCTIONS
@@ -600,7 +601,7 @@ function formatPDFSuccessResponse(pdfResult, intent, parameters) {
     reply += `📅 Periode: ${parameters.dateFilter.display}\n`;
   }
   
-  reply += `\n⏰ Waktu Generate: ${format(new Date(), 'HH:mm')}`;
+  reply += `\n⏰ Waktu Generate: ${format(getWIB(), 'HH:mm')}`;
   
   if (pdfResult.period) {
     reply += `\n🗓️ Rentang: ${pdfResult.period}`;

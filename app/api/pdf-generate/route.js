@@ -4,19 +4,8 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { getWIB } from "@/app/utils/getWIB";
 
-
-function getWIB() {
-  const now = new Date();
-  
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  if (isProduction) {
-    return new Date(now.getTime() + (7 * 60 * 60 * 1000));
-  }
-  
-  return now;
-}
 
 function applyDateFilterToQuery(baseQuery, dateFilter) {
   if (!dateFilter || !baseQuery) return baseQuery;
