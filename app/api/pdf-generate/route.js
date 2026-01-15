@@ -8,7 +8,14 @@ import { id as idLocale } from "date-fns/locale";
 
 function getWIB() {
   const now = new Date();
-  return new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction) {
+    return new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  }
+  
+  return now;
 }
 
 function applyDateFilterToQuery(baseQuery, dateFilter) {
@@ -462,7 +469,7 @@ export async function POST(req) {
       // ============================================
       const doc = new jsPDF({ orientation: "landscape" });
       
-      const tanggal = format(new Date(), "d MMMM yyyy, HH.mm", {
+      const tanggal = format(getWIB(), "d MMMM yyyy, HH.mm", {
         locale: idLocale,
       });
 
@@ -1108,7 +1115,7 @@ export async function POST(req) {
     // =======================================
     const doc = new jsPDF({ orientation: "landscape" });
 
-    const tanggal = format(new Date(), "d MMMM yyyy, HH.mm", {
+    const tanggal = format(getWIB(), "d MMMM yyyy, HH.mm", {
       locale: idLocale,
     });
 
