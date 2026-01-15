@@ -31,7 +31,7 @@ export function detectStrategy(question) {
   // =====================
   const dataEntities = [
     // Core business
-    "deal", "ticket", "tiket", "customer", "produk", "product", 
+    "deal", "ticket", "tiket", "customer", "pelanggan", "produk", "product", 
     "barang", "invoice", "faktur", "service", "layanan", "servis",
     
     // Marketing & Activities
@@ -45,7 +45,10 @@ export function detectStrategy(question) {
     "cctv", "cloud", "sip", "trunk", "gcp", "aws",
     
     // Teams
-    "team", "tim"
+    "team", "tim", "manager", "manajer",
+
+    //customer
+    "pic"
   ];
   
   const hasDataEntity = dataEntities.some(entity => q.includes(entity));

@@ -351,6 +351,20 @@ async function handleDataQuery(table, question, strategy, filters) {
   console.log(`Found ${data?.length || 0} records`);
 
   // =====================
+  // RESOLVE FOREIGN KEYS (NEW!)
+  // =====================
+  let enhancedData = data;
+  if (data && data.length > 0) {
+    try {
+      enhancedData = await resolveForeignKeysForTable(supabase, data, table);
+      console.log("✅ Foreign keys resolved for AI query");
+    } catch (fkError) {
+      console.warn("⚠️ Foreign key resolution failed:", fkError.message);
+      // Continue with original data if FK resolution fails
+    }
+  }
+
+  // =====================
   // FORMAT RESPONSE
   // =====================
   if (!data || data.length === 0) {
@@ -446,5 +460,98 @@ async function handleSemanticQuery(table, question) {
       sources: [],
       type: "error"
     });
+  }
+}
+
+// =====================
+// FOREIGN KEY RESOLUTION FUNCTIONS
+// =====================
+
+async function resolveForeignKeysForTable(supabase, rows, tableName) {
+  if (!rows || rows.length === 0) return rows;
+  
+  const enhancedRows = [...rows];
+  const fkConfig = getForeignKeyConfig(tableName);
+  
+  for (const config of fkConfig) {
+    await resolveSingleForeignKey(supabase, enhancedRows, config);
+  }
+  return enhancedRows;
+}
+
+function getForeignKeyConfig(tableName) {
+  const tableLower = tableName.toLowerCase();
+  const configs = {
+    'teams': [
+      { fkField: 'manager_id', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'manager_name'}
+    ],
+    'tickets': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' },
+      { fkField: 'assigned_to', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'assigned_name' }
+    ],
+    'customers': [
+      { fkField: 'pic_id', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'pic_name'},
+      { fkField: 'company_id', refTable: 'companies', idField: 'company_id', nameField: 'company_name', outputField: 'company_name' },
+    ],
+    'deals': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' },
+      { fkField: 'company_id', refTable: 'companies', idField: 'company_id', nameField: 'company_name', outputField: 'company_name' }
+    ],
+    'invoices': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' }
+    ],
+    'activities': [
+      { fkField: 'assigned_to', refTable: 'users', idField: 'user_id', nameField: 'name', outputField: 'assigned_name'}
+    ],
+    'services': [
+      { fkField: 'customer_id', refTable: 'customers', idField: 'customer_id', nameField: 'name', outputField: 'customer_name' }
+    ]
+  };
+  
+  for (const [key, config] of Object.entries(configs)) {
+    if (tableLower.includes(key) || key.includes(tableLower)) {
+      return config;
+    }
+  }
+  
+  return [];
+}
+
+async function resolveSingleForeignKey(supabase, rows, config) {
+  const { fkField, refTable, idField, nameField, outputField } = config;
+  
+  const uniqueIds = [...new Set(
+    rows.map(row => row[fkField]).filter(Boolean)
+  )];
+
+  if (uniqueIds.length === 0) return;
+
+  console.log(`🔍 Resolving FK ${fkField} → ${refTable}.${idField}`);
+
+  try {
+    const { data, error } = await supabase
+      .from(refTable)
+      .select(`${idField}, ${nameField}`)
+      .in(idField, uniqueIds);
+
+    if (error) {
+      console.error(`❌ Error fetching ${refTable}:`, error.message);
+      return;
+    }
+
+    const idToName = new Map();
+    data.forEach(item => {
+      idToName.set(
+        item[idField],
+        item[nameField] || `ID: ${item[idField]}`
+      );
+    });
+
+    rows.forEach(row => {
+      const id = row[fkField];
+      row[outputField] = idToName.get(id) || (id ? `ID: ${id}` : '-');
+    });
+  } catch (error) {
+    console.warn(`⚠️ FK resolution failed for ${fkField}:`, error.message);
   }
 }

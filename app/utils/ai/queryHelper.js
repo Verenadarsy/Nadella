@@ -10,8 +10,12 @@ export function formatDataForAI(data, table) {
     
     // Ambil kolom-kolom penting berdasarkan nama
     for (const [key, value] of Object.entries(item)) {
-      // Skip kolom id dan metadata
-      if (key.includes('_id') || key === 'id' || key === 'uuid') continue;
+      // Skip kolom id dan metadata, tapi izinkan foreign keys
+      const isPrimaryKey = key === 'id' || key === 'uuid' ||
+                          key.endsWith('_id') && !key.includes('_') ||
+                          key === table.slice(0, -1) + '_id'; // e.g., 'team_id' for teams table
+      
+      if (isPrimaryKey) continue;
       if (key.includes('password') || key.includes('hash')) continue;
       
       // Format berdasarkan tipe data
