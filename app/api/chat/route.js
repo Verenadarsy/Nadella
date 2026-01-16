@@ -812,6 +812,7 @@ export async function POST(req) {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
+          "x-service-token": process.env.INTERNAL_SERVICE_TOKEN,
           ...(req.headers.get("authorization") && { 
             "Authorization": req.headers.get("authorization") 
           })
