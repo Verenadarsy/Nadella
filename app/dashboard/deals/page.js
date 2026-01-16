@@ -146,7 +146,15 @@ export default function DealsPage() {
     e.preventDefault()
 
     const method = isEditing ? 'PUT' : 'POST'
-    const payload = isEditing ? { ...formData, deal_id: editingId } : formData
+
+    const payload = {
+      ...formData,
+      company_id: formData.company_id || null
+    }
+
+    if (isEditing) {
+      payload.deal_id = editingId
+    }
 
     const res = await fetch('/api/deals', {
       method,
@@ -475,7 +483,7 @@ export default function DealsPage() {
             {/* Deal Value */}
             <div>
               <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                {texts.dealValue} (Rp)
+                {texts.dealValue}
               </label>
 
               <div className="relative">
@@ -764,6 +772,9 @@ export default function DealsPage() {
                 }`}
               >
                 {texts.company}
+                <span className={`text-xs ml-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  ({language === 'id' ? 'Opsional' : 'Optional'})
+                </span>
               </label>
 
               {/* Button */}

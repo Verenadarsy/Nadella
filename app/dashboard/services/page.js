@@ -683,7 +683,8 @@ export default function ServicesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={texts.searchServices}
-                className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
+                className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm
+                  sm:text-base rounded-lg border-2 transition-colors outline-none ${
                   darkMode
                     ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:border-blue-500'
                     : 'bg-white border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'

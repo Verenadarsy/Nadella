@@ -33,6 +33,8 @@ export default function InvoicesPage() {
   const [sortBy, setSortBy] = useState(null) // null, 'customer', atau 'status'
   const [sortDirection, setSortDirection] = useState('asc')
   const [userRole, setUserRole] = useState('')
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calendarDate, setCalendarDate] = useState(new Date())
 
   useEffect(() => {
     const roleCookie = document.cookie
@@ -374,6 +376,84 @@ export default function InvoicesPage() {
       : <ArrowDown className="w-4 h-4" />
   }
 
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+
+    const days = []
+
+    // Empty cells untuk hari sebelum tanggal 1
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null)
+    }
+
+    // Tanggal aktual
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day)
+    }
+
+    return days
+  }
+
+  const formatMonthYear = (date) => {
+    return date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  const isToday = (day) => {
+    if (!day) return false
+    const today = new Date()
+    return (
+      day === today.getDate() &&
+      calendarDate.getMonth() === today.getMonth() &&
+      calendarDate.getFullYear() === today.getFullYear()
+    )
+  }
+
+  const isSelected = (day) => {
+    if (!day || !formData.due_date) return false
+    const selected = new Date(formData.due_date + 'T00:00:00')
+    return (
+      day === selected.getDate() &&
+      calendarDate.getMonth() === selected.getMonth() &&
+      calendarDate.getFullYear() === selected.getFullYear()
+    )
+  }
+
+  const handleDateSelect = (day) => {
+    if (!day) return
+    const year = calendarDate.getFullYear()
+    const month = String(calendarDate.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    setFormData({ ...formData, due_date: `${year}-${month}-${dayStr}` })
+    setShowCalendar(false)
+  }
+
+  const changeMonth = (offset) => {
+    const newDate = new Date(calendarDate)
+    newDate.setMonth(newDate.getMonth() + offset)
+    setCalendarDate(newDate)
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showCalendar && !e.target.closest('.calendar-container')) {
+        setShowCalendar(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCalendar])
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* FORM */}
@@ -518,53 +598,180 @@ export default function InvoicesPage() {
               </div>
             </div>
 
-            {/* Due Date */}
-            <div>
-              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
+            {/* Due Date - CUSTOM CALENDAR */}
+            <div className="relative calendar-container">
+              <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
                 {texts.dueDate}
               </label>
-              <div className="relative cursor-pointer"
+
+              {/* Custom Date Button */}
+              <button
+                type="button"
                 onClick={() => {
                   if (!(userRole === 'admin' && isEditing)) {
-                    document.getElementById("dueDateInput").showPicker()
+                    setShowCalendar(!showCalendar)
+                    if (!formData.due_date) {
+                      setCalendarDate(new Date())
+                    } else {
+                      setCalendarDate(new Date(formData.due_date + 'T00:00:00'))
+                    }
                   }
                 }}
-              >
-                <Calendar className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none ${
-                  darkMode ? "text-slate-500" : "text-slate-400"
-                }`} />
-
-                <input
-                  id="dueDateInput"
-                  type="date"
-                  name="due_date"
-                  value={formData.due_date}
-                  onChange={handleChange}
-                  disabled={userRole === 'admin' && isEditing}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-
-                <div className={`w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
+                disabled={userRole === 'admin' && isEditing}
+                className={`w-full flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border-2 transition-colors ${
                   userRole === 'admin' && isEditing
                     ? (darkMode ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed')
                     : (darkMode
-                      ? "bg-slate-700 border-slate-600 text-white"
-                      : "bg-white border-gray-200 text-slate-900")
+                      ? "bg-slate-700 border-slate-600 text-white hover:border-blue-500"
+                      : "bg-white border-gray-200 text-slate-900 hover:border-blue-600")
+                }`}
+              >
+                <Calendar className={`w-4 h-4 sm:w-5 sm:h-5 ${darkMode ? "text-slate-400" : "text-slate-500"}`} />
+                <span className={formData.due_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
+                  {formData.due_date
+                    ? new Date(formData.due_date + 'T00:00:00').toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })
+                    : (language === 'id' ? 'Pilih tanggal' : 'Select date')
+                  }
+                </span>
+              </button>
+
+              {/* Custom Calendar Popup */}
+              {showCalendar && !(userRole === 'admin' && isEditing) && (
+                <div className={`absolute mt-2 z-50 rounded-xl shadow-2xl border-2 p-4 w-80 ${
+                  darkMode
+                    ? 'bg-slate-800 border-slate-600'
+                    : 'bg-white border-gray-200'
                 }`}>
-                  <span className={formData.due_date ? "" : (darkMode ? "text-slate-500" : "text-slate-400")}>
-                    {formData.due_date
-                      ? new Date(formData.due_date + 'T00:00:00').toLocaleDateString('id-ID', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : "dd/mm/yyyy"
-                    }
-                  </span>
+                  {/* Header - Month/Year Navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      type="button"
+                      onClick={() => changeMonth(-1)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        darkMode
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <ChevronDown className="w-5 h-5 rotate-90" />
+                    </button>
+
+                    <h3 className={`font-semibold ${
+                      darkMode ? 'text-white' : 'text-slate-900'
+                    }`}>
+                      {formatMonthYear(calendarDate)}
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() => changeMonth(1)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        darkMode
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <ChevronDown className="w-5 h-5 -rotate-90" />
+                    </button>
+                  </div>
+
+                  {/* Days of Week - MULTI LANGUAGE */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {(language === 'id'
+                      ? ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+                      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                    ).map((day) => (
+                      <div
+                        key={day}
+                        className={`text-center text-xs font-semibold py-2 ${
+                          darkMode ? 'text-slate-400' : 'text-gray-600'
+                        }`}
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {getDaysInMonth(calendarDate).map((day, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleDateSelect(day)}
+                        disabled={!day}
+                        className={`
+                          aspect-square rounded-lg text-sm font-medium transition-all
+                          ${!day ? 'invisible' : ''}
+                          ${isToday(day) && !isSelected(day)
+                            ? (darkMode
+                              ? 'bg-blue-600/20 text-blue-400 border-2 border-blue-600/50'
+                              : 'bg-blue-100 text-blue-700 border-2 border-blue-300')
+                            : ''
+                          }
+                          ${isSelected(day)
+                            ? (darkMode
+                              ? 'bg-blue-600 text-white shadow-lg scale-105'
+                              : 'bg-blue-600 text-white shadow-lg scale-105')
+                            : ''
+                          }
+                          ${!isToday(day) && !isSelected(day)
+                            ? (darkMode
+                              ? 'text-slate-300 hover:bg-slate-700 hover:scale-105'
+                              : 'text-gray-700 hover:bg-gray-100 hover:scale-105')
+                            : ''
+                          }
+                        `}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Footer Buttons - MULTI LANGUAGE */}
+                  <div className={`flex gap-2 mt-4 pt-4 border-t ${
+                    darkMode ? 'border-slate-700' : 'border-gray-200'
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date()
+                        const year = today.getFullYear()
+                        const month = String(today.getMonth() + 1).padStart(2, '0')
+                        const day = String(today.getDate()).padStart(2, '0')
+                        setFormData({ ...formData, due_date: `${year}-${month}-${day}` })
+                        setShowCalendar(false)
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                        darkMode
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Hari Ini' : 'Today'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, due_date: '' })
+                        setShowCalendar(false)
+                      }}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                        darkMode
+                          ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Hapus' : 'Clear'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Status */}
