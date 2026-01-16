@@ -443,7 +443,8 @@ export default function CustomersPage() {
                             value={picSearch}
                             onChange={(e) => setPicSearch(e.target.value)}
                             placeholder={texts.searchPIC}
-                            className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
+                            className={`w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2
+                              text-sm sm:text-base rounded-lg border-2 transition-colors outline-none ${
                               darkMode
                                 ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:border-blue-500'
                                 : 'bg-gray-50 border-gray-200 text-slate-900 placeholder-slate-400 focus:border-blue-600'
@@ -606,7 +607,8 @@ export default function CustomersPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={texts.searchCustomers}
-                className={`w-full pl-9 pr-3 sm:pl-10 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                className={`w-full pl-9 pr-3 sm:pl-10 sm:pr-4 py-2 text-sm sm:text-base rounded-lg border
+                  focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
                   darkMode
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
