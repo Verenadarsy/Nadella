@@ -475,7 +475,7 @@ export default function DealsPage() {
             {/* Deal Value */}
             <div>
               <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                {texts.dealValue} (Rp)
+                {texts.dealValue}
               </label>
 
               <div className="relative">
@@ -764,6 +764,9 @@ export default function DealsPage() {
                 }`}
               >
                 {texts.company}
+                <span className={`text-xs ml-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  ({language === 'id' ? 'Opsional' : 'Optional'})
+                </span>
               </label>
 
               {/* Button */}
@@ -785,7 +788,7 @@ export default function DealsPage() {
                   {formData.company_id
                     ? companies.find((c) => c.company_id === formData.company_id)
                         ?.company_name
-                    : texts.selectCompany}
+                    : `${texts.selectCompany} (${language === 'id' ? 'Opsional' : 'Optional'})`}
                 </span>
                 <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
               </button>

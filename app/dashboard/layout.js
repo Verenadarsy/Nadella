@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }) {
   const toggleDarkMode = () => {
     const newMode = !darkMode
     setDarkMode(newMode)
-    localStorage.setItem('darkMode', newMode.toString()) // SAVE KE LOCALSTORAGE
+    localStorage.setItem('darkMode', newMode.toString())
   }
 
   const handleLogout = () => {
@@ -433,7 +433,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
-        {/* Page Content */}
+        {/* Content */}
         <main>
           {children}
         </main>
