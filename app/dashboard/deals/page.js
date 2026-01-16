@@ -146,7 +146,15 @@ export default function DealsPage() {
     e.preventDefault()
 
     const method = isEditing ? 'PUT' : 'POST'
-    const payload = isEditing ? { ...formData, deal_id: editingId } : formData
+
+    const payload = {
+      ...formData,
+      company_id: formData.company_id || null
+    }
+
+    if (isEditing) {
+      payload.deal_id = editingId
+    }
 
     const res = await fetch('/api/deals', {
       method,
@@ -788,7 +796,7 @@ export default function DealsPage() {
                   {formData.company_id
                     ? companies.find((c) => c.company_id === formData.company_id)
                         ?.company_name
-                    : `${texts.selectCompany} (${language === 'id' ? 'Opsional' : 'Optional'})`}
+                    : texts.selectCompany}
                 </span>
                 <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
               </button>
