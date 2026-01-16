@@ -67,8 +67,7 @@ export async function PUT(req) {
           email: null,        // Email belum ada
           user_id: null,      // User belum dibuat
           phone: null,
-          address: null,
-          status: 'customer'
+          address: null
         })
         .select()
         .single()
