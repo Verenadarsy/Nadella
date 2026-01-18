@@ -7,6 +7,7 @@ import DealsStageChart from "./components/dealstagechart";
 import TicketChart from "./components/ticketchart";
 import ActivityChart from "./components/activitychart";
 import SectionLoader from "./components/sectionloader";
+import AlertHandler from "./components/alerthandler"; 
 import { useLanguage } from '@/lib/languageContext'
 
 export default function DashboardHome() {
@@ -48,6 +49,9 @@ export default function DashboardHome() {
 
   return (
   <div className="p-6 max-w-7xl mx-auto relative space-y-6">
+    {/* Alert Handler Component */}
+    <AlertHandler />
+
     {/* Banner */}
     <div
       className={`rounded-2xl p-6 sm:p-8 shadow-xl text-white transition-all duration-300 ${

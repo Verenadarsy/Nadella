@@ -270,31 +270,128 @@ async function handleDataQuery(table, question, strategy, filters) {
   console.log("Applying strategy:", strategy);
   
   if (strategy === "count") {
-    const { count, error } = await supabase
-      .from(table)
-      .select("*", { count: "exact", head: true });
-
-    if (error) throw error;
-
+    console.log("🔄 Executing COUNT query");
+    
+    let countQuery = supabase.from(table).select("*", { count: "exact", head: true });
+    
+    // Simple date filter detection
+    const lowerQuestion = question.toLowerCase();
+    const today = new Date();
+    
+    let dateFilterApplied = false;
+    let filterStart = null;
+    let filterEnd = null;
+    
+    if (lowerQuestion.includes("bulan ini")) {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      
+      filterStart = startOfMonth.toISOString().split('T')[0] + "T00:00:00";
+      filterEnd = endOfMonth.toISOString().split('T')[0] + "T23:59:59";
+      
+      countQuery = countQuery.gte("created_at", filterStart).lte("created_at", filterEnd);
+      dateFilterApplied = true;
+      console.log("✅ Applied 'bulan ini' filter to count query");
+    }
+    
+    if (lowerQuestion.includes("minggu ini")) {
+      // Gunakan ISO week (Senin-Minggu)
+      const day = today.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() + diffToMonday);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      
+      filterStart = startOfWeek.toISOString().split('T')[0] + "T00:00:00";
+      filterEnd = endOfWeek.toISOString().split('T')[0] + "T23:59:59";
+      
+      countQuery = countQuery.gte("created_at", filterStart).lte("created_at", filterEnd);
+      dateFilterApplied = true;
+      console.log("✅ Applied 'minggu ini' filter to count query");
+    }
+    
+    if (lowerQuestion.includes("hari ini")) {
+      const todayStr = today.toISOString().split('T')[0];
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      filterStart = todayStr + "T00:00:00";
+      filterEnd = tomorrowStr + "T00:00:00";
+      
+      countQuery = countQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+      dateFilterApplied = true;
+      console.log("✅ Applied 'hari ini' filter to count query");
+    }
+    
+    const { count, error } = await countQuery;
+    
+    if (error) {
+      console.error("Count query error:", error);
+      throw error;
+    }
+    
+    console.log(`📊 Count result: ${count || 0} records`);
+    
+    // ========== FIX: AMBIL SAMPLE DATA UNTUK SOURCES ==========
+    let sampleData = [];
+    if (count > 0) {
+      // Ambil 3-5 sample data dengan filter yang sama
+      let sampleQuery = supabase.from(table).select("*").limit(5);
+      
+      if (dateFilterApplied && filterStart && filterEnd) {
+        if (lowerQuestion.includes("hari ini")) {
+          sampleQuery = sampleQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+        } else {
+          sampleQuery = sampleQuery.gte("created_at", filterStart).lte("created_at", filterEnd);
+        }
+      }
+      
+      sampleQuery = sampleQuery.order("created_at", { ascending: false });
+      
+      const { data: sample, error: sampleError } = await sampleQuery;
+      if (!sampleError && sample) {
+        sampleData = sample;
+        console.log(`📋 Got ${sampleData.length} sample records for sources`);
+      }
+    }
+    
     // Format count response
     const answer = await askAI(
       question,
       JSON.stringify({
         table: table,
         count: count || 0,
+        hasDateFilter: dateFilterApplied,
+        sampleCount: sampleData.length,
         filters: Object.keys(filters).length > 0 ? filters : null
       }),
       { 
         responseType: "data",
-        customPrompt: "User menanyakan jumlah data. Berikan jawaban berdasarkan informasi jumlah data yang tersedia."
+        customPrompt: `User menanyakan jumlah data. Berikan jawaban berdasarkan informasi jumlah data yang tersedia.
+        ${count === 0 ? 'Tidak ada data yang ditemukan.' : `Ditemukan ${count} data.`}
+        ${sampleData.length > 0 ? 'Sebutkan beberapa contoh data yang ditemukan.' : ''}`
       }
     );
     
+    // ========== FIX: RETURN SOURCES DARI SAMPLE DATA ==========
     return Response.json({
       question,
       answer,
-      sources: [],
-      type: "count"
+      sources: sampleData.map(d => ({
+        source_table: table,
+        source_id: getSourceId(d, table),
+        sample_info: d.name || d.customer_id || d.id || "Data sample"
+      })),
+      type: "count",
+      metadata: {
+        totalCount: count || 0,
+        sampleSize: sampleData.length,
+        hasDateFilter: dateFilterApplied,
+        table: table
+      }
     });
   }
 

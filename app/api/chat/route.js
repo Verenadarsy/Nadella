@@ -909,6 +909,7 @@ export async function POST(req) {
           type: ragData.type || "chat",
           dataCount: ragData.sources?.length || 0,
           dateFilter: dateFilter,
+          isCountQuery: true,
           suggestedPdf: hasDataKeywords,
           sources: ragData.sources?.slice(0, 3) || [],
           timestamp: new Date().toISOString()

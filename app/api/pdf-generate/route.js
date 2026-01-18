@@ -319,7 +319,7 @@ function formatTableData(enhancedRows, tableName) {
       'Email': item.email || '-',
       'Telepon': item.phone || item.telepon || '-',
       'Alamat': (item.address || item.alamat || '').substring(0, 50),
-      'PIC': item.pic_name || '-',
+      'PIC': item.pic_name  || item.pic_id || '-',
       'Dibuat': item.created_at ? format(new Date(item.created_at), 'dd/MM/yyyy') : '-'
     }));
     formattedHeaders = ['No', 'ID', 'Nama', 'Email', 'Telepon', 'Alamat', 'PIC', 'Dibuat'];
@@ -1089,7 +1089,7 @@ export async function POST(req) {
 
     // ⭐⭐ TAMBAHKAN FOREIGN KEY RESOLUTION DI SINI ⭐⭐
   let enhancedResult = result;
-  if (['invoices', 'deals', 'tickets', 'activities', 'teams']
+  if (['invoices', 'deals', 'tickets', 'activities', 'teams', 'customers']
     .some(t => preset.intent.toLowerCase().includes(t) || preset.description.toLowerCase().includes(t))) {
     try {
       enhancedResult = await resolveForeignKeysForTable(supabase, result, preset.intent);
