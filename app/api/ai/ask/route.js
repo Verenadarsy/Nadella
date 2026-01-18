@@ -400,7 +400,7 @@ async function handleDataQuery(table, question, strategy, filters) {
   return Response.json({
     question,
     answer,
-    sources: data.slice(0, 5).map(d => ({
+    sources: data.map(d => ({
       source_table: table,
       source_id: getSourceId(d, table)  // Gunakan helper function
     })),
