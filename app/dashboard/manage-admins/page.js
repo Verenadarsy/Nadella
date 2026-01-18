@@ -54,21 +54,6 @@ export default function ManageUsers() {
     }
   }, [roleOpen])
 
-  useEffect(() => {
-    const roleCookie = document.cookie
-      .split("; ")
-      .find((r) => r.startsWith("userRole="))
-      ?.split("=")[1];
-
-    if (roleCookie !== 'superadmin') {
-      showAlert({
-        icon: 'error',
-        title: 'Access Denied',
-        text: 'Only Superadmin can access this page'
-      }, darkMode).then(() => router.push('/dashboard'));
-    }
-  }, []);
-
   // Filter dan Sort users
   useEffect(() => {
     let result = [...users];
@@ -506,7 +491,7 @@ export default function ManageUsers() {
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
               <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              {texts.generatePassword}
+              Generate secure password automatically
             </label>
           </div>
 

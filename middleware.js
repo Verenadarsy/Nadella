@@ -71,12 +71,7 @@ export async function middleware(req) {
   ];
 
   const isPublicRoute = publicRoutes.some(route => pathname === route);
-
-  // Check if current path is public
-  const isPublicRoute = publicRoutes.some(route =>
-    pathname === route || pathname.startsWith(route)
-  );
-
+parent of c8383b8 (manage admins access)
   if (isPublicRoute) {
     console.log(`✅ Public route (no auth): ${pathname}`);
     return NextResponse.next();
@@ -291,10 +286,6 @@ export async function middleware(req) {
         headers: requestHeaders,
       },
     });
-  }
-
-  if (pathname.startsWith('/dashboard/manage-admins') && role !== 'superadmin') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // ======================================================
