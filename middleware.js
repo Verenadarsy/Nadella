@@ -30,12 +30,12 @@ export async function middleware(req) {
     '/favicon.ico',
     '/api/health',
     '/api/public',
-    
+
     // Chat & AI routes (biarkan handle auth di masing-masing endpoint)
     '/api/chat',
     '/api/ai/ask',
     '/api/pdf-generate',
-    
+
     // Auth routes
     '/api/auth',
     '/login',
@@ -44,7 +44,7 @@ export async function middleware(req) {
 
   // Cek apakah route termasuk yang boleh skip auth
   const shouldSkipAuth = skipAuthRoutes.some(route => pathname.startsWith(route));
-  
+
   if (shouldSkipAuth) {
     console.log(`✅ Skipping auth for: ${pathname}`);
     return NextResponse.next();
@@ -61,7 +61,7 @@ export async function middleware(req) {
   ];
 
   const isPublicRoute = publicRoutes.some(route => pathname === route);
-  
+
   if (isPublicRoute) {
     console.log(`🌐 Public route: ${pathname}`);
     return NextResponse.next();
@@ -72,25 +72,25 @@ export async function middleware(req) {
   // ======================================================
   if (!token) {
     console.log('❌ No token found, redirecting to login');
-    
+
     // Untuk API routes, return 401 JSON
     if (pathname.startsWith('/api/')) {
       return new NextResponse(
-        JSON.stringify({ 
-          error: 'Unauthorized', 
+        JSON.stringify({
+          error: 'Unauthorized',
           message: 'Authentication required',
           redirect: '/login'
         }),
-        { 
-          status: 401, 
-          headers: { 
+        {
+          status: 401,
+          headers: {
             'Content-Type': 'application/json',
             'Location': '/login'
-          } 
+          }
         }
       );
     }
-    
+
     // Untuk pages, redirect
     return NextResponse.redirect(new URL('/login?auth=required', req.url));
   }
@@ -102,25 +102,25 @@ export async function middleware(req) {
 
   if (!decoded) {
     console.log('❌ Token verification failed');
-    
+
     // Untuk API routes
     if (pathname.startsWith('/api/')) {
       return new NextResponse(
-        JSON.stringify({ 
-          error: 'Unauthorized', 
+        JSON.stringify({
+          error: 'Unauthorized',
           message: 'Invalid token',
           redirect: '/login'
         }),
-        { 
-          status: 401, 
-          headers: { 
+        {
+          status: 401,
+          headers: {
             'Content-Type': 'application/json',
             'Location': '/login?auth=invalid_token'
-          } 
+          }
         }
       );
     }
-    
+
     return NextResponse.redirect(new URL('/login?auth=invalid_token', req.url));
   }
 
@@ -128,14 +128,14 @@ export async function middleware(req) {
 
   if (!userRole) {
     console.log('❌ No role in token');
-    
+
     if (pathname.startsWith('/api/')) {
       return new NextResponse(
         JSON.stringify({ error: 'Invalid token format' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
+
     return NextResponse.redirect(new URL('/login?auth=invalid_token', req.url));
   }
 
@@ -147,36 +147,40 @@ export async function middleware(req) {
   // Client tidak boleh akses dashboard
   if (userRole === 'client' && pathname.startsWith('/dashboard')) {
     console.log(`🚫 Client not allowed → ${pathname}`);
-    
+
     if (pathname.startsWith('/api/dashboard')) {
       return new NextResponse(
         JSON.stringify({ error: 'Forbidden', message: 'Client role cannot access dashboard' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
+
     return NextResponse.redirect(new URL('/client', req.url));
   }
 
   // Admin/Superadmin tidak boleh akses client pages
   if (['admin', 'superadmin'].includes(userRole) && pathname.startsWith('/client')) {
     console.log(`🚫 Admin not allowed → ${pathname}`);
-    
+
     if (pathname.startsWith('/api/client')) {
       return new NextResponse(
         JSON.stringify({ error: 'Forbidden', message: 'Admin role cannot access client pages' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
+
     return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
+  if (pathname.startsWith('/dashboard/manage-admins') && role !== 'superadmin') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // ======================================================
   // ✅ ALLOWED REQUEST
   // ======================================================
   console.log(`✅ Allowed: ${pathname}`);
-  
+
   // Add user info to headers untuk digunakan di API routes
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set('x-user-id', decoded.id || '');
