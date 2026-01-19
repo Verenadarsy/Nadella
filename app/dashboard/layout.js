@@ -408,7 +408,7 @@ export default function DashboardLayout({ children }) {
                 aria-label="Toggle language"
               >
                 <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden xs:inline">{language === 'en' ? 'ID' : 'EN'}</span>
+                <span>{language === 'en' ? 'ID' : 'EN'}</span>
               </button>
 
               {/* Separator */}
