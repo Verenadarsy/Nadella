@@ -59,7 +59,7 @@ export default function AlertHandler() {
           }
         });
       }
-      
+
       else if (alertType === 'client_redirect') {
         Swal.fire({
           title: '📊 Dialihkan',
@@ -74,7 +74,7 @@ export default function AlertHandler() {
           color: '#1565c0',
           iconColor: '#2196f3'
         });
-        
+
         const url = new URL(window.location);
         url.searchParams.delete('alert');
         url.searchParams.delete('message');
@@ -92,7 +92,7 @@ export default function AlertHandler() {
           timer: 4000,
           timerProgressBar: true
         });
-        
+
         const url = new URL(window.location);
         url.searchParams.delete('alert');
         url.searchParams.delete('message');

@@ -14,12 +14,12 @@ export async function POST(req) {
       .single()
 
     if (!user || error) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ code: 'USER_NOT_FOUND' }, { status: 404 })
     }
 
     const match = bcrypt.compareSync(password, user.password_hash)
     if (!match) {
-      return NextResponse.json({ message: 'Incorrect password' }, { status: 401 })
+      return NextResponse.json({ code: 'INVALID_PASSWORD' }, { status: 401 })
     }
 
     const token = jwt.sign(
@@ -32,10 +32,10 @@ export async function POST(req) {
       { expiresIn: process.env.JWT_EXPIRES || '7d' }
     )
 
-    const response = NextResponse.json({ 
-      message: 'Login successful',
+    const response = NextResponse.json({
+      code: 'LOGIN_SUCCESS',
       role: user.role,
-      name: user.name 
+      name: user.name
     }, { status: 200 })
 
     response.cookies.set('token', token, {

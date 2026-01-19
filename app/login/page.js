@@ -60,14 +60,20 @@ export default function LoginPage() {
       const result = await res.json();
 
       if (!res.ok) {
-        showAlert({
-          icon: 'error',
-          title: 'Login Failed',
-          text: result.message,
-        }, darkMode);
-        setIsLoading(false);
-        return;
-      }
+      const errorText =
+        t.login.loginErrors[language][result.code]
+        || t.login.loginErrors[language].SERVER_ERROR
+
+      showAlert({
+        icon: 'error',
+        title: texts.loginFailed,
+        text: errorText,
+      }, darkMode)
+
+      setIsLoading(false)
+      return
+    }
+
 
       await showAlert({
         icon: 'success',
@@ -77,10 +83,10 @@ export default function LoginPage() {
         timer: 1200,
       }, darkMode);
 
-      let targetPath = '/dashboard'; 
+      let targetPath = '/dashboard';
             if (result.role === 'client') {
                 targetPath = '/client';
-            } 
+            }
       window.location.href = targetPath;
     } catch (error) {
       showAlert({
