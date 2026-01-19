@@ -983,7 +983,7 @@ export default function InvoicesPage() {
                   </th>
 
                   {/* ACTIONS - NO SORT */}
-                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold tracking-wider ${
+                  <th className={`px-3 sm:px-6 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-semibold tracking-wider uppercase ${
                     darkMode ? 'text-slate-300' : 'text-gray-600'
                   }`}>
                     {texts.actions}
