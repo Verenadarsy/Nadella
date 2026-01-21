@@ -126,7 +126,7 @@ export default function ManageUsers() {
       showAlert({
         icon: 'warning',
         title: texts.oops,
-        text: 'Name, Email, and Role are required!'
+        text: texts.nameEmailRoleRequired
       }, darkMode)
       return
     }
@@ -136,7 +136,7 @@ export default function ManageUsers() {
       showAlert({
         icon: 'warning',
         title: texts.oops,
-        text: 'Password is required or enable generate password'
+        text: texts.passwordRequired
       }, darkMode)
       return
     }
@@ -155,27 +155,29 @@ export default function ManageUsers() {
     const result = await res.json()
 
     if (res.ok) {
-      // Show different message based on generated password
       if (result.generated_password) {
-        showAlert({
-          icon: 'success',
-          title: editId ? 'User Updated!' : 'User Created!',
-          html: `<div class="text-center">
-            <p class="mb-2">Password has been generated and sent to</p>
-            <p class="font-semibold text-blue-600 dark:text-blue-400">${form.email}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Please check the email inbox for login credentials.</p>
-          </div>`,
-          timer: 3000,
-          showConfirmButton: false
-        }, darkMode)
-      } else {
-        showAlert({
-          icon: 'success',
-          title: editId ? texts.adminUpdated : texts.adminAdded,
-          timer: 1500,
-          showConfirmButton: false
-        }, darkMode)
-      }
+      // Pop-up untuk password generate by sistem
+      showAlert({
+        icon: 'success',
+        title: editId ? texts.userUpdated : texts.passwordGenerated,
+        html: `<div class="text-center">
+          <p class="mb-2">${texts.passwordGeneratedMessage}</p>
+          <p class="font-semibold text-blue-600 dark:text-blue-400">Nadellaart02@gmail.com</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">${texts.checkEmailInbox}</p>
+        </div>`,
+        timer: 3000,
+        showConfirmButton: false
+      }, darkMode)
+    } else {
+      // Pop-up untuk password manual
+      showAlert({
+        icon: 'success',
+        title: editId ? texts.userUpdated : texts.userCreated,
+        text: editId ? texts.userUpdatedMessage : texts.userCreatedMessage,
+        timer: 1500,
+        showConfirmButton: false
+      }, darkMode)
+    }
 
       setForm({ name: '', email: '', password_plain: '', role: '' })
       setEditId(null)
@@ -293,12 +295,12 @@ export default function ManageUsers() {
           {editId ? (
             <>
               <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-              Edit User
+              {texts.editAdmin}
             </>
           ) : (
             <>
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              Add New User
+              {texts.addNewdmin}
             </>
           )}
         </h2>
@@ -310,7 +312,7 @@ export default function ManageUsers() {
               <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Full Name
+                {texts.fullName}
               </label>
               <div className="relative">
                 <User className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
@@ -338,7 +340,7 @@ export default function ManageUsers() {
               <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Email Address
+                {texts.emailAddress}
               </label>
               <div className="relative">
                 <Mail className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
@@ -366,7 +368,7 @@ export default function ManageUsers() {
               <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                User Role
+                {texts.userRole}
               </label>
 
               <button
@@ -402,8 +404,8 @@ export default function ManageUsers() {
                     : 'bg-white border-gray-200'
                 }`}>
                   {[
-                    { value: 'client', label: 'Client', icon: <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
-                    { value: 'admin', label: 'Admin', icon: <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> }
+                    { value: 'client', label: texts.client, icon: <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> },
+                    { value: 'admin', label: texts.admin, icon: <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> }
                   ].map((item) => (
                     <button
                       key={item.value}
@@ -431,7 +433,7 @@ export default function ManageUsers() {
               <label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${
                 darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
-                Password {editId && <span className="text-xs opacity-70">(leave blank to keep current)</span>}
+                {texts.password} {editId && <span className="text-xs opacity-70">(leave blank to keep current)</span>}
               </label>
               <div className="relative">
                 <Lock className={`absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 ${
@@ -491,7 +493,7 @@ export default function ManageUsers() {
               darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}>
               <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Generate secure password automatically
+              {texts.generateSecurePassword}
             </label>
           </div>
 
@@ -509,12 +511,12 @@ export default function ManageUsers() {
               {editId ? (
                 <>
                   <Save className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Update User
+                  {texts.updateAdmin}
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Add User
+                  {texts.addAdmin}
                 </>
               )}
             </button>
@@ -548,7 +550,7 @@ export default function ManageUsers() {
             <h2 className={`text-base sm:text-lg font-semibold ${
               darkMode ? 'text-white' : 'text-slate-900'
             }`}>
-              All Users ({filteredUsers.length})
+              {texts.allUsers} ({filteredUsers.length})
             </h2>
 
             {/* Search Bar */}
@@ -586,12 +588,12 @@ export default function ManageUsers() {
               <p className={`text-base sm:text-lg font-medium ${
                 darkMode ? 'text-slate-400' : 'text-gray-500'
               }`}>
-                {searchQuery ? 'No results found' : 'No users yet'}
+                {searchQuery ? texts.noResultsFound : texts.noUsersYet}
               </p>
               <p className={`text-xs sm:text-sm mt-1 ${
                 darkMode ? 'text-slate-500' : 'text-gray-400'
               }`}>
-                {searchQuery ? 'Try different keywords' : 'Add your first user to get started'}
+                {searchQuery ? texts.tryDifferentKeywords : texts.addFirstUser}
               </p>
             </div>
         ) : (
@@ -627,7 +629,7 @@ export default function ManageUsers() {
                       onClick={() => handleSort('role')}
                       className="flex items-center gap-2 hover:text-blue-500 transition-colors uppercase"
                     >
-                      Role
+                      {texts.role}
                       {getSortIcon('role')}
                     </button>
                   </th>
