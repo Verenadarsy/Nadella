@@ -91,7 +91,7 @@ export async function POST(req) {
     // ➤ Response
     return new Response(JSON.stringify({
       ...data,
-      generated_password: plainPassword
+      generated_password: !!plainPassword
     }), { status: 201 })
 
   } catch (err) {
@@ -145,7 +145,7 @@ export async function PUT(req) {
 
     // ➤ Return dengan generated password jika ada
     const response = plainPassword
-      ? { ...data, generated_password: plainPassword }
+      ? { ...data, generated_password: true }
       : data
 
     return new Response(JSON.stringify(response), { status: 200 })
