@@ -321,7 +321,7 @@ export default function ManageUsers() {
                 <input
                   type="text"
                   name="name"
-                  placeholder="Enter full name"
+                  placeholder={texts.namePlaceholder}
                   value={form.name}
                   onChange={handleChange}
                   autoComplete="name"
@@ -349,7 +349,7 @@ export default function ManageUsers() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="Enter email address"
+                  placeholder={texts.emailPlaceholder}
                   value={form.email}
                   onChange={handleChange}
                   autoComplete="email"
@@ -389,7 +389,7 @@ export default function ManageUsers() {
                   {!form.role && <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
 
                   {/* Label */}
-                  {!form.role ? 'Select User Role' : form.role === 'client' ? 'Client' : 'Admin'}
+                  {!form.role ? texts.rolePlaceholder : form.role === 'client' ? 'Client' : 'Admin'}
                 </span>
 
                 <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform ${roleOpen ? 'rotate-180' : ''} ${
@@ -442,7 +442,11 @@ export default function ManageUsers() {
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password_plain"
-                  placeholder={editId ? "Leave blank to keep current" : "Enter password"}
+                  placeholder={
+                    generatePassword
+                      ? (language === 'en' ? 'Will be generated' : 'Akan dibuat sistem')
+                      : (editId ? texts.passwordPlaceholderEdit : texts.passwordPlaceholder)
+                  }
                   value={form.password_plain}
                   onChange={handleChange}
                   autoComplete="new-password"
