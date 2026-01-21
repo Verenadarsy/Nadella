@@ -122,6 +122,8 @@ export default function ManageUsers() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    const submittedEmail = form.email
+
     if (!form.name || !form.email || !form.role) {
       showAlert({
         icon: 'warning',
@@ -161,7 +163,7 @@ export default function ManageUsers() {
           title: editId ? texts.userUpdated : texts.passwordGenerated,
           html: `<div class="text-center">
             <p class="mb-2">${texts.passwordGeneratedMessage}</p>
-            <p class="font-semibold text-blue-600 dark:text-blue-400">${form.email}</p>
+            <p class="font-semibold text-blue-600 dark:text-blue-400">${submittedEmail}</p>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">${texts.checkEmailInbox}</p>
           </div>`,
           timer: 3000,
