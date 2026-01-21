@@ -39,12 +39,15 @@ export async function POST(req) {
     const body = await req.json()
 
     let plainPassword = null
+    let isPasswordGenerated = false
 
     // ➤ Cek apakah user request generate password
     if (body.generate_password) {
       plainPassword = generatePassword()
+      isPasswordGenerated = true
     } else if (body.password_plain) {
       plainPassword = body.password_plain
+      isPasswordGenerated = false
     } else {
       return new Response(JSON.stringify({
         error: "Password is required or enable generate_password"
@@ -64,6 +67,11 @@ export async function POST(req) {
 
     if (error) {
       console.error("Database error:", error)
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        return new Response(JSON.stringify({
+          error: "Email already exists. Please use a different email address."
+        }), { status: 409 })
+      }
       return new Response(JSON.stringify({ error: "Failed to create user" }), { status: 500 })
     }
 
@@ -91,7 +99,7 @@ export async function POST(req) {
     // ➤ Response
     return new Response(JSON.stringify({
       ...data,
-      generated_password: !!plainPassword
+      generated_password: isPasswordGenerated
     }), { status: 201 })
 
   } catch (err) {
@@ -107,12 +115,15 @@ export async function PUT(req) {
     const body = await req.json()
 
     let plainPassword = null
+    let isPasswordGenerated = false
 
     // ➤ Handle password update
     if (body.generate_password) {
       plainPassword = generatePassword()
+      isPasswordGenerated = true
     } else if (body.password_plain) {
       plainPassword = body.password_plain
+      isPasswordGenerated = false
     }
 
     // ➤ Clean up dan hash password jika ada
@@ -128,6 +139,13 @@ export async function PUT(req) {
 
     if (error) {
       console.error("Database error:", error)
+
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        return new Response(JSON.stringify({
+          error: "Email already exists. Please use a different email address."
+        }), { status: 409 })
+      }
+
       return new Response(JSON.stringify({ error: "Failed to update user" }), {
         status: 500
       })
@@ -144,9 +162,9 @@ export async function PUT(req) {
     }
 
     // ➤ Return dengan generated password jika ada
-    const response = plainPassword
+    const response = isPasswordGenerated
       ? { ...data, generated_password: true }
-      : data
+      : { ...data, generated_password: false }
 
     return new Response(JSON.stringify(response), { status: 200 })
 

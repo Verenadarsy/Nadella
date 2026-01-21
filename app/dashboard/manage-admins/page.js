@@ -131,7 +131,6 @@ export default function ManageUsers() {
       return
     }
 
-    // Validation: password required if not editing and not generating
     if (!editId && !generatePassword && !form.password_plain) {
       showAlert({
         icon: 'warning',
@@ -155,43 +154,53 @@ export default function ManageUsers() {
     const result = await res.json()
 
     if (res.ok) {
+      // ✅ SUCCESS - Request berhasil
       if (result.generated_password) {
-      // Pop-up untuk password generate by sistem
-      showAlert({
-        icon: 'success',
-        title: editId ? texts.userUpdated : texts.passwordGenerated,
-        html: `<div class="text-center">
-          <p class="mb-2">${texts.passwordGeneratedMessage}</p>
-          <p class="font-semibold text-blue-600 dark:text-blue-400">Nadellaart02@gmail.com</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">${texts.checkEmailInbox}</p>
-        </div>`,
-        timer: 3000,
-        showConfirmButton: false
-      }, darkMode)
-    } else {
-      // Pop-up untuk password manual
-      showAlert({
-        icon: 'success',
-        title: editId ? texts.userUpdated : texts.userCreated,
-        text: editId ? texts.userUpdatedMessage : texts.userCreatedMessage,
-        timer: 1500,
-        showConfirmButton: false
-      }, darkMode)
-    }
+        showAlert({
+          icon: 'success',
+          title: editId ? texts.userUpdated : texts.passwordGenerated,
+          html: `<div class="text-center">
+            <p class="mb-2">${texts.passwordGeneratedMessage}</p>
+            <p class="font-semibold text-blue-600 dark:text-blue-400">${form.email}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">${texts.checkEmailInbox}</p>
+          </div>`,
+          timer: 3000,
+          showConfirmButton: false
+        }, darkMode)
+      } else {
+        showAlert({
+          icon: 'success',
+          title: editId ? texts.userUpdated : texts.userCreated,
+          text: editId ? texts.userUpdatedMessage : texts.userCreatedMessage,
+          timer: 1500,
+          showConfirmButton: false
+        }, darkMode)
+      }
 
       setForm({ name: '', email: '', password_plain: '', role: '' })
       setEditId(null)
       setGeneratePassword(false)
       setRoleOpen(false)
       fetchUsers()
+
     } else {
-      showAlert({
-        icon: 'error',
-        title: texts.failed,
-        text: result.error || texts.errorSaving
-      }, darkMode)
+      // ❌ ERROR - Request gagal
+      if (res.status === 409) {
+        showAlert({
+          icon: 'error',
+          title: texts.emailAlreadyExists,
+          text: texts.emailExistsMessage
+        }, darkMode)
+      } else {
+        showAlert({
+          icon: 'error',
+          title: texts.failed,
+          text: result.error || texts.errorSaving
+        }, darkMode)
+      }
     }
   }
+
 
   const handleEdit = (user) => {
     setEditId(user.user_id)
@@ -300,7 +309,7 @@ export default function ManageUsers() {
           ) : (
             <>
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              {texts.addNewdmin}
+              {texts.addNewAdmin}
             </>
           )}
         </h2>
