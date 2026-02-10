@@ -419,7 +419,7 @@ async function handleDataQuery(table, question, strategy, filters) {
   else {
     // Default untuk list queries
     query = applyDateOrdering(query, table, "desc");
-    query = query.limit(hasDateFilter || hasSpecialFilter ? 20 : 10);
+    query = query.limit(hasDateFilter || hasSpecialFilter ? 20 : 100);
   }
 
   // =====================

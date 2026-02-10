@@ -27,20 +27,16 @@ export async function middleware(req) {
   // 🟢 PUBLICLY ACCESSIBLE ROUTES (NO AUTH NEEDED)
   // ======================================================
   const publicRoutes = [
-    // Static assets
     '/_next/',
     '/static/',
     '/favicon.ico',
     '/manifest.json',
-    
-    // Auth pages
     '/login',
     '/register',
     '/api/auth/',
-    
-    // Health check & monitoring
     '/api/health',
     '/api/public/',
+    '/', // Tambahkan landing page jika ada
   ];
 
   // Check if current path is public
@@ -54,7 +50,7 @@ export async function middleware(req) {
   }
 
   // ======================================================
-  // 🔵 PROTECTED BUT INTERNAL ROUTES (NEED SPECIAL HANDLING)
+  // 🔵 INTERNAL/API ROUTES (DIPERBAIKI)
   // ======================================================
   const internalRoutes = [
     '/api/chat',
@@ -71,12 +67,31 @@ export async function middleware(req) {
     
     // OPTION 1: Check for Service Token (for server-to-server calls)
     const serviceToken = req.headers.get('x-service-token');
-    if (serviceToken === process.env.INTERNAL_SERVICE_TOKEN) {
-      console.log('✅ Internal service call authenticated');
-      return NextResponse.next();
+    
+    if (serviceToken) {
+      console.log('🔧 Checking service token...');
+      if (serviceToken === process.env.INTERNAL_SERVICE_TOKEN) {
+        console.log('✅ Internal service call authenticated');
+        return NextResponse.next();
+      } else {
+        console.log('❌ Invalid service token');
+        return new NextResponse(
+          JSON.stringify({ 
+            error: 'Invalid service token', 
+            message: 'Service token tidak valid',
+            code: 'INVALID_SERVICE_TOKEN'
+          }),
+          { 
+            status: 401, 
+            headers: { 
+              'Content-Type': 'application/json',
+            } 
+          }
+        );
+      }
     }
     
-    // OPTION 2: Check JWT token (for user calls)
+    // OPTION 2: Check JWT token (for authenticated users)
     if (token) {
       const decoded = await verifyToken(token);
       if (decoded) {
@@ -93,27 +108,60 @@ export async function middleware(req) {
             headers: requestHeaders,
           },
         });
+      } else {
+        console.log('❌ Token invalid for internal route');
       }
     }
     
-    // ✅ OPTION 3: Allow in DEVELOPMENT mode only (FIXED)
+    // OPTION 3: Allow in DEVELOPMENT mode only
     if (isDevelopment) {
       console.log('🛠️ DEV MODE: Allowing internal route without auth');
+      
+      // Jika ada token di dev, tetap decode dan set headers
+      if (token) {
+        const decoded = await verifyToken(token);
+        if (decoded) {
+          const requestHeaders = new Headers(req.headers);
+          requestHeaders.set('x-user-id', decoded.id || '');
+          requestHeaders.set('x-user-email', decoded.email || '');
+          requestHeaders.set('x-user-role', decoded.role || 'user');
+          
+          return NextResponse.next({
+            request: {
+              headers: requestHeaders,
+            },
+          });
+        }
+      }
+      
       return NextResponse.next();
     }
     
-    // If none of the above, require auth (PRODUCTION mode)
+    // OPTION 4: For production - Check API key or other methods
+    const apiKey = req.headers.get('x-api-key');
+    if (apiKey && apiKey === process.env.API_KEY) {
+      console.log('✅ API key authenticated');
+      return NextResponse.next();
+    }
+    
+    // Jika tidak ada authentication method yang valid
     console.log('❌ Internal route requires authentication');
     return new NextResponse(
       JSON.stringify({ 
         error: 'Authentication required', 
-        message: 'Please login or provide service token',
-        code: 'AUTH_REQUIRED'
+        message: 'Harap login atau berikan token/service key',
+        code: 'AUTH_REQUIRED',
+        allowed_methods: [
+          'x-service-token',
+          'jwt-token-in-cookie',
+          'x-api-key (development only)'
+        ]
       }),
       { 
         status: 401, 
         headers: { 
           'Content-Type': 'application/json',
+          'WWW-Authenticate': 'Bearer realm="Internal API", error="invalid_token"'
         } 
       }
     );
