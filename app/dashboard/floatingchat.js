@@ -217,7 +217,7 @@ export default function FloatingChat() {
                   <div className="space-y-1.5 sm:space-y-2">
                     {[
                       "rekap customer bulan ini",
-                      "cari customer bernama Budi",
+                      "cari customer bernama Nada",
                       "buat laporan deal Desember 2025"
                     ].map((query, i) => (
                       <button
