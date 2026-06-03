@@ -2,7 +2,7 @@
 export function formatDataForAI(data, table) {
   if (!data || data.length === 0) return { message: "Tidak ada data" };
 
-  const limitedData = data.slice(0, 10);
+  const limitedData = data.slice(0, 100);
   
   // Format umum untuk semua tabel
   const formatItem = (item) => {
